@@ -8,7 +8,9 @@ import java.util.function.Function;
 
 @Slf4j
 public enum SupportedOperatingSystem {
-    WINDOWS((osName) -> osName.contains("windows"));
+    WINDOWS((osName) -> osName.contains("windows")),
+    LINUX((osName) -> osName.contains("linux")),
+    MACOS((osName) -> osName.contains("mac") || osName.contains("darwin"));
 
     SupportedOperatingSystem(Function<String, Boolean> operatingSystemCheck) {
         this.operatingSystemCheck = operatingSystemCheck;

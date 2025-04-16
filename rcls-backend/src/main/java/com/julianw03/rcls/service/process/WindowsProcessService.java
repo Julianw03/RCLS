@@ -296,7 +296,7 @@ public class WindowsProcessService extends ProcessService {
                     log.info("Process with name {} found", executableName);
                     future.complete(processId);
                     return;
-                } catch (ExecutionException _) {
+                } catch (ExecutionException ex) {
                     //Current iteration did not find the process, we will continue and schedule another search
                 } catch (InterruptedException e) {
                     future.completeExceptionally(e);

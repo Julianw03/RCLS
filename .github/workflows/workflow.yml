@@ -1,8 +1,10 @@
-name: Build and Upload Artifacts
+name: Build and Release Artifacts
 
 on:
+  workflow_dispatch:
   push:
-    branches: [ master ]
+    tags:
+      - v*
 
 jobs:
   build:
@@ -17,5 +19,16 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: workspace_artifacts
-          path: ${{ github.workspace }}
+          name: created_artifacts
+          path: ${{ github.workspace }}/artifacts
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false

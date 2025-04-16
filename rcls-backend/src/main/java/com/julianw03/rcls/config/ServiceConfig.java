@@ -1,9 +1,8 @@
 package com.julianw03.rcls.config;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonValue;
 import com.julianw03.rcls.model.SupportedGame;
 import com.julianw03.rcls.service.cacheService.CacheService;
+import com.julianw03.rcls.service.process.UnixProcessService;
 import com.julianw03.rcls.service.process.ProcessService;
 import com.julianw03.rcls.service.process.SupportedOperatingSystem;
 import com.julianw03.rcls.service.process.WindowsProcessService;
@@ -21,8 +20,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
-import javax.naming.OperationNotSupportedException;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 @Slf4j
 @Configuration
@@ -31,14 +30,26 @@ public class ServiceConfig {
     public ProcessService getProcessService(
             @Autowired ProcessServiceConfig processServiceConfig
     ) {
+        final String osName = System.getProperty("os.name");
         final SupportedOperatingSystem os = SupportedOperatingSystem
-                .fromName(System.getProperty("os.name"))
-                .orElseThrow();
-        if (os == SupportedOperatingSystem.WINDOWS) {
-            return new WindowsProcessService(processServiceConfig);
-        }
+                .fromName(osName)
+                .orElseThrow(
+                        () -> new NoSuchElementException(
+                                String.format("Operating System %s not supported", osName)
+                        )
+                );
 
-        throw new RuntimeException("Operating System not yet supported");
+        switch (os) {
+            case WINDOWS -> {
+                return new WindowsProcessService(processServiceConfig);
+            }
+            case LINUX, MACOS -> {
+                return new UnixProcessService(os, processServiceConfig);
+            }
+            default -> {
+                throw new RuntimeException("Operating System not yet supported");
+            }
+        }
     }
 
 
@@ -48,7 +59,7 @@ public class ServiceConfig {
             @Autowired ProcessService processService,
             @Autowired PublisherService publisherService,
             @Autowired CacheService cacheService
-            ) {
+    ) {
         RiotClientService riotClientService = new RiotClientServiceImpl(processService);
         riotClientService.addMessageListener(message -> {
             PublisherMessage.Type type;

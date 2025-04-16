@@ -1,4 +1,4 @@
-FROM debian
+FROM debian:bookworm
 LABEL authors="JulianW03"
 
 # Update and install necessary packages
@@ -18,17 +18,19 @@ RUN apt-get install -y nodejs
 # Update npm
 RUN npm install -g npm@latest
 
-# Install JDK 23
-RUN wget https://download.oracle.com/java/23/archive/jdk-23.0.2_linux-x64_bin.deb
-RUN apt-get install -y ./jdk-23.0.2_linux-x64_bin.deb
-RUN rm ./jdk-23.0.2_linux-x64_bin.deb
+# Install JDK 21
+RUN wget https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.7%2B6/OpenJDK21U-jdk_x64_linux_hotspot_21.0.7_6.tar.gz -O /tmp/openjdk-21.tar.gz && \
+    mkdir -p /usr/lib/jvm/openjdk-21  && \
+    tar -xzf /tmp/openjdk-21.tar.gz -C /usr/lib/jvm/openjdk-21 --strip-components=1 && \
+    rm /tmp/openjdk-21.tar.gz
 
 # Set JAVA_HOME
-ENV JAVA_HOME=/usr/lib/jvm/jdk-23.0.2-oracle-x64
+ENV JAVA_HOME=/usr/lib/jvm/openjdk-21
 ENV PATH="$JAVA_HOME/bin:$PATH"
 
 WORKDIR /app
 
+#For local builds
 RUN mkdir "volume"
 
 # Copy local folders into the image
