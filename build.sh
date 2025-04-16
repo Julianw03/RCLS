@@ -24,7 +24,8 @@ cd ./rcls-backend
 cd ../
 cp -r $BACKEND_OUTPUT $VOLUME_DIR
 if [ -d $GITHUB_WORKSPACE ]; then
-  cp -r $BACKEND_OUTPUT $GITHUB_WORKSPACE
+  mkdir -p "$GITHUB_WORKSPACE/artifacts"
+  cp -r $BACKEND_OUTPUT $GITHUB_WORKSPACE/artifacts/
 fi
 
 echo "Build finished"
