@@ -1,0 +1,5 @@
+name: 'Build Artifacts'
+description: 'Builds the RCLS artifacts via Docker'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
