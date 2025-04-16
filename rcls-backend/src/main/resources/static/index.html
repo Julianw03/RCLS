@@ -1,0 +1,175 @@
+<html>
+<head>
+    <script>
+
+
+        const riotHeader = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) riot-client-ux/97.0.0 Chrome/108.0.5359.215 Electron/22.3.27 Safari/537.36";
+        let rqdata = '';
+
+        function onSubmit(token) {
+            const exampleUsername = document.getElementById('username').value;
+            const examplePassword = document.getElementById('password').value;
+            fetch("/api/riotclient/login/v1/login", {
+                method: "POST",
+                body: JSON.stringify({
+                    username: exampleUsername,
+                    password: examplePassword,
+                    remember: false,
+                    language: "en_US",
+                    captcha: "hcaptcha " + token
+                }),
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
+        }
+
+        function validate(event) {
+            event.preventDefault();
+
+
+
+            hcaptcha.execute();
+            hcaptcha.getResponse();
+        }
+
+        function sendOtp() {
+            const otpCode = document.getElementById('otp').value;
+            console.log(otpCode);
+            fetch("/api/riotclient/login/v1/multifactor", {
+                method: "POST",
+                body: JSON.stringify({
+                    otp: otpCode,
+                    rememberDevice: true
+                }),
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
+        }
+
+        function hcaptchaOnLoad() {
+            const element = document.getElementById('execute');
+            element.onclick = validate;
+            element.disabled = false;
+
+            const otpButton = document.getElementById('executeOtp');
+            otpButton.onclick = sendOtp;
+            otpButton.disabled = false;
+
+            const widgetId = hcaptcha.render("hcaptcha");
+        }
+
+
+        function checkWindowUrl() {
+            const currentUrl = window.location.href;
+            if (currentUrl.includes('localhost')) {
+                if (confirm('You are running on localhost, captcha will not work. Please use 127.0.0.1 instead')) {
+                    window.location.href = currentUrl.replace('localhost', '127.0.0.1');
+                } else {
+                    window.location.href = '';
+                }
+            } else {
+                console.log('Valid host');
+            }
+        }
+
+        function injectScript() {
+            const script = document.createElement('script');
+            script.src = './hcaptcha-proxy/RCLS-INTERNAL/1/api.js?render=explicit&onload=hcaptchaOnLoad?render=explicit&onload=hcaptchaOnLoad';
+            script.id = 'hcaptcha-api-script-id';
+            script.async = true;
+            script.defer = true;
+            document.head.appendChild(script);
+        }
+
+        async function hideClientUx() {
+            const response = await fetch("/api/riotclient/launcher/v1/client", {
+                method: "DELETE"
+            });
+        }
+
+        async function showClientUx() {
+            const response = await fetch("/api/riotclient/launcher/v1/client", {
+                method: "POST"
+            });
+        }
+
+        async function startGame(gameId) {
+            const response = await fetch("/api/riotclient/launcher/v1/game/"+ gameId, {
+                method: "POST"
+            });
+        }
+
+        async function stopGame(gameId) {
+            const response = await fetch("/api/riotclient/launcher/v1/game/"+ gameId, {
+                method: "DELETE"
+            });
+        }
+
+        async function resetAndGetCaptchaData(event) {
+            event.preventDefault();
+            const response = await fetch("/api/riotclient/login/v1/reset", {
+                method: "POST"
+            });
+            if (Math.floor(response.status/ 100) !== 2) {
+                console.error("Failed initial reset, will not fetch captcha data");
+                return;
+            }
+            await fetch("/api/riotclient/login/v1/captcha")
+                .then((response) => response.json())
+                .then((json) => {
+                    rqdata = json.data;
+                }).then(() => {
+                    console.log('rqdata', rqdata);
+                    hcaptcha.setData({
+                        rqdata: rqdata
+                    });
+                });
+        }
+
+        checkWindowUrl()
+        injectScript();
+
+    </script>
+</head>
+<body>
+<form>
+    <div
+            id="hcaptcha"
+            class="h-captcha"
+            data-sitekey="019f1553-3845-481c-a6f5-5a60ccf6d830"
+            data-callback="onSubmit"
+            data-size="invisible"
+    ></div>
+    <button type="button" onclick="resetAndGetCaptchaData(event)">Reset & Get Captcha data</button>
+    <br>
+    <br>
+    <label for="username">Username</label><input type="text" id="username">
+    <label for="password">Password</label><input type="password" id="password">
+    <br>
+    <button type="button" id="execute" disabled>Execute</button>
+    <br>
+    <label for="otp">OTP</label><input type="number" maxlength="6" id="otp">
+    <br>
+    <button type="button" id="executeOtp" disabled>Send OTP</button>
+    <button type="button" onclick="showClientUx()">
+        Show Client UX
+    </button>
+    <button type="button" onclick="hideClientUx()">
+        Hide client UX
+    </button>
+    <br>
+    <button type="button" onclick="startGame('league_of_legends')">
+        Start LOL
+    </button>
+    <button type="button" onclick="stopGame('league_of_legends')">
+        Stop LOL
+    </button>
+</form>
+
+This site is protected by hCaptcha and its
+<a href="https://www.hcaptcha.com/privacy">Privacy Policy</a> and
+<a href="https://www.hcaptcha.com/terms">Terms of Service</a> apply.
+</body>
+</html>

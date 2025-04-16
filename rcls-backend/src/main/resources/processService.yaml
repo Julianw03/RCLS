@@ -1,0 +1,21 @@
+process-service:
+  executables:
+    windows:
+      game-executables:
+        league_of_legends: "LeagueClient.exe"
+        legends_of_runeterra: "LOR.exe"
+        valorant: "VALORANT-Win64-Shipping.exe"
+      riot_client: "Riot Client.exe"
+      riot_client_services: "RiotClientServices.exe"
+  shared-components:
+    riot-games-folder-name: "Riot Games"
+    riot-client-installs-file: "RiotClientInstalls.json"
+  connection-init:
+    process-search-attempts: 10
+    process-search-delay-ms: 10
+    process-search-duration-max-ms: 1000
+    rest-connect-attempts: 20
+    rest-connect-delay-ms: 10
+    rest-connect-duration-max-ms: 1000
+
+

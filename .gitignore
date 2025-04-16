@@ -1,0 +1,49 @@
+/.idea
+
+############## Frontend ##############
+# Logs
+/rcls-frontend/logs
+/rcls-frontend/*.log
+/rcls-frontend/npm-debug.log*
+/rcls-frontend/yarn-debug.log*
+/rcls-frontend/yarn-error.log*
+/rcls-frontend/pnpm-debug.log*
+/rcls-frontend/lerna-debug.log*
+
+/rcls-frontend/node_modules
+/rcls-frontend/dist
+/rcls-frontend/dist-ssr
+/rcls-frontend/*.local
+
+# Editor directories and files
+/rcls-frontend/.vscode/*
+!/rcls-frontend/.vscode/extensions.json
+/rcls-frontend/.idea
+/rcls-frontend/.DS_Store
+/rcls-frontend/*.suo
+/rcls-frontend/*.ntvs*
+/rcls-frontend/*.njsproj
+/rcls-frontend/*.sln
+/rcls-frontend/*.sw?
+#####################################
+
+############## Backend ##############
+/rcls-backend/HELP.md
+/rcls-backend/.gradle
+/rcls-backend/build/
+!/rcls-backend/gradle/wrapper/gradle-wrapper.jar
+!/rcls-backend/**/src/main/**/build/
+!/rcls-backend/**/src/test/**/build/
+
+### IntelliJ IDEA ###
+/rcls-backend/.idea
+/rcls-backend/*.iws
+/rcls-backend/*.iml
+/rcls-backend/*.ipr
+/rcls-backend/out/
+!/rcls-backend/**/src/main/**/out/
+!/rcls-backend/**/src/test/**/out/
+
+### VS Code ###
+/rcls-backend/.vscode/
+#####################################
