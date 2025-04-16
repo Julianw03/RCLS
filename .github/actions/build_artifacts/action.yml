@@ -2,4 +2,4 @@ name: "Build artifacts"
 description: "Builds the RCLS artifacts via Docker"
 runs:
   using: 'docker'
-  image: '../../Dockerfile'
+  image: '../../../Dockerfile'
