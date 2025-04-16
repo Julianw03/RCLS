@@ -5,6 +5,7 @@ import com.julianw03.rcls.model.RiotClientConnectionParameters;
 import com.julianw03.rcls.service.process.ProcessService;
 import com.julianw03.rcls.service.riotclient.RiotClientService;
 import com.julianw03.rcls.service.riotclient.RiotClientServiceImpl;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -59,18 +60,13 @@ public class RiotClientServiceImplTest {
     void testConnect_whenRiotClientServicesKillDoesntSucceed() {
 
         when(processService.killGameProcess(any())).thenReturn(CompletableFuture.completedFuture(null));
-        when(processService.killRiotClientProcess()).thenReturn(CompletableFuture.completedFuture(null));
         when(processService.killRiotClientServices()).thenReturn(CompletableFuture.completedFuture(null));
 
         when(processService.killRiotClientServices()).thenReturn(CompletableFuture.failedFuture(new APIException("Mock error")));
 
-        when(processService.startRiotClientServices(any())).thenReturn(CompletableFuture.completedFuture(null));
-
         riotClientService = spy(riotClientService);
-        try {
+        assertThrows(APIException.class, () -> {
             riotClientService.connect();
-        } catch (APIException exception) {
-            assertEquals("Failed to kill previous Riot Client Service Instance", exception.getMessage());
-        }
+        });
     }
 }

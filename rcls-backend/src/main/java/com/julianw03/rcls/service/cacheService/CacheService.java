@@ -121,7 +121,7 @@ public class CacheService extends BaseService implements RCUMessageListener {
         if (message.getUri() == null) return;
         if (message.getData() == null) return;
 
-        publisher.offer(message, (_, _) -> false);
+        publisher.offer(message, ( sub, msg) -> false);
     }
 
     @Override
