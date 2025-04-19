@@ -1,5 +1,12 @@
 process-service:
   executables:
+    macos:
+      game-executables:
+        legends-of-runeterra:
+        league-of-legends:
+        valorant:
+      riot-client: "Riot Client.app/Contents/MacOs/Riot Client"
+      riot-client-services: "Riot Client.app/Contents/MacOS/RiotClientServices"
     windows:
       game-executables:
         league_of_legends: "LeagueClient.exe"

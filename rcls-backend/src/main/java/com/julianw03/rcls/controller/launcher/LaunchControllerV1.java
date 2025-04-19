@@ -73,7 +73,7 @@ public class LaunchControllerV1 {
     public ResponseEntity<List<SupportedGame>> getSupportedGames() {
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(List.of(SupportedGame.values()));
+                .body(processService.getSupportedGames());
     }
 
     @PostMapping(value = "/game/{gameId}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)

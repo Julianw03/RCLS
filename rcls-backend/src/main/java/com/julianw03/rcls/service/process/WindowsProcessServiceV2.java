@@ -5,32 +5,36 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.julianw03.rcls.Util.Utils;
 import com.julianw03.rcls.config.ServiceConfig;
-import com.julianw03.rcls.model.SupportedGame;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
-public class UnixProcessService extends ProcessService {
-    private static final Logger log = LoggerFactory.getLogger(UnixProcessService.class);
-    private final ObjectMapper mapper;
-    private       Path         rcsPath;
+@Slf4j
+public class WindowsProcessServiceV2 extends ProcessService {
 
-    public UnixProcessService(OperatingSystem os, ServiceConfig.ProcessServiceConfig config) {
-        super(os, config);
-        mapper = new ObjectMapper();
+    private final ObjectMapper mapper;
+
+    public WindowsProcessServiceV2(ServiceConfig.ProcessServiceConfig config) {
+        super(OperatingSystem.WINDOWS, config);
+        this.mapper = new ObjectMapper();
     }
+
 
     @Override
     protected Optional<Path> getRiotClientServicesExecutablePath() {
-        Path programFilesPath = Paths.get("/Users/Shared");
+        String programFiles = System.getenv("ALLUSERSPROFILE");
+
+        if (programFiles == null || programFiles.isEmpty()) {
+            log.error("The program files environment variable is empty, unable to find the Riot Client Services executable");
+            return Optional.empty();
+        }
+
+        Path programFilesPath = Paths.get(programFiles);
         Path riotGamesPath = programFilesPath.resolve(config.getSharedComponents().getRiotGamesFolderName());
 
         File riotGamesFolder = riotGamesPath.toFile();
@@ -99,6 +103,8 @@ public class UnixProcessService extends ProcessService {
                 log.error("The Riot Client Services file does not exist");
                 return Optional.empty();
             }
+
+            log.info("The Riot Client Services executable path is: {}", rcsPath);
 
             return Optional.of(rcsPath);
         } catch (Exception e) {

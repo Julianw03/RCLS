@@ -47,8 +47,10 @@ tasks.withType<Test> {
 }
 
 tasks.jar {
-    manifest {
-        attributes["Main-Class"] = "com.julianw03.rcls.RCLSApplication"
-    }
+    enabled = false;
+}
+
+tasks.bootJar {
+    this.archiveFileName.set("RCLS-${version}.${archiveExtension.get()}")
 }
 

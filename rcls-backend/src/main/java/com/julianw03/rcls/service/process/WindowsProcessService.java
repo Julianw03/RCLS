@@ -8,109 +8,48 @@ import com.julianw03.rcls.Util.Utils;
 import com.julianw03.rcls.config.ServiceConfig;
 import com.julianw03.rcls.model.RiotClientConnectionParameters;
 import com.julianw03.rcls.model.SupportedGame;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 public class WindowsProcessService extends ProcessService {
 
     private static final Logger log = LoggerFactory.getLogger(WindowsProcessService.class);
-
-    private static class ProcessResult {
-        @Getter
-        private ResultStatus status;
-        private String       stdOut;
-        private String       stdErr;
-        private Throwable    throwable;
-
-        public static ProcessResult ofSuccess(String stdOut) {
-            if (stdOut == null) throw new IllegalArgumentException("StdOut may not be null");
-            ProcessResult result = new ProcessResult();
-            result.status = ResultStatus.SUCCESS;
-            result.stdOut = stdOut;
-            return result;
-        }
-
-        public static ProcessResult ofError(String stdError) {
-            if (stdError == null) throw new IllegalArgumentException("StdErr may not be null");
-            ProcessResult result = new ProcessResult();
-            result.status = ResultStatus.STD_ERROR_NOT_EMPTY;
-            result.stdErr = stdError;
-            return result;
-        }
-
-        public static ProcessResult ofEmptyStdOut() {
-            ProcessResult result = new ProcessResult();
-            result.status = ResultStatus.STD_OUT_EMPTY;
-            return result;
-        }
-
-        public static ProcessResult ofThrowable(Throwable t) {
-            if (t == null) throw new IllegalArgumentException("Throwable may not be null");
-            ProcessResult result = new ProcessResult();
-            result.status = ResultStatus.THREW_ERROR;
-            result.throwable = t;
-            return result;
-        }
-
-        private ProcessResult() {
-        }
-
-        public String getStdOut() {
-            if (this.status != ResultStatus.SUCCESS) throw new IllegalStateException();
-            return this.stdOut;
-        }
-
-        public String getStdErr() {
-            if (this.status != ResultStatus.STD_ERROR_NOT_EMPTY) throw new IllegalStateException();
-            return this.stdErr;
-        }
-
-        public Throwable getThrowable() {
-            if (this.status != ResultStatus.THREW_ERROR) throw new IllegalStateException();
-            return this.throwable;
-        }
-    }
-
-    public enum ResultStatus {
-        STD_ERROR_NOT_EMPTY,
-        STD_OUT_EMPTY,
-        THREW_ERROR,
-        SUCCESS
-    }
-
-    private final ScheduledExecutorService executorService;
-    private final ObjectMapper             mapper;
-    private       Path                     rcsPath;
-    private       Process                  currentRcsProcess;
-
+    private final ObjectMapper mapper;
+    private       Path         rcsPath;
+    private       Process      currentRcsProcess;
     public WindowsProcessService(
             ServiceConfig.ProcessServiceConfig config
     ) {
         super(
-                SupportedOperatingSystem.WINDOWS,
+                OperatingSystem.WINDOWS,
                 config
         );
         mapper = new ObjectMapper();
-        executorService = Executors.newScheduledThreadPool(10);
     }
 
     @Override
     public CompletableFuture<Void> startRiotClientServices(RiotClientConnectionParameters parameters) {
         if (parameters == null) throw new IllegalArgumentException();
+        final String executableName = getOsExecutableNames().getRiotClientServices();
+        if (executableName == null || executableName.isEmpty()) {
+            return CompletableFuture.failedFuture(new UnsupportedOperationException("The Executable is not supported for your OS"));
+        }
         final CompletableFuture<Void> completableFuture = new CompletableFuture<>();
         executorService.submit(() -> {
             if (currentRcsProcess != null && currentRcsProcess.isAlive()) {
@@ -123,7 +62,7 @@ public class WindowsProcessService extends ProcessService {
                 }
             }
             ProcessBuilder pb = new ProcessBuilder();
-            pb.command("\"" + rcsPath.toAbsolutePath() + "\"", "--show-swagger", "--show-dev-tools", "--riotclient-dev-mode", "--show-dev-tools-all","--headless", "--remoting-auth-token=" + parameters.getAuthSecret(), "--app-port=" + parameters.getPort());
+            pb.command("\"" + rcsPath.toAbsolutePath() + "\"", "--show-swagger", "--show-dev-tools", "--riotclient-dev-mode", "--show-dev-tools-all", "--headless", "--remoting-auth-token=" + parameters.getAuthSecret(), "--app-port=" + parameters.getPort());
             log.info("Starting RCS with command {}", pb.command());
             try {
                 currentRcsProcess = pb.start();
@@ -132,12 +71,16 @@ public class WindowsProcessService extends ProcessService {
             completableFuture.complete(null);
         });
 
-        return completableFuture.thenCompose((ignored) -> awaitProcessStart(getOsExecutableNames().getRiotClientServices())).thenApply((val) -> null);
+        return completableFuture.thenCompose((ignored) -> awaitProcessStart(executableName)).thenApply((val) -> null);
     }
 
     @Override
     public CompletableFuture<Void> killRiotClientServices() {
-        return killProcessViaExecutableName(getOsExecutableNames().getRiotClientServices(), (stdOut) -> {
+        final String executableName = getOsExecutableNames().getRiotClientServices();
+        if (executableName == null || executableName.isEmpty()) {
+            return CompletableFuture.failedFuture(new UnsupportedOperationException("The Executable is not supported for your OS"));
+        }
+        return killProcessViaExecutableName(executableName, (stdOut) -> {
             final JsonNode node;
             try {
                 node = mapper.readTree(stdOut);
@@ -161,6 +104,9 @@ public class WindowsProcessService extends ProcessService {
     public CompletableFuture<Void> killGameProcess(SupportedGame game) {
         if (game == null) throw new IllegalArgumentException();
         final String executableName = getOsExecutableNames().getGameExecutables().get(game);
+        if (executableName == null || executableName.isEmpty()) {
+            return CompletableFuture.failedFuture(new UnsupportedOperationException("The Executable is not supported for your OS"));
+        }
         return killProcessViaExecutableName(executableName, (stdOut) -> {
             final JsonNode node;
             try {
@@ -183,7 +129,11 @@ public class WindowsProcessService extends ProcessService {
 
     @Override
     public CompletableFuture<Void> killRiotClientProcess() {
-        return killProcessViaExecutableName(getOsExecutableNames().getRiotClient(), (stdOut -> {
+        final String executableName = getOsExecutableNames().getRiotClient();
+        if (executableName == null || executableName.isEmpty()) {
+            return CompletableFuture.failedFuture(new UnsupportedOperationException("The Executable is not supported for your OS"));
+        }
+        return killProcessViaExecutableName(executableName, (stdOut -> {
             final JsonNode node;
             try {
                 node = mapper.readTree(stdOut);
@@ -219,7 +169,6 @@ public class WindowsProcessService extends ProcessService {
             } else throw new IllegalArgumentException("some 2");
         }));
     }
-
 
     private CompletableFuture<Void> killProcessViaExecutableName(String executableName, Function<String, Long> processIdProvider) {
         final CompletableFuture<Long> future = new CompletableFuture<>();
@@ -342,38 +291,18 @@ public class WindowsProcessService extends ProcessService {
         return completableFuture.orTimeout(config.getConnectionInit().getProcessSearchDurationMaxMs(), TimeUnit.MILLISECONDS);
     }
 
-    @PostConstruct
     @Override
-    public void startup() {
-        log.info("Startup called");
-        log.info("{}", getOsExecutableNames());
-        long start = System.currentTimeMillis();
-
+    protected void doStartup() {
         Optional<Path> optPath = getRiotClientServicesExecutablePath();
         if (optPath.isEmpty()) throw new IllegalStateException();
         this.rcsPath = optPath.get();
-
-        long end = System.currentTimeMillis();
-        log.info("Startup succeeded after {}ms", end - start);
     }
 
-    @PreDestroy
     @Override
-    public void shutdown() {
-        log.info("Shutdown called");
-        long start = System.currentTimeMillis();
-        executorService.shutdown();
-        try {
-            if (!executorService.awaitTermination(800, TimeUnit.MILLISECONDS)) {
-                executorService.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            log.error("Graceful shutdown failed", e);
-            executorService.shutdownNow();
-        }
+    protected void doShutdown() {
         Optional.ofNullable(currentRcsProcess).ifPresent(Process::destroyForcibly);
-        long end = System.currentTimeMillis();
-        log.info("Shutdown succeeded after {}ms", (end - start));
+        currentRcsProcess = null;
+        rcsPath = null;
     }
 
     private ProcessResult getProcessIdForExecutable(String executableName) {
@@ -420,7 +349,8 @@ public class WindowsProcessService extends ProcessService {
         }
     }
 
-    private Optional<Path> getRiotClientServicesExecutablePath() {
+    @Override
+    protected Optional<Path> getRiotClientServicesExecutablePath() {
         String programFiles = System.getenv("ALLUSERSPROFILE");
 
         if (programFiles == null || programFiles.isEmpty()) {
@@ -505,5 +435,68 @@ public class WindowsProcessService extends ProcessService {
             log.error("Failed to get RCS Path", e);
         }
         return Optional.empty();
+    }
+
+    public enum ResultStatus {
+        STD_ERROR_NOT_EMPTY,
+        STD_OUT_EMPTY,
+        THREW_ERROR,
+        SUCCESS
+    }
+
+    private static class ProcessResult {
+        @Getter
+        private ResultStatus status;
+        private String       stdOut;
+        private String       stdErr;
+        private Throwable    throwable;
+
+        private ProcessResult() {
+        }
+
+        public static ProcessResult ofSuccess(String stdOut) {
+            if (stdOut == null) throw new IllegalArgumentException("StdOut may not be null");
+            ProcessResult result = new ProcessResult();
+            result.status = ResultStatus.SUCCESS;
+            result.stdOut = stdOut;
+            return result;
+        }
+
+        public static ProcessResult ofError(String stdError) {
+            if (stdError == null) throw new IllegalArgumentException("StdErr may not be null");
+            ProcessResult result = new ProcessResult();
+            result.status = ResultStatus.STD_ERROR_NOT_EMPTY;
+            result.stdErr = stdError;
+            return result;
+        }
+
+        public static ProcessResult ofEmptyStdOut() {
+            ProcessResult result = new ProcessResult();
+            result.status = ResultStatus.STD_OUT_EMPTY;
+            return result;
+        }
+
+        public static ProcessResult ofThrowable(Throwable t) {
+            if (t == null) throw new IllegalArgumentException("Throwable may not be null");
+            ProcessResult result = new ProcessResult();
+            result.status = ResultStatus.THREW_ERROR;
+            result.throwable = t;
+            return result;
+        }
+
+        public String getStdOut() {
+            if (this.status != ResultStatus.SUCCESS) throw new IllegalStateException();
+            return this.stdOut;
+        }
+
+        public String getStdErr() {
+            if (this.status != ResultStatus.STD_ERROR_NOT_EMPTY) throw new IllegalStateException();
+            return this.stdErr;
+        }
+
+        public Throwable getThrowable() {
+            if (this.status != ResultStatus.THREW_ERROR) throw new IllegalStateException();
+            return this.throwable;
+        }
     }
 }
