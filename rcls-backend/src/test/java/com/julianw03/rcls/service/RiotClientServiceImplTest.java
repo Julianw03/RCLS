@@ -60,7 +60,7 @@ public class RiotClientServiceImplTest {
     void testConnect_whenRiotClientServicesKillDoesntSucceed() {
 
         when(processService.killGameProcess(any())).thenReturn(CompletableFuture.completedFuture(null));
-        when(processService.killRiotClientServices()).thenReturn(CompletableFuture.completedFuture(null));
+        when(processService.killRiotClientProcess()).thenReturn(CompletableFuture.completedFuture(null));
 
         when(processService.killRiotClientServices()).thenReturn(CompletableFuture.failedFuture(new APIException("Mock error")));
 

@@ -93,7 +93,16 @@ public class RiotClientServiceImpl extends RiotClientService {
 
         int i = 0;
         for (SupportedGame game : SupportedGame.values()) {
-            killGameFutures[i] = processService.killGameProcess(game);
+            killGameFutures[i] = processService.killGameProcess(game)
+                    .exceptionally(ex -> {
+                        if (ex instanceof CompletionException) {
+                            if (ex.getCause() instanceof UnsupportedOperationException) {
+                                log.warn("Game {} is not supported on this OS", game);
+                            }
+                            return null;
+                        }
+                        throw new RuntimeException("Failed to kill game process", ex);
+                    });
             i++;
         }
 
@@ -107,15 +116,6 @@ public class RiotClientServiceImpl extends RiotClientService {
         log.info("Successfully killed all games");
 
         try {
-            processService.killRiotClientServices().join();
-        } catch (Exception e) {
-            log.error("Failed to kill current Riot Client services instance", e);
-            this.connectionStateRef.set(ConnectionState.DISCONNECTED);
-            throw new APIException("Failed to kill previous Riot Client Service Instance", "Maybe you have started Riot Client Services with a higher permission level?", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-        log.info("Killed previous Riot Client Services instance");
-
-        try {
             processService.killRiotClientProcess().join();
         } catch (Exception e) {
             log.error("Failed to kill current Riot Client instance", e);
@@ -123,6 +123,14 @@ public class RiotClientServiceImpl extends RiotClientService {
             throw new APIException("Failed to kill previous Riot Client Instance");
         }
 
+        try {
+            processService.killRiotClientServices().join();
+        } catch (Exception e) {
+            log.error("Failed to kill current Riot Client services instance", e);
+            this.connectionStateRef.set(ConnectionState.DISCONNECTED);
+            throw new APIException("Failed to kill previous Riot Client Service Instance", "Maybe you have started Riot Client Services with a higher permission level?", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        log.info("Killed previous Riot Client Services instance");
 
         try {
             processService.startRiotClientServices(parameters).join();

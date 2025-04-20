@@ -2,10 +2,7 @@ package com.julianw03.rcls.config;
 
 import com.julianw03.rcls.model.SupportedGame;
 import com.julianw03.rcls.service.cacheService.CacheService;
-import com.julianw03.rcls.service.process.UnixProcessService;
-import com.julianw03.rcls.service.process.ProcessService;
-import com.julianw03.rcls.service.process.SupportedOperatingSystem;
-import com.julianw03.rcls.service.process.WindowsProcessService;
+import com.julianw03.rcls.service.process.*;
 import com.julianw03.rcls.service.publisher.PublisherMessage;
 import com.julianw03.rcls.service.publisher.PublisherService;
 import com.julianw03.rcls.service.publisher.PublisherServiceImpl;
@@ -31,7 +28,7 @@ public class ServiceConfig {
             @Autowired ProcessServiceConfig processServiceConfig
     ) {
         final String osName = System.getProperty("os.name");
-        final SupportedOperatingSystem os = SupportedOperatingSystem
+        final OperatingSystem os = OperatingSystem
                 .fromName(osName)
                 .orElseThrow(
                         () -> new NoSuchElementException(
@@ -41,9 +38,9 @@ public class ServiceConfig {
 
         switch (os) {
             case WINDOWS -> {
-                return new WindowsProcessService(processServiceConfig);
+                return new WindowsProcessServiceV2(processServiceConfig);
             }
-            case LINUX, MACOS -> {
+            case MACOS, LINUX -> {
                 return new UnixProcessService(os, processServiceConfig);
             }
             default -> {
@@ -96,8 +93,8 @@ public class ServiceConfig {
     @Component
     @ConfigurationProperties(prefix = "process-service")
     public static class ProcessServiceConfig {
-        private Map<SupportedOperatingSystem, OSExecutableMappings> executables;
-        private SharedComponents                                    sharedComponents;
+        private Map<OperatingSystem, OSExecutableMappings> executables;
+        private SharedComponents                           sharedComponents;
         private ConnectionInitParameters                            connectionInit;
 
         @Data
