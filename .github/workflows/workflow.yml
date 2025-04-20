@@ -6,10 +6,6 @@ on:
     tags:
       - v*
 
-permissions:
-  contents: write
-
-
 jobs:
   build_project:
     runs-on: ubuntu-latest
@@ -35,7 +31,6 @@ jobs:
           name: created_artifacts
       - name: Create Release
         uses: actions/create-release@v1
-        id: create_release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
