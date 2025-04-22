@@ -1,0 +1,6 @@
+server:
+  port: 443
+
+proxy:
+  target:
+    url: "hcaptcha.com"

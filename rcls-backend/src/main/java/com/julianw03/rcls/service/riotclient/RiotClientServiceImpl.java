@@ -6,15 +6,15 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.julianw03.rcls.Util.ServletUtils;
 import com.julianw03.rcls.Util.Utils;
+import com.julianw03.rcls.config.ServiceConfig;
 import com.julianw03.rcls.model.*;
 import com.julianw03.rcls.service.process.ProcessService;
 import com.julianw03.rcls.service.riotclient.api.InternalApiResponse;
 import com.julianw03.rcls.service.riotclient.api.RiotClientError;
 import com.julianw03.rcls.service.riotclient.ssl.RiotSSLContext;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -26,7 +26,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.WebSocket;
-import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
@@ -34,6 +33,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 
@@ -41,24 +41,28 @@ public class RiotClientServiceImpl extends RiotClientService {
 
     private static final Logger log = LoggerFactory.getLogger(RiotClientServiceImpl.class);
 
-    private final ProcessService                   processService;
-    private final ExecutorService                  futureExecutorService;
-    private final ExecutorService                  messageExecutorService;
-    private final AtomicReference<ConnectionState> connectionStateRef;
-    private final SSLContext                       sslContext;
-    private final HttpClient                       httpClient;
-    private final ObjectMapper                     mapper;
-    private final List<RCUMessageListener>         listeners;
-    private       RiotClientConnectionParameters   parameters;
-    private       WebSocket                        socket;
+    private final ProcessService                        processService;
+    private final ServiceConfig.RiotClientServiceConfig config;
+    private final ScheduledExecutorService              futureExecutorService;
+    private final ExecutorService                       messageExecutorService;
+    private final AtomicReference<ConnectionState>      connectionStateRef;
+    private final SSLContext                            sslContext;
+    private final HttpClient                            httpClient;
+    private final ObjectMapper                          mapper;
+    private final List<RCUMessageListener>              listeners;
+    private       RiotClientConnectionParameters        parameters;
+    private       WebSocket                             socket;
 
 
-
-    public RiotClientServiceImpl(ProcessService processService) {
+    public RiotClientServiceImpl(
+            @Autowired ProcessService processService,
+            ServiceConfig.RiotClientServiceConfig config
+    ) {
         this.processService = processService;
+        this.config = config;
         this.connectionStateRef = new AtomicReference<>(ConnectionState.DISCONNECTED);
         this.mapper = new ObjectMapper();
-        this.futureExecutorService = Executors.newFixedThreadPool(10);
+        this.futureExecutorService = Executors.newScheduledThreadPool(10);
         this.messageExecutorService = Executors.newFixedThreadPool(10);
         //As we perform significantly more reads than writes this should be okay
         this.listeners = new CopyOnWriteArrayList<>();
@@ -146,7 +150,7 @@ public class RiotClientServiceImpl extends RiotClientService {
         }
 
         try {
-            awaitRestReady(parameters).orTimeout(3, TimeUnit.SECONDS).join();
+            awaitRestReady(parameters).orTimeout(config.getConnectionInit().getRestConnectWaitForMaxMs(), TimeUnit.MILLISECONDS).join();
         } catch (Exception e) {
             this.connectionStateRef.set(ConnectionState.DISCONNECTED);
             throw new APIException("Failed to establish REST connection in given timeout");
@@ -180,7 +184,8 @@ public class RiotClientServiceImpl extends RiotClientService {
     }
 
     public InternalApiResponse request(HttpMethod method, String relativePath, Object body) {
-        if (connectionStateRef.get() != ConnectionState.CONNECTED) return new InternalApiResponse.InternalException(null);
+        if (connectionStateRef.get() != ConnectionState.CONNECTED)
+            return new InternalApiResponse.InternalException(null);
         JsonNode bodyNode = mapper.valueToTree(body);
         HttpRequest.BodyPublisher bodyPublisher = (this.methodAllowsBodyPublishing(method) && !bodyNode.isNull()) ? HttpRequest.BodyPublishers.ofString(bodyNode.toString()) : HttpRequest.BodyPublishers.noBody();
         HttpRequest request = HttpRequest.newBuilder()
@@ -209,7 +214,7 @@ public class RiotClientServiceImpl extends RiotClientService {
 
             if (!ServletUtils.isSuccessResponseCode(response.statusCode())) {
                 //We will assume that the Riot Client will return a default Error here then
-                 return new InternalApiResponse.ApiError(mapper.treeToValue(response.body(), RiotClientError.class));
+                return new InternalApiResponse.ApiError(mapper.treeToValue(response.body(), RiotClientError.class));
             }
 
             if ((HttpStatus.NO_CONTENT.value() == response.statusCode()) || response.body().isEmpty()) {
@@ -334,9 +339,10 @@ public class RiotClientServiceImpl extends RiotClientService {
                                         if (messageNode.size() != 3) return;
                                         parsedMessage = mapper.convertValue(messageNode.get(2), RCUWebsocketMessage.class);
                                     } catch (Exception e) {
-                                        log.error("The message \"{}\" could not be parsed", message, e);
+                                        log.warn("The message \"{}\" could not be parsed", message, e);
                                         return;
                                     }
+                                    log.debug("{}", parsedMessage);
                                     for (RCUMessageListener listener : listeners) {
                                         listener.onMessage(parsedMessage);
                                     }
@@ -367,28 +373,30 @@ public class RiotClientServiceImpl extends RiotClientService {
 
     public CompletableFuture<Void> awaitRestReady(RiotClientConnectionParameters parametersToTest) {
         CompletableFuture<Void> future = new CompletableFuture<>();
-        futureExecutorService.submit(() -> {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("https://127.0.0.1:" + parametersToTest.getPort() + "/riotclientapp/v1/command-line-args"))
-                    .GET()
-                    .header(HttpHeaders.AUTHORIZATION, parametersToTest.getAuthHeader())
-                    .build();
-            for (int i = 0; i < 10; i++) {
+        futureExecutorService.schedule(new Runnable() {
+            private AtomicInteger attempts = new AtomicInteger(0);
+
+            @Override
+            public void run() {
+                if (attempts.addAndGet(1) > config.getConnectionInit().getRestConnectAttempts()) {
+                    future.completeExceptionally(new Exception("Failed to establish within given attempts"));
+                    return;
+                }
+
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create("https://127.0.0.1:" + parametersToTest.getPort() + "/riotclientapp/v1/command-line-args"))
+                        .GET()
+                        .header(HttpHeaders.AUTHORIZATION, parametersToTest.getAuthHeader())
+                        .build();
+
                 if (testRestConnection(request, parameters)) {
                     future.complete(null);
                     return;
                 }
 
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException ex) {
-                    future.completeExceptionally(ex);
-                    return;
-                }
+                futureExecutorService.schedule(this, config.getConnectionInit().getRestConnectDelayMs(), TimeUnit.MILLISECONDS);
             }
-            future.completeExceptionally(new Exception(""));
-
-        });
+        }, config.getConnectionInit().getRestConnectDelayMs(), TimeUnit.MILLISECONDS);
         return future;
     }
 

@@ -1,12 +1,10 @@
-package com.julianw03.rcls.config;
+package com.julianw03.rcls.config.web;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -16,37 +14,37 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
-import org.springframework.web.reactive.result.method.annotation.RequestMappingHandlerMapping;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.regex.Pattern;
 
 
 @Slf4j
 @Configuration
 @EnableWebSecurity
+@Profile({"test", "prod"})
 public class WebSecurityConfig {
 
-    private final List<String> allowedMethods = Arrays.stream(HttpMethod.values()).map(HttpMethod::name).toList();
+    private final Integer serverPort;
+
+    public WebSecurityConfig(
+            @Value("${server.port}") Integer serverPort
+    ) {
+        this.serverPort = serverPort;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(
-            HttpSecurity http,
-            @Value("${spring.application.developer.enabled}") String developerFlag,
-            @Value("${server.port}") String port
+            HttpSecurity http
     ) throws Exception {
-        http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource(developerFlag, port)))
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
-                .headers(headers ->
-                        headers
-                                .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
-                )
+                .headers(configurer -> {
+                    configurer
+                            .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable);
+                })
                 .sessionManagement(session ->
                         session
                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -55,28 +53,19 @@ public class WebSecurityConfig {
         return http.build();
     }
 
-
-    public CorsConfigurationSource corsConfigurationSource(
-            @Value("${spring.application.developer.enabled}") String developerFlag,
-            @Value("${server.port}") String port
-    ) {
+    public CorsConfigurationSource corsConfigurationSource() {
         final String pattern;
-        if (String.valueOf(true).equals(developerFlag)) {
-            pattern = "*";
+        if (serverPort == 443) {
+            pattern = "https://127.0.0.1";
         } else {
-            //Default https port -> browsers dont explicitly set port
-            if ("443".equals(port)) {
-                pattern = "https://127.0.0.1";
-            } else {
-                pattern = "https://127.0.0.1:" + port;
-            }
+            pattern = "https://127.0.0.1:" + serverPort;
         }
 
         log.warn("Using pattern: {}", pattern);
 
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(Collections.singletonList(pattern));
-        configuration.setAllowedHeaders(List.of("Origin", "Content-Type", "Accept", "responseType", "Authorization"));
+        configuration.setAllowedHeaders(List.of("Origin", "Content-Type", "Accept"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "OPTIONS", "DELETE"));
         configuration.setMaxAge(3600L);
         configuration.setAllowCredentials(true);

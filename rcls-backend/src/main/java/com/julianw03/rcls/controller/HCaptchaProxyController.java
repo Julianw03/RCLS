@@ -95,6 +95,9 @@ public class HCaptchaProxyController {
         });
         handlerMap.put("newassets", (originalRequest, originalResponse) -> {
             if (originalResponse.getBody() != null) {
+                HttpHeaders headers = new HttpHeaders(originalResponse.getHeaders());
+                headers.remove(HttpHeaders.CONTENT_LENGTH);
+
                 if (originalRequest.getPath().endsWith("hsw.js")) {
                     String body = readStream(new ByteArrayInputStream(originalResponse.getBody()));
                     String newResp = pattern.matcher(body).replaceAll(originalRequest.getRegexSubstitution());
@@ -102,9 +105,6 @@ public class HCaptchaProxyController {
 
                     byte[] modifiedBody = newResp.getBytes(StandardCharsets.UTF_8);
 
-                    HttpHeaders headers = new HttpHeaders();
-                    headers.putAll(originalResponse.getHeaders());
-                    headers.remove(HttpHeaders.CONTENT_LENGTH);
 
                     return new ResponseEntity<>(
                             modifiedBody,
@@ -118,10 +118,6 @@ public class HCaptchaProxyController {
 
                     byte[] modifiedBody = newResp.getBytes(StandardCharsets.UTF_8);
 
-                    HttpHeaders headers = new HttpHeaders();
-                    headers.putAll(originalResponse.getHeaders());
-                    headers.remove(HttpHeaders.CONTENT_LENGTH);
-
                     return new ResponseEntity<>(
                             modifiedBody,
                             headers,
@@ -129,9 +125,10 @@ public class HCaptchaProxyController {
                     );
                 }
 
+
                 return new ResponseEntity<>(
                         originalResponse.getBody(),
-                        originalResponse.getHeaders(),
+                        headers,
                         originalResponse.getStatusCode()
                 );
             }

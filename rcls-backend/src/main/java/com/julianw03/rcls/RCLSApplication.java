@@ -9,21 +9,11 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 
 
-@SpringBootApplication(scanBasePackages = { "com.julianw03.rcls" })
+@SpringBootApplication(scanBasePackages = { "com.julianw03.rcls" }, exclude = { org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration.class })
 public class RCLSApplication {
     private static final Logger log = LoggerFactory.getLogger(RCLSApplication.class);
 
-    @Value("${spring.application.developer.enabled}")
-    private String developerModeEnabled;
-
     public static void main(String[] args) {
         SpringApplication.run(RCLSApplication.class, args);
-    }
-
-    @EventListener(ApplicationReadyEvent.class)
-    public void doSomethingAfterStartup() {
-        if (String.valueOf(true).equals(developerModeEnabled)) {
-            log.error("RUNNING DEVELOPER MODE !!!");
-        }
     }
 }

@@ -44,13 +44,19 @@ dependencies {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    systemProperty("spring.profiles.active", "test")
+}
+
+tasks.bootRun {
+    systemProperty("spring.profiles.active", "dev")
 }
 
 tasks.jar {
     enabled = false;
 }
 
+
 tasks.bootJar {
-    this.archiveFileName.set("RCLS-${version}.${archiveExtension.get()}")
+    this.archiveFileName.set("RCLS-${version}.${archiveExtension.get()}");
 }
 

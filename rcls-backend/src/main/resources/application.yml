@@ -1,0 +1,48 @@
+spring:
+  application:
+    name: "RCLS"
+
+  profiles:
+    default: "prod"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health"
+
+server:
+  ssl:
+    key-store: "classpath:keystore.p12"
+    key-store-password: "changeit"
+    key-store-type: "PKCS12"
+    key-alias: "tomcat"
+  port: 8080
+
+custom:
+  configurations:
+    process-service:
+      os-override:
+      executables:
+        macos:
+          game-executables:
+            legends-of-runeterra:
+            league-of-legends: "LeagueClient.app/Contents/MacOS/LeagueClient"
+            valorant:
+          riot-client: "Riot Client.app/Contents/MacOs/Riot Client"
+          riot-client-services: "Riot Client.app/Contents/MacOS/RiotClientServices"
+        windows:
+          game-executables:
+            league_of_legends: "LeagueClient.exe"
+            legends_of_runeterra: "LOR.exe"
+            valorant: "VALORANT-Win64-Shipping.exe"
+          riot_client: "Riot Client.exe"
+          riot_client_services: "RiotClientServices.exe"
+      shared-components:
+        riot-games-folder-name: "Riot Games"
+        riot-client-installs-file: "RiotClientInstalls.json"
+    riotclient-service:
+      connection-init:
+        rest-connect-attempts: 10
+        rest-connect-delay-ms: 200
+        rest-connect-wait-for-max-ms: 5000
