@@ -2,7 +2,10 @@ package com.julianw03.rcls.config;
 
 import com.julianw03.rcls.model.SupportedGame;
 import com.julianw03.rcls.service.cacheService.CacheService;
-import com.julianw03.rcls.service.process.*;
+import com.julianw03.rcls.service.process.OperatingSystem;
+import com.julianw03.rcls.service.process.ProcessService;
+import com.julianw03.rcls.service.process.UnixProcessService;
+import com.julianw03.rcls.service.process.WindowsProcessServiceV2;
 import com.julianw03.rcls.service.publisher.PublisherMessage;
 import com.julianw03.rcls.service.publisher.PublisherService;
 import com.julianw03.rcls.service.publisher.PublisherServiceImpl;
@@ -19,6 +22,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @Slf4j
 @Configuration
@@ -28,13 +32,15 @@ public class ServiceConfig {
             @Autowired ProcessServiceConfig processServiceConfig
     ) {
         final String osName = System.getProperty("os.name");
-        final OperatingSystem os = OperatingSystem
-                .fromName(osName)
-                .orElseThrow(
-                        () -> new NoSuchElementException(
-                                String.format("Operating System %s not supported", osName)
-                        )
-                );
+        final OperatingSystem os = Optional
+                .ofNullable(processServiceConfig.osOverride)
+                .orElseGet(() -> OperatingSystem
+                        .fromName(osName)
+                        .orElseThrow(
+                                () -> new NoSuchElementException(
+                                        String.format("Operating System %s not supported", osName)
+                                )
+                        ));
 
         switch (os) {
             case WINDOWS -> {
@@ -55,9 +61,13 @@ public class ServiceConfig {
     public RiotClientService getRiotclientService(
             @Autowired ProcessService processService,
             @Autowired PublisherService publisherService,
-            @Autowired CacheService cacheService
+            @Autowired CacheService cacheService,
+            @Autowired RiotClientServiceConfig riotClientServiceConfig
     ) {
-        RiotClientService riotClientService = new RiotClientServiceImpl(processService);
+        RiotClientService riotClientService = new RiotClientServiceImpl(
+                processService,
+                riotClientServiceConfig
+        );
         riotClientService.addMessageListener(message -> {
             PublisherMessage.Type type;
             switch (message.getType()) {
@@ -77,9 +87,6 @@ public class ServiceConfig {
 
             publisherService.doDispatchChange(type, "/rcls-proxy" + message.getUri(), message.getData());
         });
-        riotClientService.addMessageListener((message) -> {
-            log.info("{} - {}: {}", message.getType(), message.getUri(), message.getData());
-        });
         riotClientService.addMessageListener(cacheService);
         return riotClientService;
     }
@@ -91,26 +98,31 @@ public class ServiceConfig {
 
     @Data
     @Component
-    @ConfigurationProperties(prefix = "process-service")
+    @ConfigurationProperties(prefix = "custom.configurations.riotclient-service", ignoreInvalidFields = true)
+    public static class RiotClientServiceConfig {
+        private ConnectionInitParameters connectionInit;
+
+        @Data
+        public static class ConnectionInitParameters {
+            private int restConnectAttempts;
+            private int restConnectDelayMs;
+            private int restConnectWaitForMaxMs;
+        }
+    }
+
+    @Data
+    @Component
+    @ConfigurationProperties(prefix = "custom.configurations.process-service", ignoreInvalidFields = true)
     public static class ProcessServiceConfig {
+        private OperatingSystem                            osOverride;
         private Map<OperatingSystem, OSExecutableMappings> executables;
         private SharedComponents                           sharedComponents;
-        private ConnectionInitParameters                            connectionInit;
+
 
         @Data
         public static class SharedComponents {
             private String riotGamesFolderName;
             private String riotClientInstallsFile;
-        }
-
-        @Data
-        public static class ConnectionInitParameters {
-            private int processSearchAttempts;
-            private int processSearchDelayMs;
-            private int processSearchDurationMaxMs;
-            private int restConnectAttempts;
-            private int restConnectDelayMs;
-            private int restConnectDurationMaxMs;
         }
 
         @Data
