@@ -2,10 +2,10 @@ package com.julianw03.rcls.controller.connector;
 
 import com.julianw03.rcls.model.APIException;
 import com.julianw03.rcls.model.RiotClientConnectionParameters;
-import com.julianw03.rcls.service.riotclient.RiotClientService;
+import com.julianw03.rcls.service.base.riotclient.RiotClientService;
+import com.julianw03.rcls.service.rest.ConnectorV1RestService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,30 +18,22 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/connector/v1")
 public class ConnectorControllerV1 {
 
-    private final RiotClientService riotClientService;
+    private final ConnectorV1RestService connectorV1RestService;
 
     @Autowired
     public ConnectorControllerV1(
-            RiotClientService riotClientService
+            ConnectorV1RestService riotClientService
     ) {
-        this.riotClientService = riotClientService;
+        this.connectorV1RestService = riotClientService;
     }
 
     @PostMapping(value = "/connect", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public ResponseEntity<RiotClientConnectionParameters> getConnectToRiotClientService() {
-        riotClientService.connect();
-
-        RiotClientConnectionParameters parameters = riotClientService.getConnectionParameters();
-        return new ResponseEntity<>(parameters, HttpStatus.OK);
+        return ResponseEntity.ofNullable(connectorV1RestService.connectToRiotClient());
     }
 
-    @GetMapping(value = "/parameters")
+    @GetMapping(value = "/parameters", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public ResponseEntity<RiotClientConnectionParameters> getCurrentParameters() {
-        RiotClientConnectionParameters params = riotClientService.getConnectionParameters();
-        if (params == null) {
-            throw new APIException("Failed to get Process Parameters", "Maybe the application is not connected ?", HttpStatus.NOT_FOUND);
-        }
-
-        return new ResponseEntity<>(params, HttpStatus.OK);
+        return ResponseEntity.ofNullable(connectorV1RestService.getConnectionParameters());
     }
 }

@@ -21,28 +21,44 @@ server:
 
 custom:
   configurations:
-    process-service:
-      os-override:
-      executables:
-        macos:
-          game-executables:
-            legends-of-runeterra:
-            league-of-legends: "LeagueClient.app/Contents/MacOS/LeagueClient"
-            valorant:
-          riot-client: "Riot Client.app/Contents/MacOs/Riot Client"
-          riot-client-services: "Riot Client.app/Contents/MacOS/RiotClientServices"
-        windows:
-          game-executables:
-            league_of_legends: "LeagueClient.exe"
-            legends_of_runeterra: "LOR.exe"
-            valorant: "VALORANT-Win64-Shipping.exe"
-          riot_client: "Riot Client.exe"
-          riot_client_services: "RiotClientServices.exe"
-      shared-components:
-        riot-games-folder-name: "Riot Games"
-        riot-client-installs-file: "RiotClientInstalls.json"
+    proxy:
+      target:
+        url: "hcaptcha.com"
     riotclient-service:
       connection-init:
-        rest-connect-attempts: 10
+        rest-connect-attempts: 20
         rest-connect-delay-ms: 200
-        rest-connect-wait-for-max-ms: 5000
+        rest-connect-wait-for-max-ms: 10000
+      connection-strategy:
+        connect-timeout-ms: 10_000
+        strategy: lockfile
+    path-provider:
+      path-entries:
+        macos:
+          executables:
+            game-executables:
+              league-of-legends: "LeagueClient.app/Contents/MacOS/LeagueClient"
+              legends-of-runeterra:
+              valorant: ""
+              two-xko: ""
+            riot-client: "Riot Client.app/Contents/MacOs/Riot Client"
+            riot-client-services: "Riot Client.app/Contents/MacOS/RiotClientServices"
+          program-files-path: "/Users/Shared"
+          riot-games-folder-name: "Riot Games"
+          riot-client-installs-file: "RiotClientInstalls.json"
+          riot-client-lock-file-location: "/Users/Shared/Riot Games/Metadata/lockfile"
+        windows:
+          executables:
+            game-executables:
+              league_of_legends: "LeagueClient.exe"
+              legends_of_runeterra: "LOR.exe"
+              valorant: "VALORANT-Win64-Shipping.exe"
+              two-xko: ""
+            riot_client: "Riot Client.exe"
+            riot_client_services: "RiotClientServices.exe"
+          program-files-path: "${ALLUSERSPROFILE}"
+          riot-games-folder-name: "Riot Games"
+          riot-client-installs-file: "RiotClientInstalls.json"
+          riot-client-lock-file-location: "${LOCALAPPDATA}/Riot Games/Riot Client/Config/lockfile"
+    operating-system-provider:
+      os-override:

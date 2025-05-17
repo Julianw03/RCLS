@@ -1,6 +1,6 @@
 package com.julianw03.rcls.components;
 
-import com.julianw03.rcls.service.riotclient.RiotClientService;
+import com.julianw03.rcls.service.base.riotclient.RiotClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;

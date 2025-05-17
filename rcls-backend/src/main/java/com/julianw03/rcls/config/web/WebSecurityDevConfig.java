@@ -40,7 +40,8 @@ public class WebSecurityDevConfig {
                 })
                 .sessionManagement(session ->
                         session
-                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                                .maximumSessions(1))
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
 
         return http.build();
@@ -49,7 +50,7 @@ public class WebSecurityDevConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         final String pattern = "*";
 
-        log.warn("Using pattern: {}", pattern);
+        log.warn("Using CORS Allow Origin pattern: {}", pattern);
 
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(Collections.singletonList(pattern));

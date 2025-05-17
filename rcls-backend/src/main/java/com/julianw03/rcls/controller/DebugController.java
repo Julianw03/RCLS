@@ -2,9 +2,12 @@ package com.julianw03.rcls.controller;
 
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.julianw03.rcls.model.APIException;
+import com.julianw03.rcls.model.RCUWebsocketMessage;
 import com.julianw03.rcls.model.RiotClientConnectionParameters;
-import com.julianw03.rcls.service.publisher.PublisherService;
-import com.julianw03.rcls.service.riotclient.RiotClientService;
+import com.julianw03.rcls.service.base.publisher.PublisherMessage;
+import com.julianw03.rcls.service.base.publisher.PublisherService;
+import com.julianw03.rcls.service.base.publisher.formats.ProxyFormat;
+import com.julianw03.rcls.service.base.riotclient.RiotClientService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -14,12 +17,8 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.method.HandlerMethod;
-import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-
-import java.util.Map;
 
 @Slf4j
 @CrossOrigin
@@ -44,7 +43,14 @@ public class DebugController {
     @GetMapping("/mappings")
     public String getControllerMappings() {
         final String path = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
-        publisherService.dispatchResourceCreated(path, new TextNode("Test!"));
+        publisherService.dispatchChange(
+                PublisherService.Source.PROXY_SERVICE,
+                new ProxyFormat(
+                        RCUWebsocketMessage.MessageType.CREATE,
+                        "/test",
+                        new TextNode("test")
+                )
+        );
         return path;
     }
 
@@ -52,17 +58,9 @@ public class DebugController {
     public ResponseEntity<RiotClientConnectionParameters> getProcessData() {
         RiotClientConnectionParameters params = riotClientService.getConnectionParameters();
         if (params == null) {
-            throw new APIException("Failed to get Process Parameters", "Maybe the application is not connected ?", HttpStatus.NOT_FOUND);
+            throw new APIException("Failed to get Process Parameters", HttpStatus.NOT_FOUND, "Maybe the application is not connected ?");
         }
 
         return new ResponseEntity<>(params, HttpStatus.OK);
-    }
-
-    @GetMapping("/connect")
-    public ResponseEntity<RiotClientConnectionParameters> getDebugData() {
-        riotClientService.connect();
-
-        RiotClientConnectionParameters parameters = riotClientService.getConnectionParameters();
-        return new ResponseEntity<>(parameters, HttpStatus.OK);
     }
 }

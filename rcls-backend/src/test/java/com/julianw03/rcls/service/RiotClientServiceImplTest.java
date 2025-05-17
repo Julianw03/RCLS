@@ -2,18 +2,14 @@ package com.julianw03.rcls.service;
 
 import com.julianw03.rcls.model.APIException;
 import com.julianw03.rcls.model.RiotClientConnectionParameters;
-import com.julianw03.rcls.service.process.ProcessService;
-import com.julianw03.rcls.service.riotclient.RiotClientService;
-import com.julianw03.rcls.service.riotclient.RiotClientServiceImpl;
-import org.junit.jupiter.api.AfterAll;
+import com.julianw03.rcls.service.base.process.ProcessService;
+import com.julianw03.rcls.service.base.riotclient.RiotClientServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 import java.net.http.HttpClient;
 import java.util.concurrent.CompletableFuture;

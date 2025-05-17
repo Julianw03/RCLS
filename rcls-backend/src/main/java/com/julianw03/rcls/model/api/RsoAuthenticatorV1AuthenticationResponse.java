@@ -12,13 +12,14 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 @ToString
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class RsoAuthenticatorV1AuthenticationResponse {
     @Getter
     @NoArgsConstructor
     @ToString
     public static class Details {
         private String auth_method;
-    }
+      }
 
     @Getter
     @NoArgsConstructor
@@ -93,6 +94,7 @@ public class RsoAuthenticatorV1AuthenticationResponse {
         private String  redirect_url;
     }
 
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
     private Details                 auth;
     private Captcha                 captcha;
     private String                  cluster;
@@ -103,6 +105,7 @@ public class RsoAuthenticatorV1AuthenticationResponse {
     @JsonProperty("kr-id-verification")
     private JsonNode                krIdVerification;
     private MultifactorDetails      multifactor;
+    private JsonNode                retryAfter;
     private JsonNode                signup;
     private Success                 success;
     private String                  suuid;

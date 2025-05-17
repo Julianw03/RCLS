@@ -1,6 +1,8 @@
 .rootContainer {
     position: absolute;
 
+    overflow: hidden;
+
     top: 0;
     left: 0;
 
@@ -11,4 +13,58 @@
     padding: 0;
 
     box-sizing: border-box;
+}
+
+.mainDivider {
+    position: relative;
+
+    height: 100%;
+    width: 100%;
+
+    display: flex;
+
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+
+    overflow: hidden;
+}
+
+.loginMediaSection {
+    position: relative;
+
+    height: 100%;
+    width: 100%;
+
+    flex: 4;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    overflow: hidden;
+}
+
+.media {
+    height: 100%;
+    width: 100%;
+
+    object-fit: cover;
+    object-position: center center;
+
+
+}
+
+.loginDataSection {
+    position: relative;
+
+    height: 100%;
+    width: 100%;
+
+    flex: 1;
+
+    justify-content: center;
+    align-items: center;
+
+    overflow: hidden;
 }
