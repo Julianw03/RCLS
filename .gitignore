@@ -49,13 +49,18 @@
 
 ############## Riot Client API ##############
 /rcls-riot-api-client/.github
+/rcls-riot-api-client/.openapi-generator
 /rcls-riot-api-client/.gradle
+rcls-riot-api-client/api/openapi.yaml
 /rcls-riot-api-client/gradle
+rcls-riot-api-client/gradle.properties
 /rcls-riot-api-client/gradlew
 /rcls-riot-api-client/gradlew.bat
 /rcls-riot-api-client/src
 /rcls-riot-api-client/.gitignore
 /rcls-riot-api-client/build
+/rcls-riot-api-client/build.gradle
+/rcls-riot-api-client/README.md
 /rcls-riot-api-client/.travis.yml
 /rcls-riot-api-client/build.sbt
 /rcls-riot-api-client/git_push.sh

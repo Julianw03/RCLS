@@ -11,10 +11,7 @@ import com.julianw03.rcls.service.BaseService;
 import com.julianw03.rcls.providers.paths.PathProvider;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -29,12 +26,12 @@ import java.util.function.Function;
 @Slf4j
 public class ProcessService extends BaseService {
 
-    protected final ProcessServiceConfig     config;
-    protected final PathProvider             pathProvider;
+    protected final ProcessServiceConfig config;
+    protected final PathProvider pathProvider;
     protected final ScheduledExecutorService executorService;
     protected final AtomicReference<Process> currentRCSProcess;
-    protected       Path                     rcsPath;
-    private final   ObjectMapper             mapper;
+    protected Path rcsPath;
+    private final ObjectMapper mapper;
 
     public ProcessService(
             PathProvider pathProvider,
@@ -250,8 +247,6 @@ public class ProcessService extends BaseService {
                 .thenComposeAsync(processHandle1 -> processHandle
                         .onExit()
                         .orTimeout(2, TimeUnit.SECONDS)
-                        .thenRun(() -> {
-                            log.info("Process {} killed successfully", processHandle1.pid());
-                        }));
+                        .thenRun(() -> log.info("Process {} killed successfully", processHandle1.pid())));
     }
 }

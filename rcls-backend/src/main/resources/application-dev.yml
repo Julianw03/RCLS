@@ -4,3 +4,4 @@ server:
 logging:
   level:
     com.julianw03.rcls.service.base.riotclient.RiotClientServiceImpl: DEBUG
+    com.julianw03.rcls.service.base.process.ProcessService: DEBUG

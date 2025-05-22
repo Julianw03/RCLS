@@ -13,6 +13,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 
+/**
+ * This class will try to kill all Processes that are known to RCLS and are dependent on
+ * the Riot Client Services.
+ * After killing all Processes it will start an own Riot Client Service instance with randomly
+ * generated {@link RiotClientConnectionParameters}.
+ * This allows for a "headless" connection with the Riot Client Services (no UX-Process required)
+ * */
 @Slf4j
 public class ProcessTakeoverConnectionStrategy implements RiotClientConnectionStrategy {
 

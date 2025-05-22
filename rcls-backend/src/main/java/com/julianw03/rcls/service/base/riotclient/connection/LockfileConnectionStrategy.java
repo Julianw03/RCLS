@@ -2,12 +2,19 @@ package com.julianw03.rcls.service.base.riotclient.connection;
 
 import com.julianw03.rcls.model.RiotClientConnectionParameters;
 import com.julianw03.rcls.providers.paths.PathProvider;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+/**
+ * This class tries to get the {@link RiotClientConnectionParameters} via the Lockfile that is
+ * created once the Riot Client (UX - Process) starts up.
+ * This strategy expects the UX Client to be running
+ * */
+@Slf4j
 public class LockfileConnectionStrategy implements RiotClientConnectionStrategy {
     private final PathProvider pathProvider;
 
@@ -50,8 +57,10 @@ public class LockfileConnectionStrategy implements RiotClientConnectionStrategy 
                     secret,
                     Integer.parseInt(port)
             );
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
             throw e;
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
         }
     }
 
