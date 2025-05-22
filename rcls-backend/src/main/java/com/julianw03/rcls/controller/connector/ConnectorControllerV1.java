@@ -1,8 +1,6 @@
 package com.julianw03.rcls.controller.connector;
 
-import com.julianw03.rcls.model.APIException;
 import com.julianw03.rcls.model.RiotClientConnectionParameters;
-import com.julianw03.rcls.service.base.riotclient.RiotClientService;
 import com.julianw03.rcls.service.rest.ConnectorV1RestService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

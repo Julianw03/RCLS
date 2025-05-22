@@ -11,6 +11,10 @@ management:
       exposure:
         include: "health"
 
+feign:
+  httpclient:
+    disableSslValidation: true
+
 server:
   ssl:
     key-store: "classpath:keystore.p12"

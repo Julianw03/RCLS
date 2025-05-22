@@ -1,19 +1,17 @@
 package com.julianw03.rcls.service.base.cacheService.impl;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.julianw03.rcls.generated.api.CoreSdkApi;
+import com.julianw03.rcls.generated.model.ProductSession;
+import com.julianw03.rcls.generated.model.ProductSessionSession;
 import com.julianw03.rcls.model.RCUWebsocketMessage;
-import com.julianw03.rcls.model.api.ProductSession;
 import com.julianw03.rcls.service.base.cacheService.CacheService;
 import com.julianw03.rcls.service.base.cacheService.MapDataManager;
 import com.julianw03.rcls.service.base.riotclient.RiotClientService;
-import com.julianw03.rcls.service.base.riotclient.api.InternalApiResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
@@ -21,7 +19,7 @@ import java.util.regex.Pattern;
 
 @Slf4j
 @Component
-public class SessionsManager extends MapDataManager<String, ProductSession> {
+public class SessionsManager extends MapDataManager<String, ProductSessionSession> {
     private static final Pattern lolProductSessionPattern = Pattern.compile("^/product-session/v1/sessions/([\\w-_]{0,50})$");
 
     public SessionsManager(RiotClientService riotClientService, CacheService cacheService) {
@@ -29,25 +27,34 @@ public class SessionsManager extends MapDataManager<String, ProductSession> {
     }
 
     @Override
-    protected CompletableFuture<Map<String, ProductSession>> doFetchInitialData() {
-        InternalApiResponse response = riotClientService.request(
-                HttpMethod.GET,
-                "/product-session/v1/sessions",
-                null
+    protected CompletableFuture<Map<String, ProductSessionSession>> doFetchInitialData() {
+        Optional<CoreSdkApi> optionalCoreSdkApi = riotClientService.getApiClient().map(
+                client -> client.buildClient(CoreSdkApi.class)
         );
 
-        if (Objects.requireNonNull(response) instanceof InternalApiResponse.Success successResponse) {
-            Optional<Map<String, ProductSession>> opt = successResponse.map(
-                    objectMapper,
-                    new TypeReference<Map<String, ProductSession>>() {}
+        if (optionalCoreSdkApi.isEmpty()) {
+            return CompletableFuture.failedFuture(
+                    new Exception("Failed to build CoreSdkApi client for RsoAuthSessionManager")
             );
-            if (opt.isPresent()) {
-                return CompletableFuture.completedFuture(opt.get());
-            }
         }
-        return CompletableFuture.failedFuture(
-                new Exception("Failed to fetch initial data for InstallSettingsMFAManager")
-        );
+
+        CoreSdkApi coreSdkApi = optionalCoreSdkApi.get();
+
+        final Map<String, ProductSessionSession> resp;
+        try {
+            resp = coreSdkApi.productSessionV1SessionsGet();
+        } catch (Exception e) {
+            log.error("Failed to fetch initial data for RsoAuthSessionManager", e);
+            return CompletableFuture.failedFuture(e);
+        }
+
+        if (resp == null) {
+            return CompletableFuture.failedFuture(
+                    new Exception("Failed to fetch initial data for RsoAuthSessionManager")
+            );
+        }
+
+        return CompletableFuture.completedFuture(resp);
     }
 
     @Override
@@ -62,12 +69,12 @@ public class SessionsManager extends MapDataManager<String, ProductSession> {
 
         switch (type) {
             case CREATE, UPDATE -> {
-                Optional<ProductSession> updatedSession = parseJson(data, ProductSession.class);
+                Optional<ProductSessionSession> updatedSession = parseJson(data, ProductSessionSession.class);
                 if (updatedSession.isEmpty()) {
                     log.warn("Successfully matched pattern, but unable to parse JSON: {}", data);
                     return;
                 }
-                ProductSession session = updatedSession.get();
+                ProductSessionSession session = updatedSession.get();
                 log.warn("Add Session {}: {}", sessionId, session);
                 map.put(sessionId, session);
             }

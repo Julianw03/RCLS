@@ -1,9 +1,12 @@
 package com.julianw03.rcls.service.rest;
 
 import com.julianw03.rcls.Util.ServletUtils;
+import com.julianw03.rcls.generated.api.PluginProductLauncherApi;
+import com.julianw03.rcls.generated.api.PluginRiotClientLifecycleApi;
+import com.julianw03.rcls.generated.model.RsoAuthenticatorV1AuthenticationResponse;
+import com.julianw03.rcls.generated.model.RsoAuthenticatorV1ResponseType;
 import com.julianw03.rcls.model.APIException;
 import com.julianw03.rcls.model.SupportedGame;
-import com.julianw03.rcls.model.api.RsoAuthenticatorV1AuthenticationResponse;
 import com.julianw03.rcls.service.base.cacheService.CacheService;
 import com.julianw03.rcls.service.base.cacheService.impl.RsoAuthenticationManager;
 import com.julianw03.rcls.service.base.process.ProcessService;
@@ -18,7 +21,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Service
 public class LaunchV1RestService {
@@ -59,13 +61,15 @@ public class LaunchV1RestService {
     }
 
     public void hideRiotClientUx() {
-        InternalApiResponse response = riotClientService.request(
-                HttpMethod.POST,
-                "/riot-client-lifecycle/v1/hide",
-                null
+        PluginRiotClientLifecycleApi riotClientLifecycleApi = riotClientService.getApi(PluginRiotClientLifecycleApi.class).orElseThrow(
+                () -> new APIException("Failed to get riotClientLifecycleApi client")
         );
 
-        ServletUtils.assertSuccessStatus("Hide Riotclient UX", response);
+        try {
+            riotClientLifecycleApi.riotClientLifecycleV1HidePost();
+        } catch (Exception e) {
+            throw new APIException(e);
+        }
     }
 
     public List<String> getOperatingSystemSupportedGames(String resolveStrategy) {
@@ -92,8 +96,9 @@ public class LaunchV1RestService {
     }
 
     public void launchGameWithPatchline(String gameId, String patchlineId, String lookupStrategy) {
-        RsoAuthenticatorV1AuthenticationResponse rsoAuthState = cacheService.getObjectDataManger(RsoAuthenticationManager.class).getState();;
-        ServletUtils.assertEqual("VerifyLoggedIn", "success", rsoAuthState.getType());
+        RsoAuthenticatorV1AuthenticationResponse rsoAuthState = cacheService.getObjectDataManger(RsoAuthenticationManager.class).getState();
+        ;
+        ServletUtils.assertEqual("VerifyLoggedIn", RsoAuthenticatorV1ResponseType.SUCCESS, rsoAuthState.getType());
 
         Optional<SupportedGame> optSupportedGame = SupportedGame.ResolveStrategy.fromString(lookupStrategy)
                 .flatMap(resolveStrategy -> resolveStrategy.resolve(gameId));
@@ -108,13 +113,18 @@ public class LaunchV1RestService {
 
         SupportedGame game = optSupportedGame.get();
 
-        InternalApiResponse response = riotClientService.request(
-                HttpMethod.POST,
-                "/product-launcher/v1/products/" + game.getRiotInternalName() + "/patchlines/" + patchlineId,
-                null
+        PluginProductLauncherApi productLauncherApi = riotClientService.getApi(PluginProductLauncherApi.class).orElseThrow(
+                () -> new APIException("Failed to get CoreSdkApi client")
         );
 
-        ServletUtils.assertSuccessStatus("LaunchGame", response);
+        try {
+            productLauncherApi.productLauncherV1ProductsProductIdPatchlinesPatchlineIdPost(
+                    game.getRiotInternalName(),
+                    patchlineId
+            );
+        } catch (Exception e) {
+            throw new APIException(e);
+        }
 
         hideRiotClientUx();
 

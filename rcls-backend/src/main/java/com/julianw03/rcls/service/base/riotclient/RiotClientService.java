@@ -1,6 +1,6 @@
 package com.julianw03.rcls.service.base.riotclient;
 
-import com.julianw03.rcls.model.APIException;
+import com.julianw03.rcls.generated.ApiClient;
 import com.julianw03.rcls.model.RCUMessageListener;
 import com.julianw03.rcls.model.RiotClientConnectionParameters;
 import com.julianw03.rcls.service.BaseService;
@@ -9,7 +9,6 @@ import org.springframework.http.HttpMethod;
 
 import java.net.http.HttpResponse;
 import java.util.Optional;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 
 public abstract class RiotClientService extends BaseService {
@@ -28,6 +27,10 @@ public abstract class RiotClientService extends BaseService {
     public abstract void addMessageListener(RCUMessageListener listener);
 
     public abstract void removeMessageListener(RCUMessageListener listener);
+
+    public abstract Optional<ApiClient> getApiClient();
+
+    public abstract <T extends ApiClient.Api> Optional<T> getApi(Class<T> apiClass);
 
     public abstract <T> Optional<HttpResponse<T>> request(HttpMethod method, String relativePath, Object body, Class<T> responseClass);
 

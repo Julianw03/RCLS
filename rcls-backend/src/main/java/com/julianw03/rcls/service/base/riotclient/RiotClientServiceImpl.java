@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.node.NullNode;
 import com.julianw03.rcls.Util.ServletUtils;
 import com.julianw03.rcls.Util.Utils;
 import com.julianw03.rcls.config.mappings.RiotClientServiceConfig;
+import com.julianw03.rcls.generated.ApiClient;
 import com.julianw03.rcls.model.APIException;
 import com.julianw03.rcls.model.RCUMessageListener;
 import com.julianw03.rcls.model.RCUWebsocketMessage;
@@ -16,6 +17,9 @@ import com.julianw03.rcls.service.base.riotclient.api.InternalApiResponse;
 import com.julianw03.rcls.service.base.riotclient.api.RiotClientError;
 import com.julianw03.rcls.service.base.riotclient.connection.RiotClientConnectionStrategy;
 import com.julianw03.rcls.service.base.riotclient.ssl.RiotSSLContext;
+import feign.Client;
+import feign.RequestInterceptor;
+import feign.RequestTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +27,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 
+import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.net.URI;
@@ -35,6 +40,7 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -49,10 +55,12 @@ public class RiotClientServiceImpl extends RiotClientService {
     private final RiotClientServiceConfig      config;
     private final RiotClientConnectionStrategy connectionStrategy;
 
-    private final ScheduledExecutorService         futureExecutorService;
-    private final ExecutorService                  messageExecutorService;
-    private final AtomicReference<ConnectionState> connectionStateRef;
-    private       RiotClientConnectionParameters   parameters;
+    private final ScheduledExecutorService                           futureExecutorService;
+    private final ExecutorService                                    messageExecutorService;
+    private final AtomicReference<ConnectionState>                   connectionStateRef;
+    private       RiotClientConnectionParameters                     parameters;
+    private       ApiClient                                          apiClient;
+    private final Map<Class<? extends ApiClient.Api>, ApiClient.Api> apiClientMap;
 
     private final SSLContext sslContext;
     private final HttpClient httpClient;
@@ -72,6 +80,7 @@ public class RiotClientServiceImpl extends RiotClientService {
         this.config = config;
         this.connectionStateRef = new AtomicReference<>(ConnectionState.DISCONNECTED);
         this.connectionStrategy = connectionStrategy;
+        this.apiClientMap = new ConcurrentHashMap<>();
         this.mapper = new ObjectMapper();
         this.futureExecutorService = Executors.newScheduledThreadPool(10);
         this.messageExecutorService = Executors.newFixedThreadPool(10);
@@ -261,6 +270,47 @@ public class RiotClientServiceImpl extends RiotClientService {
     }
 
     @Override
+    public Optional<ApiClient> getApiClient() {
+        if (connectionStateRef.get() != ConnectionState.CONNECTED) return Optional.empty();
+        if (this.apiClient == null) {
+            final ApiClient apiClient =
+                    new ApiClient()
+                            .setBasePath("https://127.0.0.1:" + parameters.getPort())
+                            .setFeignBuilder(
+                                    new feign.Feign.Builder()
+                                            .client(new Client.Default(
+                                                    sslContext.getSocketFactory(),
+                                                    (hostname, session) -> HttpsURLConnection.getDefaultHostnameVerifier().verify(hostname, session)
+                                            ))
+                                            .requestInterceptor((request) -> {
+                                                RiotClientConnectionParameters parameters = getConnectionParameters();
+                                                if (parameters == null) return;
+
+                                                request.header(HttpHeaders.AUTHORIZATION, parameters.getAuthHeader());
+                                            })
+                                            .encoder(new feign.jackson.JacksonEncoder(mapper))
+                                            .decoder(new feign.jackson.JacksonDecoder(mapper))
+                            );
+            this.apiClient = apiClient;
+            this.apiClient.addAuthorization("basicAuth", new RequestInterceptor() {
+                @Override
+                public void apply(RequestTemplate template) {
+                    template.header(HttpHeaders.AUTHORIZATION, parameters.getAuthHeader());
+                }
+            });
+        }
+        return Optional.of(apiClient);
+    }
+
+    @Override
+    public <T extends ApiClient.Api> Optional<T> getApi(Class<T> apiClass) {
+        if (apiClass == null) return Optional.empty();
+        return getApiClient().map(client ->
+                apiClass.cast(apiClientMap.computeIfAbsent(apiClass, client::buildClient))
+        );
+    }
+
+    @Override
     public void startup() {
         log.info("Startup called");
         long start = System.currentTimeMillis();
@@ -411,6 +461,8 @@ public class RiotClientServiceImpl extends RiotClientService {
             log.warn("Illegal state while websocket close notified");
         }
         this.socket = null;
+        this.apiClient = null;
+        this.apiClientMap.clear();
         this.parameters = null;
     }
 

@@ -1,10 +1,10 @@
 package com.julianw03.rcls.controller.login;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.julianw03.rcls.generated.model.RsoAuthenticatorV1HCaptcha;
+import com.julianw03.rcls.generated.model.RsoAuthenticatorV1MultifactorInput;
+import com.julianw03.rcls.generated.model.RsoAuthenticatorV1RiotIdentityAuthCompleteInput;
 import com.julianw03.rcls.model.APIException;
-import com.julianw03.rcls.model.api.RsoAuthenticatorV1AuthenticationResponse;
-import com.julianw03.rcls.model.api.RsoAuthenticatorV1MultifactorInput;
-import com.julianw03.rcls.model.api.RsoAuthenticatorV1RiotIdentityAuthCompleteInput;
 import com.julianw03.rcls.service.rest.LoginV1RestService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +38,7 @@ public class LoginControllerV1 {
     }
 
     @GetMapping("/captcha")
-    public ResponseEntity<RsoAuthenticatorV1AuthenticationResponse.Captcha.HCaptcha> getCaptcha() {
+    public ResponseEntity<RsoAuthenticatorV1HCaptcha> getCaptcha() {
         return ResponseEntity
                 .ofNullable(loginV1RestService.getCaptcha());
     }
@@ -64,7 +64,7 @@ public class LoginControllerV1 {
     }
 
     @PostMapping(value = "/multifactor", consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> resolveMultifactor(@RequestBody RsoAuthenticatorV1MultifactorInput.Multifactor multifactorInput) {
+    public ResponseEntity<Void> resolveMultifactor(@RequestBody RsoAuthenticatorV1MultifactorInput multifactorInput) {
         loginV1RestService.resolveMultifactor(multifactorInput);
         return ResponseEntity
                 .ok()

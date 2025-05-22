@@ -1,6 +1,7 @@
 package com.julianw03.rcls.service.base.cacheService.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.julianw03.rcls.generated.api.CoreSdkApi;
 import com.julianw03.rcls.model.RCUWebsocketMessage;
 import com.julianw03.rcls.service.base.cacheService.CacheService;
 import com.julianw03.rcls.service.base.cacheService.ObjectDataManager;

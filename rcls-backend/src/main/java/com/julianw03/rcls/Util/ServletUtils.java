@@ -4,10 +4,14 @@ import com.julianw03.rcls.model.APIException;
 import com.julianw03.rcls.service.base.riotclient.api.InternalApiResponse;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class ServletUtils {
+
+    private ServletUtils() {}
+
     public static <T> void assertEqual(
             String scope,
             T expected,

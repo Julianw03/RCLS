@@ -1,18 +1,16 @@
 package com.julianw03.rcls.service.base.cacheService.impl;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.julianw03.rcls.generated.api.CoreSdkApi;
+import com.julianw03.rcls.generated.model.RsoAuthSessionResponse;
+import com.julianw03.rcls.generated.model.RsoAuthenticatorV1AuthenticationResponse;
 import com.julianw03.rcls.model.RCUWebsocketMessage;
-import com.julianw03.rcls.model.api.RsoAuthSessionResponse;
 import com.julianw03.rcls.service.base.cacheService.CacheService;
 import com.julianw03.rcls.service.base.cacheService.ObjectDataManager;
 import com.julianw03.rcls.service.base.riotclient.RiotClientService;
-import com.julianw03.rcls.service.base.riotclient.api.InternalApiResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
@@ -29,24 +27,33 @@ public class RsoAuthSessionManager extends ObjectDataManager<RsoAuthSessionRespo
 
     @Override
     protected CompletableFuture<RsoAuthSessionResponse> doFetchInitialData() {
-        InternalApiResponse response = riotClientService.request(
-                HttpMethod.GET,
-                "/rso-auth/v1/session",
-                null
+        Optional<CoreSdkApi> optionalCoreSdkApi = riotClientService.getApiClient().map(
+                client -> client.buildClient(CoreSdkApi.class)
         );
 
-        if (Objects.requireNonNull(response) instanceof InternalApiResponse.Success successResponse) {
-            Optional<RsoAuthSessionResponse> opt = successResponse.map(
-                    objectMapper,
-                    new TypeReference<>() {}
+        if (optionalCoreSdkApi.isEmpty()) {
+            return CompletableFuture.failedFuture(
+                    new Exception("Failed to build CoreSdkApi client for RsoAuthSessionManager")
             );
-            if (opt.isPresent()) {
-                return CompletableFuture.completedFuture(opt.get());
-            }
         }
-        return CompletableFuture.failedFuture(
-                new Exception("Failed to fetch initial data for RsoAuthenticationManager")
-        );
+
+        CoreSdkApi coreSdkApi = optionalCoreSdkApi.get();
+
+        final RsoAuthSessionResponse resp;
+        try {
+            resp = coreSdkApi.rsoAuthV1SessionGet();
+        } catch (Exception e) {
+            log.error("Failed to fetch initial data for RsoAuthSessionManager", e);
+            return CompletableFuture.failedFuture(e);
+        }
+
+        if (resp == null) {
+            return CompletableFuture.failedFuture(
+                    new Exception("Failed to fetch initial data for RsoAuthSessionManager")
+            );
+        }
+
+        return CompletableFuture.completedFuture(resp);
     }
 
     @Override
