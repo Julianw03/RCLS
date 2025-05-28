@@ -35,6 +35,4 @@ RUN mkdir "volume"
 
 COPY . /app
 
-COPY build.sh /app/build.sh
-
 ENTRYPOINT ["bash","build.sh"]

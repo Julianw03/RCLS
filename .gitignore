@@ -59,7 +59,6 @@ rcls-riot-api-client/gradle.properties
 /rcls-riot-api-client/src
 /rcls-riot-api-client/.gitignore
 /rcls-riot-api-client/build
-/rcls-riot-api-client/build.gradle
 /rcls-riot-api-client/README.md
 /rcls-riot-api-client/.travis.yml
 /rcls-riot-api-client/build.sbt

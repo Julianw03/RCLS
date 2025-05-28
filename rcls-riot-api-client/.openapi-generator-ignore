@@ -25,6 +25,7 @@
 gradle
 gradlew
 gradlew.bat
+build.gradle
 .gitignore
 .travis.yml
 build.sbt
