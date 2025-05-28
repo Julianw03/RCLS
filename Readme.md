@@ -38,6 +38,12 @@ You have the following options:
 1. **Docker**: [TODO]
 
 Running via Docker is not supported, as the project needs access to local Process and Network information.
+#### Planned Features / ToDo's
+- [ ] Create a pipeline that periodically checks if there are new versions of the Riot Client and updating the generated
+OpenAPI specification.
+- [ ] Better Frontend
+- [ ] Communication of Backend and Frontend via Websockets
+
 #### Licenses and Dependencies
 
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FJulianw03%2FRCLS.svg?type=large&issueType=license)](https://app.fossa.com/projects/git%2Bgithub.com%2FJulianw03%2FRCLS?ref=badge_large&issueType=license)

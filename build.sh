@@ -21,9 +21,7 @@ fi
 mkdir $BACKEND_STATIC_RESSOURCES
 cp -r $FRONTEND_OUTPUT $BACKEND_STATIC_RESSOURCES
 
-cd ./rcls-backend
 ./gradlew build
-cd ../
 if [ -d $VOLUME_DIR ]; then
   cp -r $BACKEND_OUTPUT $VOLUME_DIR
 fi

@@ -1,5 +1,6 @@
 package com.julianw03.rcls.service.base.cacheService.impl;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.julianw03.rcls.generated.api.CoreSdkApi;
 import com.julianw03.rcls.generated.model.RsoAuthenticatorV1AuthenticationResponse;
@@ -22,6 +23,7 @@ public class RsoAuthenticationManager extends ObjectDataManager<RsoAuthenticator
 
     public RsoAuthenticationManager(RiotClientService riotClientService, CacheService cacheService) {
         super(riotClientService, cacheService);
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
 
