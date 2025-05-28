@@ -1,5 +1,4 @@
 import './App.css'
-import {useDispatch} from "react-redux";
 import { useRef, useState} from "react";
 import * as Config from "./Config";
 import RessourceLoadingSystem from "./systems/RessourceLoadingSystem.ts";
@@ -8,7 +7,7 @@ import HCaptchaWrapper from "./components/HCaptchaWrapper.tsx";
 
 const system = new RessourceLoadingSystem(
     {
-        fetchUrl: new URL("https://127.0.0.1")
+        fetchUrl: new URL("https://raw.communitydragon.org/latest/plugins")
     }
 )
 
@@ -21,14 +20,12 @@ interface RQData {
 
 function App() {
 
-    const dispatch = useDispatch();
-
     const usernameInputRef = useRef<HTMLInputElement>(null);
     const passwordInputRef = useRef<HTMLInputElement>(null);
 
     const [captchaData, setCaptchaData] = useState<RQData | null>(null);
 
-    const handleHcaptchaSubmit = async (token) => {
+    const handleHcaptchaSubmit = async (token: string) => {
         const exampleUsername = usernameInputRef.current?.value;
         const examplePassword = passwordInputRef.current?.value;
         await fetch(Config.BACKEND_URL + "/api/riotclient/login/v1/login", {
@@ -48,27 +45,9 @@ function App() {
         passwordInputRef.current!.value = "";
     }
 
-    async function hideClientUx() {
-        const response = await fetch(Config.BACKEND_URL + "/api/riotclient/launcher/v1/client", {
-            method: "DELETE"
-        });
-    }
-
     async function showClientUx() {
-        const response = await fetch(Config.BACKEND_URL + "/api/riotclient/launcher/v1/client", {
+        await fetch(Config.BACKEND_URL + "/api/riotclient/launcher/v1/client", {
             method: "POST"
-        });
-    }
-
-    async function startGame(gameId) {
-        const response = await fetch(Config.BACKEND_URL + "/api/riotclient/launcher/v1/game/"+ gameId, {
-            method: "POST"
-        });
-    }
-
-    async function stopGame(gameId) {
-        const response = await fetch(Config.BACKEND_URL + "/api/riotclient/launcher/v1/game/"+ gameId, {
-            method: "DELETE"
         });
     }
 
