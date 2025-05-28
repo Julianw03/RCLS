@@ -67,7 +67,11 @@ public class ServiceConfig {
             @Autowired ProcessServiceConfig processServiceConfig,
             @Autowired PathProvider pathProvider
     ) {
-        return new ProcessService(pathProvider, processServiceConfig);
+        return new ProcessService(
+                pathProvider,
+                ProcessHandle::allProcesses,
+                processServiceConfig
+        );
     }
 
 

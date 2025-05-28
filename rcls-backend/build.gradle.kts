@@ -1,3 +1,5 @@
+val mockitoAgent = configurations.create("mockitoAgent")
+
 plugins {
     java
     id("org.springframework.boot") version "3.4.3"
@@ -46,7 +48,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.junit.jupiter:junit-jupiter-api")
     testImplementation("org.mockito:mockito-junit-jupiter")
-    testImplementation("org.mockito:mockito-core")
+    mockitoAgent("org.mockito:mockito-core") { isTransitive = false }
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
@@ -76,7 +78,10 @@ tasks.jar {
     enabled = false;
 }
 
-
 tasks.bootJar {
     this.archiveFileName.set("RCLS-${version}.${archiveExtension.get()}");
+}
+
+tasks.test {
+    jvmArgs("-javaagent:${mockitoAgent.asPath}")
 }

@@ -7,11 +7,14 @@ import com.julianw03.rcls.config.mappings.PathProviderConfig;
 import com.julianw03.rcls.config.mappings.ProcessServiceConfig;
 import com.julianw03.rcls.model.RiotClientConnectionParameters;
 import com.julianw03.rcls.model.SupportedGame;
-import com.julianw03.rcls.service.BaseService;
 import com.julianw03.rcls.providers.paths.PathProvider;
+import com.julianw03.rcls.service.BaseService;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -22,22 +25,27 @@ import java.util.Optional;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 @Slf4j
 public class ProcessService extends BaseService {
 
-    protected final ProcessServiceConfig config;
-    protected final PathProvider pathProvider;
+    protected final ProcessServiceConfig     config;
+    protected final PathProvider             pathProvider;
+    protected final Supplier<Stream<ProcessHandle>>  processHandleSupplier;
     protected final ScheduledExecutorService executorService;
     protected final AtomicReference<Process> currentRCSProcess;
-    protected Path rcsPath;
-    private final ObjectMapper mapper;
+    protected       Path                     rcsPath;
+    private final   ObjectMapper             mapper;
 
     public ProcessService(
             PathProvider pathProvider,
+            Supplier<Stream<ProcessHandle>> processHandleSupplier,
             ProcessServiceConfig config
     ) {
         this.config = config;
+        this.processHandleSupplier = processHandleSupplier;
         this.pathProvider = pathProvider;
         this.executorService = Executors.newScheduledThreadPool(10);
         this.mapper = new ObjectMapper();
@@ -182,7 +190,7 @@ public class ProcessService extends BaseService {
     public CompletableFuture<Void> killRiotClientServices() {
         return getExecutableName((PathProviderConfig.PathEntries.Executables::getRiotClientServices))
                 .thenCompose(executableIdentifier -> {
-                    CompletableFuture<?>[] futures = ProcessHandle.allProcesses()
+                    CompletableFuture<?>[] futures = processHandleSupplier.get()
                             .filter(processHandle -> processHandle.info().command().map(command -> command.endsWith(executableIdentifier)).orElse(false))
                             .limit(1)
                             .map(this::killProcess)
@@ -194,7 +202,7 @@ public class ProcessService extends BaseService {
     public CompletableFuture<Void> killGameProcess(SupportedGame game) {
         return getExecutableName(mappings -> mappings.getGameExecutables().get(game))
                 .thenCompose(executableIdentifier -> {
-                    CompletableFuture<?>[] futures = ProcessHandle.allProcesses()
+                    CompletableFuture<?>[] futures = processHandleSupplier.get()
                             .filter(processHandle -> processHandle.info().command().map(command -> command.endsWith(executableIdentifier)).orElse(false))
                             .map(this::killProcess)
                             .toArray(CompletableFuture[]::new);
@@ -205,7 +213,7 @@ public class ProcessService extends BaseService {
     public CompletableFuture<Void> killRiotClientProcess() {
         return getExecutableName(PathProviderConfig.PathEntries.Executables::getRiotClient)
                 .thenCompose(executableIdentifier -> {
-                    CompletableFuture<?>[] futures = ProcessHandle.allProcesses()
+                    CompletableFuture<?>[] futures = processHandleSupplier.get()
                             .filter(processHandle -> processHandle.info().command().map(command -> command.endsWith(executableIdentifier)).orElse(false))
                             .sorted(Comparator.comparingLong(ProcessHandle::pid))
                             .limit(1)
@@ -235,18 +243,21 @@ public class ProcessService extends BaseService {
     }
 
     protected CompletableFuture<Void> killProcess(ProcessHandle processHandle) {
-        return processHandle.onExit().orTimeout(500, TimeUnit.MILLISECONDS)
+        if (processHandle == null) return CompletableFuture.failedFuture(new IllegalArgumentException("ProcessHandle cannot be null"));
+        processHandle.destroy();
+
+        return processHandle.onExit()
+                .orTimeout(500, TimeUnit.MILLISECONDS)
                 .exceptionally(ex -> {
                     if (ex instanceof TimeoutException) {
                         log.warn("Process {} timed out, killing it forcibly", processHandle.pid());
                         processHandle.destroyForcibly();
                         return processHandle;
                     }
-                    throw new RuntimeException("Failed to kill process " + processHandle.pid(), ex);
+                    throw new CompletionException("Failed to kill process " + processHandle.pid(), ex);
                 })
-                .thenComposeAsync(processHandle1 -> processHandle
-                        .onExit()
+                .thenCompose(procHandle -> procHandle.onExit()
                         .orTimeout(2, TimeUnit.SECONDS)
-                        .thenRun(() -> log.info("Process {} killed successfully", processHandle1.pid())));
+                        .thenRun(() -> log.info("Process {} killed successfully", processHandle.pid())));
     }
 }

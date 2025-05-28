@@ -1,4 +1,4 @@
-package com.julianw03.rcls.service.riotclient.connection;
+package com.julianw03.rcls.service.base.riotclient.connection;
 
 import com.julianw03.rcls.model.RiotClientConnectionParameters;
 import com.julianw03.rcls.model.SupportedGame;
