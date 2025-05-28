@@ -49,6 +49,9 @@ class RessourceLoadingSystem {
         console.info("ResourceLoadingSystem: ", ...message);
     }
 
+    
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
     private warn(...message: unknown[]) {
         console.warn("ResourceLoadingSystem: ", ...message);
     }
@@ -83,7 +86,7 @@ class RessourceLoadingSystem {
         const config: SystemConfig = {
             videos: {
                 "background": {
-                    url: "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/ahri/skins/skin86/animatedsplash/ahri_skin86_uncentered.skins_ahri_hol.webm"
+                    url: `${this.fetchUrl}/rcp-be-lol-game-data/global/default/assets/characters/ahri/skins/skin86/animatedsplash/ahri_skin86_uncentered.skins_ahri_hol.webm`
                 }
             },
             images: {},
