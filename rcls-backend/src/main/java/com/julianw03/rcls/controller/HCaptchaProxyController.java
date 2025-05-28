@@ -137,7 +137,7 @@ public class HCaptchaProxyController {
         });
     }
 
-    @Value("${proxy.target.url}")
+    @Value("${custom.configurations.proxy.target.url}")
     private String targetUrl;
 
     @Value("${server.port}")

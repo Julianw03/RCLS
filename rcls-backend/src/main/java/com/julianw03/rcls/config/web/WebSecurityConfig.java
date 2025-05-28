@@ -47,7 +47,9 @@ public class WebSecurityConfig {
                 })
                 .sessionManagement(session ->
                         session
-                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                                .maximumSessions(1)
+                )
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
 
         return http.build();

@@ -3,8 +3,10 @@ package com.julianw03.rcls.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
+@NoArgsConstructor
 public class RCUWebsocketMessage {
     @JsonProperty("eventType")
     private MessageType type;
@@ -23,11 +25,9 @@ public class RCUWebsocketMessage {
         }
     }
 
-    private RCUWebsocketMessage(MessageType type, String uri, JsonNode data) {
+    protected RCUWebsocketMessage(MessageType type, String uri, JsonNode data) {
         this.type = type;
         this.uri = uri;
         this.data = data;
     }
-
-    public RCUWebsocketMessage() {}
 }

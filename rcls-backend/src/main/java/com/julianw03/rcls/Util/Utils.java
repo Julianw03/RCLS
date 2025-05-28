@@ -58,7 +58,7 @@ public class Utils {
         try {
             return Optional.ofNullable(mapper.convertValue(node, tClass));
         } catch (Exception e) {
-//            log.error("", e);
+            log.warn("", e);
             return Optional.empty();
         }
     }

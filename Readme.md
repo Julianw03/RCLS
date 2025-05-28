@@ -6,6 +6,16 @@ Spring Boot and Frontend development with React.
 ### TLDR
 Create your own Frontend and custom logic for the Riot Client.
 
+### Security
+RCLS does **NOT** make any security guarantees during execution.
+Especially during the "unlocked" phase of accounts the Strings are available
+in plaintext in memory. Even after the "locked" phase, the Strings are still available in memory, due to the Garbage Collector
+and String Pooling. I have tried some concepts but eventually during the JSON Serialization the bytes are converted to a String
+and are therefore affected by String Pooling. If anyone has some ideas on how to solve this and still being able to interact
+with the Riot Client, feel free to create an issue or PR.
+I will just assume that if your machine is compromised, you have bigger problems than the leak of your Riot account credentials.
+Moreover, the provided keystore allows anyone to retrieve the used self-signed certificate.
+
 ### Disclaimer
 RCLS isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved
 in producing or managing Riot Games properties.

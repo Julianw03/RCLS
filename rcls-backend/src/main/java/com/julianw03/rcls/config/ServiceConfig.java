@@ -1,91 +1,96 @@
 package com.julianw03.rcls.config;
 
-import com.julianw03.rcls.model.SupportedGame;
-import com.julianw03.rcls.service.cacheService.CacheService;
-import com.julianw03.rcls.service.process.OperatingSystem;
-import com.julianw03.rcls.service.process.ProcessService;
-import com.julianw03.rcls.service.process.UnixProcessService;
-import com.julianw03.rcls.service.process.WindowsProcessServiceV2;
-import com.julianw03.rcls.service.publisher.PublisherMessage;
-import com.julianw03.rcls.service.publisher.PublisherService;
-import com.julianw03.rcls.service.publisher.PublisherServiceImpl;
-import com.julianw03.rcls.service.riotclient.RiotClientService;
-import com.julianw03.rcls.service.riotclient.RiotClientServiceImpl;
-import lombok.Data;
+import com.julianw03.rcls.config.mappings.OperatingSystemProviderConfig;
+import com.julianw03.rcls.config.mappings.PathProviderConfig;
+import com.julianw03.rcls.config.mappings.ProcessServiceConfig;
+import com.julianw03.rcls.config.mappings.RiotClientServiceConfig;
+import com.julianw03.rcls.service.base.cacheService.CacheService;
+import com.julianw03.rcls.providers.os.OperatingSystemProvider;
+import com.julianw03.rcls.providers.paths.PathProvider;
+import com.julianw03.rcls.service.base.process.ProcessService;
+import com.julianw03.rcls.service.base.publisher.PublisherService;
+import com.julianw03.rcls.service.base.publisher.PublisherServiceImpl;
+import com.julianw03.rcls.service.base.publisher.formats.ProxyFormat;
+import com.julianw03.rcls.service.base.riotclient.RiotClientService;
+import com.julianw03.rcls.service.base.riotclient.RiotClientServiceImpl;
+import com.julianw03.rcls.service.base.riotclient.connection.ConnectionStrategy;
+import com.julianw03.rcls.service.base.riotclient.connection.LockfileConnectionStrategy;
+import com.julianw03.rcls.service.base.riotclient.connection.ProcessTakeoverConnectionStrategy;
+import com.julianw03.rcls.service.base.riotclient.connection.RiotClientConnectionStrategy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.stereotype.Component;
-
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Optional;
 
 @Slf4j
 @Configuration
 public class ServiceConfig {
     @Bean
-    public ProcessService getProcessService(
-            @Autowired ProcessServiceConfig processServiceConfig
+    PathProvider getPathProvider(
+            @Autowired PathProviderConfig pathProviderConfig,
+            @Autowired OperatingSystemProvider operatingSystemProvider
     ) {
-        final String osName = System.getProperty("os.name");
-        final OperatingSystem os = Optional
-                .ofNullable(processServiceConfig.osOverride)
-                .orElseGet(() -> OperatingSystem
-                        .fromName(osName)
-                        .orElseThrow(
-                                () -> new NoSuchElementException(
-                                        String.format("Operating System %s not supported", osName)
-                                )
-                        ));
+        return new PathProvider(
+                pathProviderConfig,
+                operatingSystemProvider.get()
+        );
+    }
 
-        switch (os) {
-            case WINDOWS -> {
-                return new WindowsProcessServiceV2(processServiceConfig);
-            }
-            case MACOS, LINUX -> {
-                return new UnixProcessService(os, processServiceConfig);
-            }
+    @Bean
+    OperatingSystemProvider getOperatingSystemProvider(
+            @Autowired OperatingSystemProviderConfig operatingSystemProviderConfig
+    ) {
+        return new OperatingSystemProvider(operatingSystemProviderConfig);
+    }
+
+    @Bean
+    RiotClientConnectionStrategy getRiotClientConnectionStrategy(
+            @Autowired ProcessService processService,
+            @Autowired PathProvider pathProvider,
+            @Autowired RiotClientServiceConfig riotClientServiceConfig
+    ) {
+        ConnectionStrategy strategy = riotClientServiceConfig.getConnectionStrategy().getStrategy();
+        final RiotClientConnectionStrategy connectionStrategy;
+        switch (strategy) {
+            case LOCKFILE -> connectionStrategy = new LockfileConnectionStrategy(pathProvider);
+            case PROCESS_TAKEOVER -> connectionStrategy = new ProcessTakeoverConnectionStrategy(processService);
             default -> {
-                throw new RuntimeException("Operating System not yet supported");
+                log.error("Unknown connection strategy: " + strategy);
+                throw new IllegalStateException("Unknown connection strategy: " + strategy);
             }
         }
+        return connectionStrategy;
+    }
+
+    @Bean
+    public ProcessService getProcessService(
+            @Autowired ProcessServiceConfig processServiceConfig,
+            @Autowired PathProvider pathProvider
+    ) {
+        return new ProcessService(
+                pathProvider,
+                ProcessHandle::allProcesses,
+                processServiceConfig
+        );
     }
 
 
     @Bean
-    @DependsOn({"getProcessService", "getPublisherService", "cacheService"})
     public RiotClientService getRiotclientService(
             @Autowired ProcessService processService,
             @Autowired PublisherService publisherService,
             @Autowired CacheService cacheService,
-            @Autowired RiotClientServiceConfig riotClientServiceConfig
+            @Autowired RiotClientServiceConfig riotClientServiceConfig,
+            @Autowired RiotClientConnectionStrategy connectionStrategy
     ) {
+
         RiotClientService riotClientService = new RiotClientServiceImpl(
                 processService,
+                connectionStrategy,
                 riotClientServiceConfig
         );
         riotClientService.addMessageListener(message -> {
-            PublisherMessage.Type type;
-            switch (message.getType()) {
-                case CREATE:
-                    type = PublisherMessage.Type.CREATE;
-                    break;
-                case UPDATE:
-                    type = PublisherMessage.Type.UPDATE;
-                    break;
-                case DELETE:
-                    type = PublisherMessage.Type.DELETE;
-                    break;
-                default:
-                    log.debug("Type {} not initialized", message.getType());
-                    return;
-            }
-
-            publisherService.doDispatchChange(type, "/rcls-proxy" + message.getUri(), message.getData());
+            publisherService.dispatchChange(PublisherService.Source.PROXY_SERVICE, new ProxyFormat(message));
         });
         riotClientService.addMessageListener(cacheService);
         return riotClientService;
@@ -94,42 +99,5 @@ public class ServiceConfig {
     @Bean
     public PublisherService getPublisherService() {
         return new PublisherServiceImpl();
-    }
-
-    @Data
-    @Component
-    @ConfigurationProperties(prefix = "custom.configurations.riotclient-service", ignoreInvalidFields = true)
-    public static class RiotClientServiceConfig {
-        private ConnectionInitParameters connectionInit;
-
-        @Data
-        public static class ConnectionInitParameters {
-            private int restConnectAttempts;
-            private int restConnectDelayMs;
-            private int restConnectWaitForMaxMs;
-        }
-    }
-
-    @Data
-    @Component
-    @ConfigurationProperties(prefix = "custom.configurations.process-service", ignoreInvalidFields = true)
-    public static class ProcessServiceConfig {
-        private OperatingSystem                            osOverride;
-        private Map<OperatingSystem, OSExecutableMappings> executables;
-        private SharedComponents                           sharedComponents;
-
-
-        @Data
-        public static class SharedComponents {
-            private String riotGamesFolderName;
-            private String riotClientInstallsFile;
-        }
-
-        @Data
-        public static class OSExecutableMappings {
-            private Map<SupportedGame, String> gameExecutables;
-            private String                     riotClient;
-            private String                     riotClientServices;
-        }
     }
 }

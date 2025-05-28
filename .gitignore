@@ -1,4 +1,6 @@
 /.idea
+/build
+/.gradle
 
 ############## Frontend ##############
 # Logs
@@ -29,11 +31,10 @@
 
 ############## Backend ##############
 /rcls-backend/HELP.md
+/rcls-backend/.gitignore
 /rcls-backend/.gradle
+/rcls-backend/gradle
 /rcls-backend/build/
-!/rcls-backend/gradle/wrapper/gradle-wrapper.jar
-!/rcls-backend/**/src/main/**/build/
-!/rcls-backend/**/src/test/**/build/
 
 ### IntelliJ IDEA ###
 /rcls-backend/.idea
@@ -41,9 +42,26 @@
 /rcls-backend/*.iml
 /rcls-backend/*.ipr
 /rcls-backend/out/
-!/rcls-backend/**/src/main/**/out/
-!/rcls-backend/**/src/test/**/out/
 
 ### VS Code ###
 /rcls-backend/.vscode/
 #####################################
+
+############## Riot Client API ##############
+/rcls-riot-api-client/.github
+/rcls-riot-api-client/.openapi-generator
+/rcls-riot-api-client/.gradle
+rcls-riot-api-client/api/openapi.yaml
+/rcls-riot-api-client/gradle
+rcls-riot-api-client/gradle.properties
+/rcls-riot-api-client/gradlew
+/rcls-riot-api-client/gradlew.bat
+/rcls-riot-api-client/src
+/rcls-riot-api-client/.gitignore
+/rcls-riot-api-client/build
+/rcls-riot-api-client/build.gradle
+/rcls-riot-api-client/README.md
+/rcls-riot-api-client/.travis.yml
+/rcls-riot-api-client/build.sbt
+/rcls-riot-api-client/git_push.sh
+/rcls-riot-api-client/pom.xml

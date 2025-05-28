@@ -1,11 +1,17 @@
 package com.julianw03.rcls.Util;
 
 import com.julianw03.rcls.model.APIException;
-import com.julianw03.rcls.service.riotclient.api.InternalApiResponse;
+import com.julianw03.rcls.service.base.riotclient.api.InternalApiResponse;
 
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class ServletUtils {
+
+    private ServletUtils() {}
+
     public static <T> void assertEqual(
             String scope,
             T expected,
@@ -23,6 +29,71 @@ public class ServletUtils {
         }
     }
 
+
+    @SafeVarargs
+    public static <T> void assertFieldsNotNull(
+            T obj,
+            Function<T, ?>... fieldExtractor
+    ) {
+        if (obj == null || fieldExtractor == null) {
+            throw new IllegalArgumentException("Object cannot be null");
+        }
+
+        for (Function<T, ?> extractor : fieldExtractor) {
+            if (extractor.apply(obj) == null) {
+                throw new IllegalArgumentException("[AssertFieldsNotNull]: Field cannot be null");
+            }
+        }
+    }
+
+    public static void expectInternalApiSuccess(
+            InternalApiResponse response,
+            Consumer<InternalApiResponse.Success> onSuccess
+    ) throws APIException {
+        if (response == null || onSuccess == null) {
+            throw new IllegalArgumentException("Response and onSuccess cannot be null");
+        }
+
+        switch (response) {
+            case InternalApiResponse.ApiError error -> {
+                throw new APIException(error.getError());
+            }
+            case InternalApiResponse.InternalException exception -> {
+                throw new APIException(exception.getException());
+            }
+            case InternalApiResponse.Success success -> {
+                onSuccess.accept(success);
+            }
+            default -> {
+                throw new APIException("Unexpected Error Occurred");
+            }
+        }
+    }
+
+    public static <T> T expectInternalApiSuccess(
+            InternalApiResponse response,
+            Function<InternalApiResponse.Success, T> onSuccess
+    ) throws APIException {
+        if (response == null || onSuccess == null) {
+            throw new IllegalArgumentException("Response and onSuccess cannot be null");
+        }
+
+        switch (response) {
+            case InternalApiResponse.ApiError error -> {
+                throw new APIException(error.getError());
+            }
+            case InternalApiResponse.InternalException exception -> {
+                throw new APIException(exception.getException());
+            }
+            case InternalApiResponse.Success success -> {
+                return onSuccess.apply(success);
+            }
+            default -> {
+                throw new APIException("Unexpected Error Occurred");
+            }
+        }
+    }
+
     public static void assertSuccessStatus(
             String scope,
             InternalApiResponse response
@@ -32,7 +103,7 @@ public class ServletUtils {
                     scope
             );
 
-            throw new APIException("Processing failed", message);
+            throw new IllegalStateException(message);
         }
     }
 

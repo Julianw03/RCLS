@@ -1,6 +1,13 @@
 server:
   port: 8080
 
-proxy:
-  target:
-    url: "hcaptcha.com"
+logging:
+  level:
+    com.julianw03.rcls.service.base.riotclient.RiotClientServiceImpl: DEBUG
+    com.julianw03.rcls.service.base.process.ProcessService: DEBUG
+
+custom:
+  configurations:
+    riotclient-service:
+      connection-strategy:
+        strategy: process_takeover

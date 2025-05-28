@@ -1,14 +1,11 @@
 package com.julianw03.rcls.config;
 
 import com.julianw03.rcls.filter.ServiceReadyFilter;
-import com.julianw03.rcls.service.riotclient.RiotClientService;
+import com.julianw03.rcls.service.base.riotclient.RiotClientService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.Map;
 
 @Configuration
 public class FilterConfig {
