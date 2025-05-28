@@ -35,7 +35,7 @@ custom:
         rest-connect-wait-for-max-ms: 10000
       connection-strategy:
         connect-timeout-ms: 10_000
-        strategy: lockfile
+        strategy: process_takeover
     path-provider:
       path-entries:
         macos:

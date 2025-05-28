@@ -33,9 +33,7 @@ WORKDIR /app
 #For local builds
 RUN mkdir "volume"
 
-# Copy local folders into the image
-COPY rcls-frontend /app/rcls-frontend
-COPY rcls-backend /app/rcls-backend
+COPY . /app
 
 COPY build.sh /app/build.sh
 

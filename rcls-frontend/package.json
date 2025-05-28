@@ -4,10 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
+    "dev": "cross-env VITE_BACKEND_PORT=8080 vite",
+    "build": "cross-env VITE_BACKEND_PORT=443 tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "cross-env VITE_BACKEND_PORT=443 vite preview"
   },
   "dependencies": {
     "@hcaptcha/react-hcaptcha": "^1.12.0",

@@ -59,23 +59,6 @@ public class LoginV1RestService {
         this.IDENTITY_START_INPUT.setState("auth");
     }
 
-    private ObjectNode getRSO_AUTH_V2_GRANT_OBJECT(ObjectMapper mapper) {
-        final ObjectNode node = mapper.createObjectNode();
-        node.put("clientId", "riot-client");
-        final ArrayNode trustLevels = mapper.createArrayNode();
-        trustLevels.add("always_trusted");
-        node.set("trustLevels", trustLevels);
-        return node;
-    }
-
-    private ObjectNode getRSO_AUTHENTICATOR_RIOT_IDENTITY_START_OBJECT(ObjectMapper mapper) {
-        final ObjectNode node = mapper.createObjectNode();
-        node.put("language", "en_US");
-        node.put("product-id", "riot-client");
-        node.put("state", "auth");
-        return node;
-    }
-
     private RsoAuthSessionLoginToken createSessionLoginObject(String loginToken) {
         RsoAuthSessionLoginToken rsoAuthSessionLoginToken = new RsoAuthSessionLoginToken();
         rsoAuthSessionLoginToken.setLoginToken(loginToken);

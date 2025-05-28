@@ -2,8 +2,8 @@
   "openapi": "3.0.0",
   "info": {
     "title": "Riot Client API",
-    "version": "109.0.1.3179",
-    "description": "Created with SDK - Version 25.4.4.5664"
+    "version": "110.0.0.3217",
+    "description": "Created with SDK - Version 25.5.0.5663"
   },
   "paths": {
     "/agent/v1/requests/third-party-dependency/{requestId}": {
@@ -3808,6 +3808,23 @@
         }
       }
     },
+    "/patch-proxy/v2/patch-jobs/all": {
+      "delete": {
+        "tags": [
+          "Plugin patch-proxy"
+        ],
+        "description": "Delete all patch jobs from the threaded patch scheduler. This will stop patch in progress. ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        }
+      }
+    },
     "/patch-proxy/v2/patch-jobs/products/{productId}/patchlines/{patchlineId}": {
       "delete": {
         "tags": [
@@ -4795,6 +4812,110 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/PlaystationAccountV2AuthorizationParameters"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/presences/v1/debug/caller-id/mock-id": {
+      "delete": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Stops mocking the caller ID for Swagger calls \n [Help] Deletes the currently set `productId` and `patchlineId`. Plugin APIs will receive `swagger` as the `productId`.",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Checks the caller ID in use when APIs are called from Swagger \n [Help] Returns the `productId` and `patchlineId` being passed to APIs in this plugin when called via Swagger.\n\nReturns 404 if a mock caller ID is not in use.",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresencesPluginCallerId_MockCallerId"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Sets the caller ID to use when calling this plugin from Swagger \n [Help] Sets the `productId` and `patchlineId` to pass to APIs in this plugin during future calls from Swagger.\n\nUse this functionality to test APIs in this plugin with Swagger, as if they were being called from another product.",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PresencesPluginCallerId_MockCallerId"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/presences/v1/session": {
+      "delete": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Delete the player's presence ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Update the player's presence ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PresencesPresenceUpdate"
               }
             }
           }
@@ -7367,6 +7488,73 @@
         "tags": [
           "core-sdk"
         ],
+        "description": "Remove or decline friend request \n [Help] Endpoint deleted April 2025; Please use '/social/v2/friendrequests'.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "puuid",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        }
+      }
+    },
+    "/social/v1/presences/session": {
+      "delete": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Delete the player's presence ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Update the player's presence ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SocialPresenceUpdateV1"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/social/v2/friendrequests/{puuid}": {
+      "delete": {
+        "tags": [
+          "core-sdk"
+        ],
         "description": "Remove or decline friend request ",
         "parameters": [
           {
@@ -9125,6 +9313,30 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ChatUIStateConversationList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/chat/v6/friendrequests/full": {
+      "get": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Get friend requests. On update and delete will notify with the full friend requests list. \n [Help] **Response:** named requests root object: a flat list of friend request property groups with 'puuid' and GnT info inside (could have zero or more entries in list):\n\n```\n{\n  \"requests\": [\n    {\n      \"gameName\":     \"[friend gameName]\",\n      \"tagLine\":      \"[friend tagLine]\",\n      \"note\":         \"[friend note]\",     // Can be set to contain information about the friend request. (ex. recofriender saves the player name from social media here)\n      \"puuid\":        \"[friend puuid]\",\n      \"subscription\": \"pending_out\"        //either \"pending_out\" or \"pending_in\" (sent or received request)\n    }\n  ]\n}\n```\n",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatFriendRequestListPuuid"
                 }
               }
             }
@@ -14200,6 +14412,30 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PluginResource"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/presences/v1/friends": {
+      "get": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Get the presences of the player's friends ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresencesFriendsPresences"
                 }
               }
             }
@@ -19492,7 +19728,7 @@
         "tags": [
           "core-sdk"
         ],
-        "description": "Get friend requests \n [Help] **Response:** named requests root object: a flat list of friend request property groups with 'puuid' and GnT info inside (could have zero or more entries in list):\n\n```\n{\n  \"requests\": [\n    {\n      \"gameName\":     \"[friend gameName]\",\n      \"tagLine\":      \"[friend tagLine]\",\n      \"note\":         \"[friend note]\",     // Can be set to contain information about the friend request. (ex. recofriender saves the player name from social media here)\n      \"puuid\":        \"[friend puuid]\",\n      \"subscription\": \"pending_out\"        //either \"pending_out\" or \"pending_in\" (sent or received request)\n    }\n  ]\n}\n```\n",
+        "description": "Get friend requests \n [Help] **Response:** named requests root object: a flat list of friend request property groups with 'puuid' and GnT info inside (could have zero or more entries in list):\n\n```\n{\n  \"requests\": [\n    {\n      \"gameName\":     \"[friend gameName]\",\n      \"tagLine\":      \"[friend tagLine]\",\n      \"note\":         \"[friend note]\",     // Can be set to contain information about the friend request. (ex. recofriender saves the player name from social media here)\n      \"puuid\":        \"[friend puuid]\",\n      \"subscription\": \"pending_out\"        //either \"pending_out\" or \"pending_in\" (sent or received request)\n    }\n  ]\n}\n```\n\n\nEndpoint deleted April 2025; Please use '/social/v2/friendrequests'.",
         "parameters": [
           {
             "in": "query",
@@ -19522,7 +19758,7 @@
         "tags": [
           "core-sdk"
         ],
-        "description": "Add friend request / invite friend ",
+        "description": "Add friend request / invite friend \n [Help] Endpoint deleted April 2025; Please use '/social/v2/friendrequests'.",
         "parameters": [],
         "responses": {
           "401": {
@@ -19608,6 +19844,86 @@
               "application/json": {
                 "schema": {
                   "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/social/v2/friendrequests": {
+      "get": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Get friend requests \n [Help] **Response:** named requests root object: a flat list of friend request property groups with 'puuid' and GnT info inside (could have zero or more entries in list):\n\n```\n{\n  \"requests\": [\n    {\n      \"gameName\":     \"[friend gameName]\",\n      \"tagLine\":      \"[friend tagLine]\",\n      \"note\":         \"[friend note]\",     // Can be set to contain information about the friend request. (ex. recofriender saves the player name from social media here)\n      \"puuid\":        \"[friend puuid]\",\n      \"subscription\": \"pending_out\"        //either \"pending_out\" or \"pending_in\" (sent or received request)\n    }\n  ]\n}\n```\n",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "puuid",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SocialFriendRequestListPuuid"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Add friend request / invite friend ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SocialFriendRequestPost"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/social/v2/friendrequests/patch": {
+      "get": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "For subscriptions only. On update and delete will notify with patches (changed elements only) rather than the full list. For a simple GET use the non-patch version of this URL. ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SocialFriendRequestListPuuid"
                 }
               }
             }
@@ -19704,6 +20020,54 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SocialFriendListV3"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/social/v4/friends": {
+      "get": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "When subscribed to this endpoint will notify with the entire friend list on every create/update/delete. ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SocialFriendListV4"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/social/v4/friends/patch": {
+      "get": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "For subscriptions only. On update and delete will notify with patches (changed elements only) rather than the full list. For a simple GET use the non-patch version of this URL. ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SocialFriendListV4"
                 }
               }
             }
@@ -22622,6 +22986,57 @@
                 "type": "string"
               }
             }
+          }
+        }
+      }
+    },
+    "/network-connectivity/v1/debug/disable-os-connectivity-provider": {
+      "post": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "[FOR TESTING ONLY] Test endpoint to disable OS Connectivity Integration ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        }
+      }
+    },
+    "/network-connectivity/v1/debug/mock-connectivity-data/{dataSource}/{newConnectivity}": {
+      "post": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "[FOR TESTING ONLY] Test endpoint to mock connectivity data ",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "dataSource",
+            "schema": {
+              "$ref": "#/components/schemas/NetworkConnectivityConnectivityDataSource"
+            },
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "newConnectivity",
+            "schema": {
+              "$ref": "#/components/schemas/NetworkConnectivityConnectivityState"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
           }
         }
       }
@@ -26098,6 +26513,39 @@
         }
       }
     },
+    "/rso-authenticator/v1/authentication/keypair": {
+      "post": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Authenticate a player with key-pair generated during One-Tap Play signup by the device's secure key-store. ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RsoAuthenticatorV1AuthenticationResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RsoAuthenticatorV1AuthenticateKeypairInput"
+              }
+            }
+          }
+        }
+      }
+    },
     "/rso-authenticator/v1/authentication/multifactor": {
       "post": {
         "tags": [
@@ -26290,6 +26738,39 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/RsoAuthenticatorV1RiotIdentityAuthCompleteInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rso-authenticator/v1/authentication/riot-identity/create": {
+      "post": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Create a new Riot Identity for the currently authorized account. ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RsoAuthenticatorV1AuthenticationResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RsoAuthenticatorV1RiotIdentitySignupStartInput"
               }
             }
           }
@@ -28461,6 +28942,32 @@
         }
       }
     },
+    "/presences/v1/status-message": {
+      "put": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Update the presence status message \n [Help] The update to the presence status message is persisted between sessions and is global across all products and devices",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PresencesStatusMessageUpdate"
+              }
+            }
+          }
+        }
+      }
+    },
     "/product-integration/v1/app-update/apply": {
       "put": {
         "tags": [
@@ -29680,6 +30187,59 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/RsoAuthenticatorV1XboxInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/social/v1/presences/debug/mock-client-time": {
+      "put": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Mock the client time ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "number",
+                "format": "int64"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/social/v1/presences/status-message": {
+      "put": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Update the presence status message \n [Help] The update to the presence status message is persisted between sessions and is global across all products and devices",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SocialStatusMessageUpdateV1"
               }
             }
           }
@@ -31332,6 +31892,9 @@
           "msg": {
             "type": "string"
           },
+          "packedData": {
+            "type": "string"
+          },
           "parties": {
             "type": "array",
             "items": {
@@ -31807,6 +32370,23 @@
             "$ref": "#/components/schemas/ChatConnectivityValue"
           }
         }
+      },
+      "ChatConnectivityDataSource": {
+        "type": "string",
+        "enum": [
+          "Heartbeat",
+          "OS",
+          "RiotMessagingService",
+          "Chat",
+          "HttpClient"
+        ]
+      },
+      "ChatConnectivityState": {
+        "type": "string",
+        "enum": [
+          "Connected",
+          "Disconnected"
+        ]
       },
       "ChatConnectivityValue": {
         "type": "string",
@@ -33112,6 +33692,9 @@
             "type": "string"
           },
           "name": {
+            "type": "string"
+          },
+          "packedData": {
             "type": "string"
           },
           "parties": {
@@ -34952,6 +35535,17 @@
           }
         }
       },
+      "ChatboxFriendListV4": {
+        "type": "object",
+        "properties": {
+          "friends": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChatboxFriendV4"
+            }
+          }
+        }
+      },
       "ChatboxFriendRequestListPuuid": {
         "type": "object",
         "properties": {
@@ -35198,6 +35792,95 @@
             "$ref": "#/components/schemas/ChatboxUserRelationship"
           },
           "showState": {
+            "type": "string"
+          }
+        }
+      },
+      "ChatboxFriendV4": {
+        "type": "object",
+        "properties": {
+          "activePlatformPlayerName": {
+            "type": "string"
+          },
+          "activity": {
+            "$ref": "#/components/schemas/ChatboxPresenceActivityV1"
+          },
+          "displayGroup": {
+            "type": "string"
+          },
+          "gameName": {
+            "type": "string"
+          },
+          "gameTag": {
+            "type": "string"
+          },
+          "group": {
+            "type": "string"
+          },
+          "namesets": {
+            "$ref": "#/components/schemas/ChatboxLookupV2NamesetsForPuuidResponse"
+          },
+          "note": {
+            "type": "string"
+          },
+          "party": {
+            "$ref": "#/components/schemas/ChatboxPresencePartyV1"
+          },
+          "patchline": {
+            "type": "string"
+          },
+          "pid": {
+            "type": "string"
+          },
+          "platform": {
+            "type": "string"
+          },
+          "platformShow": {
+            "$ref": "#/components/schemas/ChatboxPresenceShowV1"
+          },
+          "product": {
+            "type": "string"
+          },
+          "productBannerUrl": {
+            "type": "string"
+          },
+          "productData": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AnyType"
+            }
+          },
+          "productFolderName": {
+            "type": "string"
+          },
+          "productIconUrl": {
+            "type": "string"
+          },
+          "productPresenceName": {
+            "type": "string"
+          },
+          "profileBanner": {
+            "type": "string"
+          },
+          "profileIcon": {
+            "type": "string"
+          },
+          "puuid": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          },
+          "relationshipOnConsole": {
+            "$ref": "#/components/schemas/ChatboxUserRelationship"
+          },
+          "relationshipOnRiot": {
+            "$ref": "#/components/schemas/ChatboxUserRelationship"
+          },
+          "show": {
+            "$ref": "#/components/schemas/ChatboxPresenceShowV1"
+          },
+          "statusMessage": {
             "type": "string"
           }
         }
@@ -35963,6 +36646,114 @@
           "ready"
         ]
       },
+      "ChatboxPresenceActivityProgressTypeV1": {
+        "type": "string",
+        "enum": [
+          "START_TIME",
+          "END_TIME",
+          "CUSTOM"
+        ]
+      },
+      "ChatboxPresenceActivityProgressV1": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/ChatboxPresenceActivityProgressTypeV1"
+          },
+          "value": {
+            "type": "string"
+          }
+        }
+      },
+      "ChatboxPresenceActivityV1": {
+        "type": "object",
+        "properties": {
+          "actors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "location": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string"
+          },
+          "progress": {
+            "$ref": "#/components/schemas/ChatboxPresenceActivityProgressV1"
+          },
+          "spectate": {
+            "type": "string"
+          }
+        }
+      },
+      "ChatboxPresencePartyV1": {
+        "type": "object",
+        "properties": {
+          "currentSize": {
+            "type": "number",
+            "format": "int64"
+          },
+          "id": {
+            "type": "string"
+          },
+          "join": {
+            "type": "string"
+          },
+          "maxSize": {
+            "type": "number",
+            "format": "int64"
+          }
+        }
+      },
+      "ChatboxPresencePlayerV1": {
+        "type": "object",
+        "properties": {
+          "profileBanner": {
+            "type": "string"
+          },
+          "profileIcon": {
+            "type": "string"
+          },
+          "show": {
+            "$ref": "#/components/schemas/ChatboxPresenceShowV1"
+          }
+        }
+      },
+      "ChatboxPresenceShowV1": {
+        "type": "string",
+        "enum": [
+          "AVAILABLE",
+          "BUSY",
+          "AWAY",
+          "UNAVAILABLE",
+          "MOBILE"
+        ]
+      },
+      "ChatboxPresenceUpdateV1": {
+        "type": "object",
+        "properties": {
+          "activity": {
+            "$ref": "#/components/schemas/ChatboxPresenceActivityV1"
+          },
+          "party": {
+            "$ref": "#/components/schemas/ChatboxPresencePartyV1"
+          },
+          "player": {
+            "$ref": "#/components/schemas/ChatboxPresencePlayerV1"
+          },
+          "productData": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AnyType"
+            }
+          },
+          "region": {
+            "type": "string"
+          }
+        }
+      },
       "ChatboxPresencesChatParty": {
         "type": "object",
         "properties": {
@@ -36035,6 +36826,14 @@
             "$ref": "#/components/schemas/ChatboxOnlinePlatform"
           },
           "puuid": {
+            "type": "string"
+          }
+        }
+      },
+      "ChatboxStatusMessageUpdateV1": {
+        "type": "object",
+        "properties": {
+          "statusMessage": {
             "type": "string"
           }
         }
@@ -36289,6 +37088,23 @@
             "$ref": "#/components/schemas/ClientConfigConnectivityValue"
           }
         }
+      },
+      "ClientConfigConnectivityDataSource": {
+        "type": "string",
+        "enum": [
+          "Heartbeat",
+          "OS",
+          "RiotMessagingService",
+          "Chat",
+          "HttpClient"
+        ]
+      },
+      "ClientConfigConnectivityState": {
+        "type": "string",
+        "enum": [
+          "Connected",
+          "Disconnected"
+        ]
       },
       "ClientConfigConnectivityValue": {
         "type": "string",
@@ -36711,8 +37527,14 @@
           "updating",
           "out_of_date",
           "up_to_date",
+          "needs_repair",
           "not_installed",
-          "bad_install_path"
+          "repairing",
+          "bad_install_path",
+          "status_error",
+          "checking_for_update",
+          "dependency_update",
+          "paused"
         ]
       },
       "CommercePluginCallerId_MockCallerId": {
@@ -39107,23 +39929,6 @@
           }
         }
       },
-      "GaRestrictionCachedPenaltyNotificationDtoV1": {
-        "type": "object",
-        "properties": {
-          "isDeleted": {
-            "type": "boolean"
-          },
-          "isUnread": {
-            "type": "boolean"
-          },
-          "penaltyNotification": {
-            "$ref": "#/components/schemas/GaRestrictionPenaltyNotificationDtoV1"
-          },
-          "textChatLogEvidenceV1": {
-            "$ref": "#/components/schemas/GaRestrictionPenaltyNotificationTextChatLogEvidenceV1"
-          }
-        }
-      },
       "GaRestrictionCachedPenaltyNotificationDtoV2": {
         "type": "object",
         "properties": {
@@ -39344,6 +40149,14 @@
           "evidence": {
             "$ref": "#/components/schemas/GaRestrictionPenaltyNotificationEvidenceDtoV1"
           },
+          "incidentStartTimestamp": {
+            "type": "number",
+            "format": "int64"
+          },
+          "incidentTimestamp": {
+            "type": "number",
+            "format": "int64"
+          },
           "matchId": {
             "type": "string"
           },
@@ -39461,6 +40274,10 @@
           },
           "transgressionId": {
             "type": "string"
+          },
+          "transgressionStartTimestamp": {
+            "type": "number",
+            "format": "int64"
           },
           "transgressionTimestamp": {
             "type": "number",
@@ -39637,6 +40454,10 @@
           },
           "transgressionId": {
             "type": "string"
+          },
+          "transgressionStartTimestamp": {
+            "type": "number",
+            "format": "int64"
           },
           "transgressionTimestamp": {
             "type": "number",
@@ -43102,6 +43923,23 @@
             "$ref": "#/components/schemas/NetworkConnectivityConnectivityValue"
           }
         }
+      },
+      "NetworkConnectivityConnectivityDataSource": {
+        "type": "string",
+        "enum": [
+          "Heartbeat",
+          "OS",
+          "RiotMessagingService",
+          "Chat",
+          "HttpClient"
+        ]
+      },
+      "NetworkConnectivityConnectivityState": {
+        "type": "string",
+        "enum": [
+          "Connected",
+          "Disconnected"
+        ]
       },
       "NetworkConnectivityConnectivityValue": {
         "type": "string",
@@ -50350,6 +51188,7 @@
           "ProductAgeRestricted",
           "PendingAccountEntitlementData",
           "MissingAccountEntitlement",
+          "PendingUserInfoData",
           "PendingAffinityData",
           "PendingLoginQueueData",
           "PendingLoginQueueBypass",
@@ -55625,6 +56464,23 @@
           }
         }
       },
+      "PlayerSessionLifecycleConnectivityDataSource": {
+        "type": "string",
+        "enum": [
+          "Heartbeat",
+          "OS",
+          "RiotMessagingService",
+          "Chat",
+          "HttpClient"
+        ]
+      },
+      "PlayerSessionLifecycleConnectivityState": {
+        "type": "string",
+        "enum": [
+          "Connected",
+          "Disconnected"
+        ]
+      },
       "PlayerSessionLifecycleConnectivityValue": {
         "type": "string",
         "enum": [
@@ -56725,6 +57581,15 @@
           "persistence": {
             "$ref": "#/components/schemas/PlayerSessionLifecyclePersistence"
           },
+          "providers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "puuid": {
+            "type": "string"
+          },
           "riotID": {
             "$ref": "#/components/schemas/PlayerSessionLifecycleGameNameAndTagLine"
           },
@@ -56790,6 +57655,7 @@
           "ProductAgeRestricted",
           "PendingAccountEntitlementData",
           "MissingAccountEntitlement",
+          "PendingUserInfoData",
           "PendingAffinityData",
           "PendingLoginQueueData",
           "PendingLoginQueueBypass",
@@ -58435,6 +59301,231 @@
           }
         }
       },
+      "PresencesAccessToken": {
+        "type": "object",
+        "properties": {
+          "expiry": {
+            "type": "number",
+            "format": "int64"
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "token": {
+            "type": "string"
+          }
+        }
+      },
+      "PresencesActivity": {
+        "type": "object",
+        "properties": {
+          "actors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "location": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string"
+          },
+          "progress": {
+            "$ref": "#/components/schemas/PresencesActivityProgress"
+          },
+          "spectate": {
+            "type": "string"
+          }
+        }
+      },
+      "PresencesActivityProgress": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/PresencesActivityProgressType"
+          },
+          "value": {
+            "type": "string"
+          }
+        }
+      },
+      "PresencesActivityProgressType": {
+        "type": "string",
+        "enum": [
+          "START_TIME",
+          "END_TIME",
+          "CUSTOM"
+        ]
+      },
+      "PresencesFriendsPresences": {
+        "type": "object",
+        "properties": {
+          "friends": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PresencesPresence"
+            }
+          }
+        }
+      },
+      "PresencesParty": {
+        "type": "object",
+        "properties": {
+          "currentSize": {
+            "type": "number",
+            "format": "int64"
+          },
+          "id": {
+            "type": "string"
+          },
+          "join": {
+            "type": "string"
+          },
+          "maxSize": {
+            "type": "number",
+            "format": "int64"
+          }
+        }
+      },
+      "PresencesPlayer": {
+        "type": "object",
+        "properties": {
+          "profileBanner": {
+            "type": "string"
+          },
+          "profileIcon": {
+            "type": "string"
+          },
+          "show": {
+            "$ref": "#/components/schemas/PresencesShow"
+          }
+        }
+      },
+      "PresencesPluginCallerId_MockCallerId": {
+        "type": "object",
+        "properties": {
+          "patchlineId": {
+            "type": "string"
+          },
+          "productId": {
+            "type": "string"
+          }
+        }
+      },
+      "PresencesPluginCallerId_ProductSession": {
+        "type": "object",
+        "properties": {
+          "patchlineFullName": {
+            "type": "string"
+          },
+          "patchlineId": {
+            "type": "string"
+          },
+          "productId": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        }
+      },
+      "PresencesPresence": {
+        "type": "object",
+        "properties": {
+          "puuid": {
+            "type": "string"
+          },
+          "sessions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PresencesSession"
+            }
+          },
+          "statusMessage": {
+            "type": "string"
+          }
+        }
+      },
+      "PresencesPresenceUpdate": {
+        "type": "object",
+        "properties": {
+          "activity": {
+            "$ref": "#/components/schemas/PresencesActivity"
+          },
+          "party": {
+            "$ref": "#/components/schemas/PresencesParty"
+          },
+          "player": {
+            "$ref": "#/components/schemas/PresencesPlayer"
+          },
+          "productData": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AnyType"
+            }
+          },
+          "region": {
+            "type": "string"
+          }
+        }
+      },
+      "PresencesSession": {
+        "type": "object",
+        "properties": {
+          "activity": {
+            "$ref": "#/components/schemas/PresencesActivity"
+          },
+          "party": {
+            "$ref": "#/components/schemas/PresencesParty"
+          },
+          "platform": {
+            "type": "string"
+          },
+          "player": {
+            "$ref": "#/components/schemas/PresencesPlayer"
+          },
+          "product": {
+            "type": "string"
+          },
+          "productData": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AnyType"
+            }
+          },
+          "region": {
+            "type": "string"
+          },
+          "sessionId": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        }
+      },
+      "PresencesShow": {
+        "type": "string",
+        "enum": [
+          "AVAILABLE",
+          "BUSY",
+          "AWAY",
+          "UNAVAILABLE",
+          "MOBILE"
+        ]
+      },
+      "PresencesStatusMessageUpdate": {
+        "type": "object",
+        "properties": {
+          "statusMessage": {
+            "type": "string"
+          }
+        }
+      },
       "PrivacyPrivacySettings": {
         "type": "object",
         "properties": {
@@ -58456,6 +59547,20 @@
           "Requesting",
           "Completed"
         ]
+      },
+      "PrivateSettingsIOSKeychainConfiguration": {
+        "type": "object",
+        "properties": {
+          "accessGroup": {
+            "type": "string"
+          },
+          "productId": {
+            "type": "string"
+          },
+          "serviceName": {
+            "type": "string"
+          }
+        }
       },
       "PrivateSettingsOperationResult": {
         "type": "string",
@@ -60033,6 +61138,17 @@
           },
           "willAutoLaunch": {
             "type": "boolean"
+          }
+        }
+      },
+      "ProductPatchlineStatus": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "$ref": "#/components/schemas/State"
+          },
+          "previousState": {
+            "$ref": "#/components/schemas/State"
           }
         }
       },
@@ -61690,6 +62806,23 @@
             "$ref": "#/components/schemas/RiotMessagingServiceConnectivityValue"
           }
         }
+      },
+      "RiotMessagingServiceConnectivityDataSource": {
+        "type": "string",
+        "enum": [
+          "Heartbeat",
+          "OS",
+          "RiotMessagingService",
+          "Chat",
+          "HttpClient"
+        ]
+      },
+      "RiotMessagingServiceConnectivityState": {
+        "type": "string",
+        "enum": [
+          "Connected",
+          "Disconnected"
+        ]
       },
       "RiotMessagingServiceConnectivityValue": {
         "type": "string",
@@ -65546,6 +66679,23 @@
           }
         }
       },
+      "RsoAuthenticatorV1AuthenticateKeypairInput": {
+        "type": "object",
+        "properties": {
+          "campaign": {
+            "type": "string"
+          },
+          "keypair": {
+            "$ref": "#/components/schemas/RsoAuthenticatorV1KeypairInput"
+          },
+          "language": {
+            "type": "string"
+          },
+          "remember": {
+            "type": "boolean"
+          }
+        }
+      },
       "RsoAuthenticatorV1AuthenticateMultifactorInput": {
         "type": "object",
         "properties": {
@@ -65656,6 +66806,9 @@
           },
           "google": {
             "$ref": "#/components/schemas/RsoAuthenticatorV1OpenIdConnectInput"
+          },
+          "keypair": {
+            "$ref": "#/components/schemas/RsoAuthenticatorV1KeypairInput"
           },
           "language": {
             "type": "string"
@@ -65918,6 +67071,14 @@
         "type": "object",
         "properties": {
           "redirect_url": {
+            "type": "string"
+          }
+        }
+      },
+      "RsoAuthenticatorV1KeypairInput": {
+        "type": "object",
+        "properties": {
+          "assertion": {
             "type": "string"
           }
         }
@@ -66191,7 +67352,11 @@
       },
       "RsoAuthenticatorV1RiotIdentitySignupCreateInput": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "access_token": {
+            "type": "string"
+          }
+        }
       },
       "RsoAuthenticatorV1RiotIdentitySignupStartInput": {
         "type": "object",
@@ -66228,6 +67393,9 @@
         "properties": {
           "cluster": {
             "type": "string"
+          },
+          "remember": {
+            "type": "boolean"
           },
           "suuid": {
             "type": "string"
@@ -66395,6 +67563,9 @@
           },
           "redirect_url": {
             "type": "string"
+          },
+          "remember": {
+            "type": "boolean"
           }
         }
       },
@@ -68165,6 +69336,132 @@
           }
         }
       },
+      "SocialAccountChatSettings": {
+        "type": "object",
+        "properties": {
+          "bounceDockIconEnabled": {
+            "type": "boolean"
+          },
+          "chat-status-message": {
+            "type": "string"
+          },
+          "chatFilterDisabled": {
+            "type": "boolean"
+          },
+          "chatGBG": {
+            "type": "boolean"
+          },
+          "chatGroupMobile": {
+            "type": "boolean"
+          },
+          "chatGroupOffline": {
+            "type": "boolean"
+          },
+          "chatWindow": {
+            "$ref": "#/components/schemas/SocialChatWindowSettings"
+          },
+          "chatWindowDockedHeight": {
+            "type": "number",
+            "format": "int32"
+          },
+          "closed-conversations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number",
+              "format": "int64"
+            }
+          },
+          "friendRequestToastsDisabled": {
+            "type": "boolean"
+          },
+          "hidden-conversations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number",
+              "format": "int64"
+            }
+          },
+          "linkClickWarningEnabled": {
+            "type": "boolean"
+          },
+          "messageNotificationsEnabled": {
+            "type": "boolean"
+          },
+          "moreUnreadsEnabled": {
+            "type": "boolean"
+          },
+          "muted-conversations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number",
+              "format": "int32"
+            }
+          },
+          "recentlyPlayedFirstOpen": {
+            "type": "boolean"
+          },
+          "recentlyPlayedOpen": {
+            "type": "boolean"
+          },
+          "roster-group-collapsed": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "boolean"
+            }
+          },
+          "showWhenTypingEnabled": {
+            "type": "boolean"
+          },
+          "sortBy": {
+            "type": "string"
+          },
+          "usePlayerPreferences": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SocialActivity": {
+        "type": "object",
+        "properties": {
+          "actors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "location": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string"
+          },
+          "progress": {
+            "$ref": "#/components/schemas/SocialActivityProgress"
+          },
+          "spectate": {
+            "type": "string"
+          }
+        }
+      },
+      "SocialActivityProgress": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/SocialActivityProgressType"
+          },
+          "value": {
+            "type": "string"
+          }
+        }
+      },
+      "SocialActivityProgressType": {
+        "type": "string",
+        "enum": [
+          "START_TIME",
+          "END_TIME",
+          "CUSTOM"
+        ]
+      },
       "SocialAliasesV1Alias": {
         "type": "object",
         "properties": {
@@ -68657,6 +69954,30 @@
           }
         }
       },
+      "SocialChatWindowSettings": {
+        "type": "object",
+        "properties": {
+          "detached": {
+            "type": "boolean"
+          },
+          "height": {
+            "type": "number",
+            "format": "int32"
+          },
+          "left": {
+            "type": "number",
+            "format": "int32"
+          },
+          "top": {
+            "type": "number",
+            "format": "int32"
+          },
+          "width": {
+            "type": "number",
+            "format": "int32"
+          }
+        }
+      },
       "SocialClientAuthorizationState": {
         "type": "string",
         "enum": [
@@ -68752,6 +70073,14 @@
             "$ref": "#/components/schemas/SocialConfigV3AuthProgress"
           },
           "ready": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SocialDeviceChatSettings": {
+        "type": "object",
+        "properties": {
+          "mobilePushNotificationsEnabled": {
             "type": "boolean"
           }
         }
@@ -68956,6 +70285,17 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/SocialFriendV3"
+            }
+          }
+        }
+      },
+      "SocialFriendListV4": {
+        "type": "object",
+        "properties": {
+          "friends": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SocialFriendV4"
             }
           }
         }
@@ -69193,6 +70533,106 @@
           },
           "showState": {
             "type": "string"
+          }
+        }
+      },
+      "SocialFriendV4": {
+        "type": "object",
+        "properties": {
+          "activePlatformPlayerName": {
+            "type": "string"
+          },
+          "activity": {
+            "$ref": "#/components/schemas/SocialPresenceActivityV1"
+          },
+          "displayGroup": {
+            "type": "string"
+          },
+          "gameName": {
+            "type": "string"
+          },
+          "gameTag": {
+            "type": "string"
+          },
+          "group": {
+            "type": "string"
+          },
+          "namesets": {
+            "$ref": "#/components/schemas/SocialLookupV2NamesetsForPuuidResponse"
+          },
+          "note": {
+            "type": "string"
+          },
+          "party": {
+            "$ref": "#/components/schemas/SocialPresencePartyV1"
+          },
+          "patchline": {
+            "type": "string"
+          },
+          "pid": {
+            "type": "string"
+          },
+          "platform": {
+            "type": "string"
+          },
+          "platformShow": {
+            "$ref": "#/components/schemas/SocialPresenceShowV1"
+          },
+          "product": {
+            "type": "string"
+          },
+          "productBannerUrl": {
+            "type": "string"
+          },
+          "productData": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AnyType"
+            }
+          },
+          "productFolderName": {
+            "type": "string"
+          },
+          "productIconUrl": {
+            "type": "string"
+          },
+          "productPresenceName": {
+            "type": "string"
+          },
+          "profileBanner": {
+            "type": "string"
+          },
+          "profileIcon": {
+            "type": "string"
+          },
+          "puuid": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          },
+          "relationshipOnConsole": {
+            "$ref": "#/components/schemas/SocialUserRelationship"
+          },
+          "relationshipOnRiot": {
+            "$ref": "#/components/schemas/SocialUserRelationship"
+          },
+          "show": {
+            "$ref": "#/components/schemas/SocialPresenceShowV1"
+          },
+          "statusMessage": {
+            "type": "string"
+          }
+        }
+      },
+      "SocialFriendsPresences": {
+        "type": "object",
+        "properties": {
+          "friends": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SocialPresence"
+            }
           }
         }
       },
@@ -69963,6 +71403,25 @@
           }
         }
       },
+      "SocialParty": {
+        "type": "object",
+        "properties": {
+          "currentSize": {
+            "type": "number",
+            "format": "int64"
+          },
+          "id": {
+            "type": "string"
+          },
+          "join": {
+            "type": "string"
+          },
+          "maxSize": {
+            "type": "number",
+            "format": "int64"
+          }
+        }
+      },
       "SocialPermissionDetails": {
         "type": "object",
         "properties": {
@@ -70037,6 +71496,20 @@
           }
         }
       },
+      "SocialPlayer": {
+        "type": "object",
+        "properties": {
+          "profileBanner": {
+            "type": "string"
+          },
+          "profileIcon": {
+            "type": "string"
+          },
+          "show": {
+            "$ref": "#/components/schemas/SocialShow"
+          }
+        }
+      },
       "SocialPlayerAccountPluginConfig": {
         "type": "object",
         "properties": {
@@ -70093,6 +71566,154 @@
             }
           },
           "service_url": {
+            "type": "string"
+          }
+        }
+      },
+      "SocialPresence": {
+        "type": "object",
+        "properties": {
+          "puuid": {
+            "type": "string"
+          },
+          "sessions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SocialSession"
+            }
+          },
+          "statusMessage": {
+            "type": "string"
+          }
+        }
+      },
+      "SocialPresenceActivityProgressTypeV1": {
+        "type": "string",
+        "enum": [
+          "START_TIME",
+          "END_TIME",
+          "CUSTOM"
+        ]
+      },
+      "SocialPresenceActivityProgressV1": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/SocialPresenceActivityProgressTypeV1"
+          },
+          "value": {
+            "type": "string"
+          }
+        }
+      },
+      "SocialPresenceActivityV1": {
+        "type": "object",
+        "properties": {
+          "actors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "location": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string"
+          },
+          "progress": {
+            "$ref": "#/components/schemas/SocialPresenceActivityProgressV1"
+          },
+          "spectate": {
+            "type": "string"
+          }
+        }
+      },
+      "SocialPresencePartyV1": {
+        "type": "object",
+        "properties": {
+          "currentSize": {
+            "type": "number",
+            "format": "int64"
+          },
+          "id": {
+            "type": "string"
+          },
+          "join": {
+            "type": "string"
+          },
+          "maxSize": {
+            "type": "number",
+            "format": "int64"
+          }
+        }
+      },
+      "SocialPresencePlayerV1": {
+        "type": "object",
+        "properties": {
+          "profileBanner": {
+            "type": "string"
+          },
+          "profileIcon": {
+            "type": "string"
+          },
+          "show": {
+            "$ref": "#/components/schemas/SocialPresenceShowV1"
+          }
+        }
+      },
+      "SocialPresenceShowV1": {
+        "type": "string",
+        "enum": [
+          "AVAILABLE",
+          "BUSY",
+          "AWAY",
+          "UNAVAILABLE",
+          "MOBILE"
+        ]
+      },
+      "SocialPresenceUpdate": {
+        "type": "object",
+        "properties": {
+          "activity": {
+            "$ref": "#/components/schemas/SocialActivity"
+          },
+          "party": {
+            "$ref": "#/components/schemas/SocialParty"
+          },
+          "player": {
+            "$ref": "#/components/schemas/SocialPlayer"
+          },
+          "productData": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AnyType"
+            }
+          },
+          "region": {
+            "type": "string"
+          }
+        }
+      },
+      "SocialPresenceUpdateV1": {
+        "type": "object",
+        "properties": {
+          "activity": {
+            "$ref": "#/components/schemas/SocialPresenceActivityV1"
+          },
+          "party": {
+            "$ref": "#/components/schemas/SocialPresencePartyV1"
+          },
+          "player": {
+            "$ref": "#/components/schemas/SocialPresencePlayerV1"
+          },
+          "productData": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AnyType"
+            }
+          },
+          "region": {
             "type": "string"
           }
         }
@@ -70619,6 +72240,41 @@
           }
         }
       },
+      "SocialSession": {
+        "type": "object",
+        "properties": {
+          "activity": {
+            "$ref": "#/components/schemas/SocialActivity"
+          },
+          "party": {
+            "$ref": "#/components/schemas/SocialParty"
+          },
+          "platform": {
+            "type": "string"
+          },
+          "player": {
+            "$ref": "#/components/schemas/SocialPlayer"
+          },
+          "product": {
+            "type": "string"
+          },
+          "productData": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AnyType"
+            }
+          },
+          "region": {
+            "type": "string"
+          },
+          "sessionId": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        }
+      },
       "SocialSessionCredentials": {
         "type": "object",
         "properties": {
@@ -70723,6 +72379,16 @@
           }
         }
       },
+      "SocialShow": {
+        "type": "string",
+        "enum": [
+          "AVAILABLE",
+          "BUSY",
+          "AWAY",
+          "UNAVAILABLE",
+          "MOBILE"
+        ]
+      },
       "SocialStatusMessage": {
         "type": "object",
         "properties": {
@@ -70733,6 +72399,22 @@
             "type": "boolean"
           },
           "message": {
+            "type": "string"
+          }
+        }
+      },
+      "SocialStatusMessageUpdate": {
+        "type": "object",
+        "properties": {
+          "statusMessage": {
+            "type": "string"
+          }
+        }
+      },
+      "SocialStatusMessageUpdateV1": {
+        "type": "object",
+        "properties": {
+          "statusMessage": {
             "type": "string"
           }
         }
@@ -70800,6 +72482,31 @@
             "format": "int64"
           },
           "hasToken": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SocialUpdateChatSettings": {
+        "type": "object",
+        "properties": {
+          "settings": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AnyType"
+            }
+          },
+          "shouldSave": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SocialUpdateSanitizerSettings": {
+        "type": "object",
+        "properties": {
+          "aggressiveScan": {
+            "type": "boolean"
+          },
+          "forceFilter": {
             "type": "boolean"
           }
         }
@@ -71056,6 +72763,22 @@
           }
         }
       },
+      "State": {
+        "type": "string",
+        "enum": [
+          "Unknown",
+          "NotInstalled",
+          "UpToDate",
+          "OutOfDate",
+          "Updating",
+          "NeedsRepair",
+          "Repairing",
+          "StatusError",
+          "CheckingForUpdate",
+          "DependencyUpdate",
+          "Paused"
+        ]
+      },
       "StructuredLogRequest": {
         "type": "object",
         "properties": {
@@ -71181,6 +72904,15 @@
           }
         }
       },
+      "SystemTrayPatchPhase": {
+        "type": "string",
+        "enum": [
+          "none",
+          "manifest",
+          "update",
+          "repair"
+        ]
+      },
       "SystemTrayPatcherProductState": {
         "type": "object",
         "properties": {
@@ -71255,6 +72987,57 @@
           }
         }
       },
+      "SystemTrayProductPatchlineProgress": {
+        "type": "object",
+        "properties": {
+          "launchable": {
+            "type": "boolean"
+          },
+          "overallProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "repairProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "phase": {
+            "$ref": "#/components/schemas/SystemTrayPatchPhase"
+          },
+          "totalTimeRemainingMs": {
+            "type": "number",
+            "format": "int64"
+          },
+          "currentSpeedMbps": {
+            "type": "number",
+            "format": "int64"
+          },
+          "totalBytesDownloaded": {
+            "type": "number",
+            "format": "int64"
+          },
+          "totalBytesToDownload": {
+            "type": "number",
+            "format": "int64"
+          },
+          "totalBytesWritten": {
+            "type": "number",
+            "format": "int64"
+          },
+          "totalBytesToWrite": {
+            "type": "number",
+            "format": "int64"
+          },
+          "totalBytesDone": {
+            "type": "number",
+            "format": "int64"
+          },
+          "totalBytesToDo": {
+            "type": "number",
+            "format": "int64"
+          }
+        }
+      },
       "SystemTrayProductPatchlineResourceV4": {
         "type": "object",
         "properties": {
@@ -71269,6 +73052,20 @@
           },
           "patchline": {
             "$ref": "#/components/schemas/SystemTrayPatchline"
+          }
+        }
+      },
+      "SystemTrayProductPatchlineStatus": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "$ref": "#/components/schemas/SystemTrayState"
+          },
+          "previousState": {
+            "$ref": "#/components/schemas/SystemTrayState"
+          },
+          "progress": {
+            "$ref": "#/components/schemas/SystemTrayProductPatchlineProgress"
           }
         }
       },
@@ -71292,6 +73089,22 @@
             }
           }
         }
+      },
+      "SystemTrayState": {
+        "type": "string",
+        "enum": [
+          "Unknown",
+          "NotInstalled",
+          "UpToDate",
+          "OutOfDate",
+          "Updating",
+          "NeedsRepair",
+          "Repairing",
+          "StatusError",
+          "CheckingForUpdate",
+          "DependencyUpdate",
+          "Paused"
+        ]
       },
       "SystemTrayThemeManifest": {
         "type": "object",
@@ -73445,21 +75258,6 @@
       "VoiceChatBlockedUser": {
         "type": "object",
         "properties": {
-          "blockedPlatforms": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/VoiceChatOnlinePlatform"
-            }
-          },
-          "gameName": {
-            "type": "string"
-          },
-          "gameTag": {
-            "type": "string"
-          },
-          "isFriendsOnActiveConsole": {
-            "type": "boolean"
-          },
           "puuid": {
             "type": "string"
           }
@@ -74124,7 +75922,14 @@
         "type": "string",
         "enum": [
           "active",
-          "onHold"
+          "onHold",
+          "initializing",
+          "connecting",
+          "connected",
+          "finalizing",
+          "disconnecting",
+          "disconnected",
+          "reconnecting"
         ]
       },
       "VoiceChatSettingsResource": {
@@ -74763,6 +76568,23 @@
             "$ref": "#/components/schemas/XboxAccountConnectivityValue"
           }
         }
+      },
+      "XboxAccountConnectivityDataSource": {
+        "type": "string",
+        "enum": [
+          "Heartbeat",
+          "OS",
+          "RiotMessagingService",
+          "Chat",
+          "HttpClient"
+        ]
+      },
+      "XboxAccountConnectivityState": {
+        "type": "string",
+        "enum": [
+          "Connected",
+          "Disconnected"
+        ]
       },
       "XboxAccountConnectivityValue": {
         "type": "string",

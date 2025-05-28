@@ -1,5 +1,6 @@
 import {useEffect, useRef, useState} from "react";
 import HCaptcha from "@hcaptcha/react-hcaptcha";
+import * as Config from "../Config";
 
 export interface HCaptchaWrapperProps {
     siteKey: string;
@@ -39,8 +40,8 @@ const HCaptchaWrapper = (
         <>
             {showButton ? <button onClick={() =>  {handleClick()}}>Log In</button> : <></>}
             <HCaptcha
-                scriptSource={"https://127.0.0.1:8080/hcaptcha-proxy/RCLS-INTERNAL/1/api.js"}
-                loadAsync={true}
+                scriptSource={Config.BACKEND_URL + "/hcaptcha-proxy/RCLS-INTERNAL/1/api.js"}
+                loadAsync={false}
                 ref={captchaRef}
                 sitekey={siteKey}
                 onLoad={onLoad}
