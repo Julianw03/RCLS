@@ -1,7 +1,6 @@
 .github/workflows/maven.yml
 README.md
 api/openapi.yaml
-build.gradle
 gradle.properties
 gradle/wrapper/gradle-wrapper.jar
 gradle/wrapper/gradle-wrapper.properties
