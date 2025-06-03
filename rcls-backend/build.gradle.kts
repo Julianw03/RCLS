@@ -78,7 +78,7 @@ tasks.jar {
 }
 
 tasks.bootJar {
-    this.archiveFileName.set("RCLS-${version}.${archiveExtension.get()}");
+    this.archiveFileName.set("RCLS-v${version}.${archiveExtension.get()}");
 }
 
 tasks.test {
