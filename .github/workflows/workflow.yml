@@ -41,6 +41,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: created_artifacts
+          path: artifacts
 
       - name: Create Release
         id: create_release
