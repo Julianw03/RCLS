@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "cross-env VITE_BACKEND_PORT=8080 vite",
+    "dev": "cross-env VITE_RCLS_BACKEND_PORT=8080 vite",
     "build": "cross-env tsc -b && vite build",
     "lint": "eslint .",
     "preview": "cross-env vite preview"

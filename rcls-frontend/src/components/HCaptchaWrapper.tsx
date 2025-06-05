@@ -1,6 +1,6 @@
 import {useEffect, useRef, useState} from "react";
 import HCaptcha from "@hcaptcha/react-hcaptcha";
-import * as Config from "../Config";
+import * as LocalLinkResolver from "../systems/LocalLinkResolver.ts";
 import {LocalLink} from "../types.ts";
 
 export interface HCaptchaWrapperProps {
@@ -41,7 +41,7 @@ const HCaptchaWrapper = (
         <>
             {showButton ? <button onClick={() =>  {handleClick()}}>Log In</button> : <></>}
             <HCaptcha
-                scriptSource={Config.resolveLocalLink("/hcaptcha-proxy/RCLS-INTERNAL/1/api.js" as LocalLink)}
+                scriptSource={LocalLinkResolver.resolve("/hcaptcha-proxy/RCLS-INTERNAL/1/api.js" as LocalLink)}
                 loadAsync={false}
                 ref={captchaRef}
                 sitekey={siteKey}
