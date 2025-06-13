@@ -1,8 +1,9 @@
 import './App.css'
 import { useRef, useState} from "react";
-import * as Config from "./Config";
+import * as LocalLinkResolver from "./systems/LocalLinkResolver.ts";
 import RessourceLoadingSystem from "./systems/RessourceLoadingSystem.ts";
 import HCaptchaWrapper from "./components/HCaptchaWrapper.tsx";
+import {LocalLink} from "./types.ts";
 
 
 const system = new RessourceLoadingSystem(
@@ -28,7 +29,7 @@ function App() {
     const handleHcaptchaSubmit = async (token: string) => {
         const exampleUsername = usernameInputRef.current?.value;
         const examplePassword = passwordInputRef.current?.value;
-        await fetch(Config.BACKEND_URL + "/api/riotclient/login/v1/login", {
+        await fetch(LocalLinkResolver.resolve("/api/riotclient/login/v1/login" as LocalLink), {
             method: "POST",
             body: JSON.stringify({
                 username: exampleUsername,
@@ -46,7 +47,7 @@ function App() {
     }
 
     async function showClientUx() {
-        await fetch(Config.BACKEND_URL + "/api/riotclient/launcher/v1/client", {
+        await fetch(LocalLinkResolver.resolve("/api/riotclient/launcher/v1/client" as LocalLink), {
             method: "POST"
         });
     }
@@ -66,14 +67,14 @@ function App() {
                 <div className={"loginDataSection"}>
                     <div>Riot Client Login Screens</div>
                     <button type={"button"} onClick={async () => {
-                        await fetch(Config.BACKEND_URL + "/api/connector/v1/connect", {
+                        await fetch(LocalLinkResolver.resolve("/api/connector/v1/connect" as LocalLink), {
                             method: "POST",
                         });
                     }}>
                         Connect Riot Client with RCLS
                     </button>
                     <button type={"button"} onClick={async () => {
-                        const response = await fetch(Config.BACKEND_URL + "/api/riotclient/login/v1/reset", {
+                        const response = await fetch(LocalLinkResolver.resolve("/api/riotclient/login/v1/reset" as LocalLink), {
                             method: "POST"
                         });
                         if (Math.floor(response.status / 100) !== 2) {
@@ -81,7 +82,7 @@ function App() {
                             return;
                         }
 
-                        await fetch(Config.BACKEND_URL + "/api/riotclient/login/v1/captcha")
+                        await fetch(LocalLinkResolver.resolve("/api/riotclient/login/v1/captcha" as LocalLink))
                             .then((response) => response.json())
                             .then((json) => {
                                 console.log(json);
