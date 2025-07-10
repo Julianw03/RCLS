@@ -1,12 +1,11 @@
-package com.julianw03.rcls.service.base.cacheService.impl.publishing;
+package com.julianw03.rcls.service.base.cacheService.rcu.impl.publishing;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.julianw03.rcls.generated.api.CoreSdkApi;
 import com.julianw03.rcls.generated.model.RsoAuthenticatorV1AuthenticationResponse;
-import com.julianw03.rcls.generated.model.RsoAuthenticatorV1ResponseType;
 import com.julianw03.rcls.model.RCUWebsocketMessage;
-import com.julianw03.rcls.service.base.cacheService.CacheService;
+import com.julianw03.rcls.service.base.cacheService.rcu.RCUStateService;
 import com.julianw03.rcls.service.base.cacheService.PublishingObjectDataManager;
 import com.julianw03.rcls.service.base.riotclient.RiotClientService;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +21,7 @@ import java.util.regex.Pattern;
 public class PublishingRsoAuthenticationManager extends PublishingObjectDataManager<RsoAuthenticatorV1AuthenticationResponse> {
     private static final Pattern RSO_AUTHENTICATOR_V1_AUTHENTICATION_PATTERN = Pattern.compile("^/rso-authenticator/v1/authentication$");
 
-    protected PublishingRsoAuthenticationManager(RiotClientService riotClientService, CacheService cacheService) {
+    protected PublishingRsoAuthenticationManager(RiotClientService riotClientService, RCUStateService cacheService) {
         super(riotClientService, cacheService);
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         objectMapper.configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL, true);
@@ -40,9 +39,7 @@ public class PublishingRsoAuthenticationManager extends PublishingObjectDataMana
 
     @Override
     protected CompletableFuture<RsoAuthenticatorV1AuthenticationResponse> doFetchInitialData() {
-        Optional<CoreSdkApi> optionalCoreSdkApi = riotClientService.getApiClient().map(
-                client -> client.buildClient(CoreSdkApi.class)
-        );
+        Optional<CoreSdkApi> optionalCoreSdkApi = riotClientService.getApi(CoreSdkApi.class);
 
         if (optionalCoreSdkApi.isEmpty()) {
             return CompletableFuture.failedFuture(

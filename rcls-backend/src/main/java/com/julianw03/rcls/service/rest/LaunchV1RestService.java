@@ -7,8 +7,8 @@ import com.julianw03.rcls.generated.model.RsoAuthenticatorV1AuthenticationRespon
 import com.julianw03.rcls.generated.model.RsoAuthenticatorV1ResponseType;
 import com.julianw03.rcls.model.APIException;
 import com.julianw03.rcls.model.SupportedGame;
-import com.julianw03.rcls.service.base.cacheService.CacheService;
-import com.julianw03.rcls.service.base.cacheService.impl.RsoAuthenticationManager;
+import com.julianw03.rcls.service.base.cacheService.rcu.RCUStateService;
+import com.julianw03.rcls.service.base.cacheService.rcu.impl.RsoAuthenticationManager;
 import com.julianw03.rcls.service.base.process.ProcessService;
 import com.julianw03.rcls.service.base.riotclient.RiotClientService;
 import com.julianw03.rcls.service.base.riotclient.api.InternalApiResponse;
@@ -26,14 +26,14 @@ import java.util.concurrent.TimeUnit;
 public class LaunchV1RestService {
 
     private final RiotClientService riotClientService;
-    private final ProcessService    processService;
-    private final CacheService      cacheService;
+    private final ProcessService  processService;
+    private final RCUStateService cacheService;
 
     @Autowired
     public LaunchV1RestService(
             RiotClientService riotClientService,
             ProcessService processService,
-            CacheService cacheService
+            RCUStateService cacheService
     ) {
         this.riotClientService = riotClientService;
         this.processService = processService;

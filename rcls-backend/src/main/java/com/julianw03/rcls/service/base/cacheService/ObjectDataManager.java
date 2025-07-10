@@ -2,6 +2,7 @@ package com.julianw03.rcls.service.base.cacheService;
 
 import com.julianw03.rcls.service.base.riotclient.RiotClientService;
 
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -10,9 +11,9 @@ import java.util.concurrent.atomic.AtomicReference;
  * */
 public abstract class ObjectDataManager<T> extends DataManager<T> {
 
-    protected AtomicReference<T> objectRef = new AtomicReference<>(null);
+    private final AtomicReference<T> objectRef = new AtomicReference<>(null);
 
-    protected ObjectDataManager(RiotClientService riotClientService, CacheService cacheService) {
+    protected ObjectDataManager(RiotClientService riotClientService, StateService cacheService) {
         super(riotClientService, cacheService);
     }
 
@@ -28,7 +29,11 @@ public abstract class ObjectDataManager<T> extends DataManager<T> {
 
     @Override
     public void setState(T state) {
-        this.objectRef.set(state);
+        final T previousState = objectRef.getAndSet(state);
+        if (Objects.equals(previousState, state)) {
+            return;
+        }
+        onStateUpdated(previousState, state);
     }
 
     @Override

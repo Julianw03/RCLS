@@ -6,13 +6,15 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.julianw03.rcls.Util.ServletUtils;
 import com.julianw03.rcls.Util.Utils;
+import com.julianw03.rcls.Util.state.State;
 import com.julianw03.rcls.config.mappings.RiotClientServiceConfig;
 import com.julianw03.rcls.generated.ApiClient;
 import com.julianw03.rcls.model.APIException;
 import com.julianw03.rcls.model.RCUMessageListener;
 import com.julianw03.rcls.model.RCUWebsocketMessage;
 import com.julianw03.rcls.model.RiotClientConnectionParameters;
-import com.julianw03.rcls.service.base.process.ProcessService;
+import com.julianw03.rcls.service.base.publisher.PublisherService;
+import com.julianw03.rcls.service.base.publisher.formats.RCConnectionStateFormat;
 import com.julianw03.rcls.service.base.riotclient.api.InternalApiResponse;
 import com.julianw03.rcls.service.base.riotclient.api.RiotClientError;
 import com.julianw03.rcls.service.base.riotclient.connection.RiotClientConnectionStrategy;
@@ -51,7 +53,8 @@ public class RiotClientServiceImpl extends RiotClientService {
 
     private static final Logger log = LoggerFactory.getLogger(RiotClientServiceImpl.class);
 
-    private final ProcessService               processService;
+    private final PublisherService publisherService;
+
     private final RiotClientServiceConfig      config;
     private final RiotClientConnectionStrategy connectionStrategy;
 
@@ -72,11 +75,11 @@ public class RiotClientServiceImpl extends RiotClientService {
 
 
     public RiotClientServiceImpl(
-            @Autowired ProcessService processService,
+            @Autowired PublisherService publisherService,
             RiotClientConnectionStrategy connectionStrategy,
             RiotClientServiceConfig config
     ) {
-        this.processService = processService;
+        this.publisherService = publisherService;
         this.config = config;
         this.connectionStateRef = new AtomicReference<>(ConnectionState.DISCONNECTED);
         this.connectionStrategy = connectionStrategy;
@@ -89,7 +92,7 @@ public class RiotClientServiceImpl extends RiotClientService {
         try {
             this.sslContext = RiotSSLContext.create();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Failed to create Riot SSL Context",e);
         }
         this.httpClient = HttpClient.newBuilder().version(HttpClient.Version.HTTP_2).sslContext(sslContext).build();
     }
@@ -101,14 +104,14 @@ public class RiotClientServiceImpl extends RiotClientService {
 
     @Override
     public boolean isConnectionEstablished() {
+        log.debug("Checking connection state: {}", connectionStateRef.get());
         return connectionStateRef.get() == ConnectionState.CONNECTED;
     }
 
     @Override
     public void connect() throws IllegalStateException, UnsupportedOperationException, ExecutionException {
         if (!this.connectionStateRef.compareAndSet(ConnectionState.DISCONNECTED, ConnectionState.WAITING_FOR_PROCESS)) {
-            log.info("Connect called while currently in state of connecting, returning");
-            throw new IllegalStateException("Currently already in the state of connecting, will not start attempt");
+            throw new IllegalStateException("Cannot connect while already connected or connecting");
         }
 
         final RiotClientConnectionParameters connectionParameters;
@@ -128,11 +131,7 @@ public class RiotClientServiceImpl extends RiotClientService {
             throw new ExecutionException("Failed to connect to process", e);
         }
 
-        if (!this.connectionStateRef.compareAndSet(ConnectionState.WAITING_FOR_PROCESS, ConnectionState.WAITING_FOR_REST_READY)) {
-            log.error("Service statemachine expected different state");
-            this.connectionStateRef.set(ConnectionState.DISCONNECTED);
-            throw new IllegalStateException("Service statemachine expected different state");
-        }
+        expectAndSetState(ConnectionState.WAITING_FOR_PROCESS, ConnectionState.WAITING_FOR_REST_READY);
 
         try {
             awaitRestReady(connectionParameters).orTimeout(config.getConnectionInit().getRestConnectWaitForMaxMs(), TimeUnit.MILLISECONDS).join();
@@ -142,11 +141,7 @@ public class RiotClientServiceImpl extends RiotClientService {
             throw new ExecutionException("Failed to establish REST connection in given timeout", e);
         }
 
-        if (!this.connectionStateRef.compareAndSet(ConnectionState.WAITING_FOR_REST_READY, ConnectionState.WAITING_FOR_WEBSOCKET_CONNECTION)) {
-            log.error("Service statemachine expected different state");
-            this.connectionStateRef.set(ConnectionState.DISCONNECTED);
-            throw new IllegalStateException("Service statemachine expected different state");
-        }
+        expectAndSetState(ConnectionState.WAITING_FOR_REST_READY, ConnectionState.WAITING_FOR_WEBSOCKET_CONNECTION);
         this.parameters = connectionParameters;
 
         try {
@@ -157,11 +152,16 @@ public class RiotClientServiceImpl extends RiotClientService {
             throw new APIException("Failed to establish Websocket Connection in given timeout");
         }
 
-        if (!this.connectionStateRef.compareAndSet(ConnectionState.WAITING_FOR_WEBSOCKET_CONNECTION, ConnectionState.CONNECTED)) {
-            log.error("Service statemachine expected different state");
+        expectAndSetState(ConnectionState.WAITING_FOR_WEBSOCKET_CONNECTION, ConnectionState.CONNECTED);
+    }
+
+    private void expectAndSetState(ConnectionState expected, ConnectionState newState) {
+        if (!this.connectionStateRef.compareAndSet(expected, newState)) {
+            log.error("Service statemachine expected different state: {} instead of {}", expected, this.connectionStateRef.get());
             this.connectionStateRef.set(ConnectionState.DISCONNECTED);
             throw new IllegalStateException("Service statemachine expected different state");
         }
+        log.info("Service statemachine expected state: {}", expected);
     }
 
     @Override
@@ -185,8 +185,7 @@ public class RiotClientServiceImpl extends RiotClientService {
     }
 
     public InternalApiResponse request(HttpMethod method, String relativePath, Object body) {
-        if (connectionStateRef.get() != ConnectionState.CONNECTED)
-            return new InternalApiResponse.InternalException(null);
+        if (connectionStateRef.get() != ConnectionState.CONNECTED) return new InternalApiResponse.InternalException(null);
         JsonNode bodyNode = mapper.valueToTree(body);
         HttpRequest.BodyPublisher bodyPublisher = (this.methodAllowsBodyPublishing(method) && !bodyNode.isNull()) ? HttpRequest.BodyPublishers.ofString(bodyNode.toString()) : HttpRequest.BodyPublishers.noBody();
         HttpRequest request = HttpRequest.newBuilder()
@@ -349,6 +348,7 @@ public class RiotClientServiceImpl extends RiotClientService {
                         @Override
                         public void onOpen(WebSocket webSocket) {
                             future.complete(webSocket);
+                            log.debug("WebSocket connection opened");
                             futureExecutorService.submit(() -> {
                                 ArrayNode node = mapper.createArrayNode();
                                 node.add(5);
@@ -396,6 +396,7 @@ public class RiotClientServiceImpl extends RiotClientService {
 
                         @Override
                         public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
+                            log.debug("WebSocket connection closed");
                             futureExecutorService.submit(() -> {
                                 handleWebsocketClosed();
                             });
@@ -457,9 +458,7 @@ public class RiotClientServiceImpl extends RiotClientService {
     }
 
     private void handleWebsocketClosed() {
-        if (!connectionStateRef.compareAndSet(ConnectionState.CONNECTED, ConnectionState.DISCONNECTED)) {
-            log.warn("Illegal state while websocket close notified");
-        }
+        connectionStateRef.set(ConnectionState.DISCONNECTED);
         this.socket = null;
         this.apiClient = null;
         this.apiClientMap.clear();

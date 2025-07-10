@@ -22,7 +22,7 @@ const getBackendUrl = (protocol: string) => {
     if (!isNil(val)) {
         return val;
     }
-    log("Get called for unregistered protocol, will register", protocol,)
+    log("Get called for unregistered protocol, will register", protocol)
     return registerProtocol(protocol);
 }
 
@@ -40,11 +40,6 @@ const createBackendUrl = (protocol: string, backendPort: string | undefined) => 
 }
 
 export const resolve = (localLink: LocalLink, protocol: string = "https") => {
-    if (isNil(RCLS_BACKEND_PORT)) {
-        // We are not in a dev environment, backend and frontend server are the same, so we can
-        // just return the relative path
-        return localLink as string;
-    }
     return `${getBackendUrl(protocol)}${localLink}`;
 }
 

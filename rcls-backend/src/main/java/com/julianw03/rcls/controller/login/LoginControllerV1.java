@@ -3,6 +3,7 @@ package com.julianw03.rcls.controller.login;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.julianw03.rcls.generated.model.RsoAuthenticatorV1HCaptcha;
 import com.julianw03.rcls.generated.model.RsoAuthenticatorV1MultifactorInput;
+import com.julianw03.rcls.generated.model.RsoAuthenticatorV1ResponseType;
 import com.julianw03.rcls.generated.model.RsoAuthenticatorV1RiotIdentityAuthCompleteInput;
 import com.julianw03.rcls.model.APIException;
 import com.julianw03.rcls.service.rest.LoginV1RestService;
@@ -28,8 +29,19 @@ public class LoginControllerV1 {
         this.loginV1RestService = loginV1RestService;
     }
 
+    @GetMapping(
+            value = "/status",
+            produces = MimeTypeUtils.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<RsoAuthenticatorV1ResponseType> getLoginStatus() {
+        return ResponseEntity
+                .ok()
+                .body(loginV1RestService.getLoginStatus());
+    }
 
-    @PostMapping("/reset")
+    @PostMapping(
+            value = "/reset"
+    )
     public ResponseEntity<Void> resetLoginProcess() {
         loginV1RestService.reset();
         return ResponseEntity
@@ -37,13 +49,19 @@ public class LoginControllerV1 {
                 .build();
     }
 
-    @GetMapping("/captcha")
+    @GetMapping(
+            value = "/captcha",
+            produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public ResponseEntity<RsoAuthenticatorV1HCaptcha> getCaptcha() {
         return ResponseEntity
                 .ofNullable(loginV1RestService.getCaptcha());
     }
 
-    @PostMapping("/login")
+    @PostMapping(
+            value = "/login",
+            consumes = MimeTypeUtils.APPLICATION_JSON_VALUE,
+            produces = MimeTypeUtils.APPLICATION_JSON_VALUE
+    )
     public ResponseEntity<?> performLogin(@RequestBody RsoAuthenticatorV1RiotIdentityAuthCompleteInput body) {
         LoginV1RestService.InternalRsoLoginResponse internalRsoLoginResponse = loginV1RestService.performLogin(body);
         switch (internalRsoLoginResponse) {
@@ -63,7 +81,10 @@ public class LoginControllerV1 {
         }
     }
 
-    @PostMapping(value = "/multifactor", consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
+    @PostMapping(
+            value = "/multifactor",
+            consumes = MimeTypeUtils.APPLICATION_JSON_VALUE
+    )
     public ResponseEntity<Void> resolveMultifactor(@RequestBody RsoAuthenticatorV1MultifactorInput multifactorInput) {
         loginV1RestService.resolveMultifactor(multifactorInput);
         return ResponseEntity

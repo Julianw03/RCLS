@@ -1,3 +1,4 @@
+import path from "path"
 import {defineConfig} from 'vite'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import react from '@vitejs/plugin-react'
@@ -14,7 +15,8 @@ export default defineConfig({
     },
     resolve: {
         alias: {
-            https: 'agent-base'
+            https: 'agent-base',
+            "@": path.resolve(__dirname, "./src")
         }
     }
 })

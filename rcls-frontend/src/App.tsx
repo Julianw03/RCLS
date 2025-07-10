@@ -2,8 +2,8 @@ import './App.css'
 import { useRef, useState} from "react";
 import * as LocalLinkResolver from "./systems/LocalLinkResolver.ts";
 import RessourceLoadingSystem from "./systems/RessourceLoadingSystem.ts";
-import HCaptchaWrapper from "./components/HCaptchaWrapper.tsx";
 import {LocalLink} from "./types.ts";
+import CustomHCaptchaWrapper from "./components/CustomHCaptchaWrapper.tsx";
 
 
 const system = new RessourceLoadingSystem(
@@ -57,11 +57,14 @@ function App() {
         <div className={"rootContainer"}>
             <div className={"mainDivider"}>
                 <div className={"loginMediaSection"}>
-                    <video className={"media"} autoPlay={true} loop={true} playsInline={true} controls={false} disablePictureInPicture={true}>
-                        <source src={"https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/ahri/skins/skin86/animatedsplash/ahri_skin86_uncentered.skins_ahri_hol.webm"}/>
+                    <video className={"media"} autoPlay={true} loop={true} playsInline={true} controls={false}
+                           disablePictureInPicture={true}>
+                        <source
+                            src={"https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/ahri/skins/skin86/animatedsplash/ahri_skin86_uncentered.skins_ahri_hol.webm"}/>
                     </video>
                     <audio autoPlay={true} controls={false} loop={true}>
-                        <source src={"https://raw.communitydragon.org/13.15/plugins/rcp-be-lol-game-data/global/default/assets/events/sfm2023marketing/sfx-sfmk-mus.ogg"}/>
+                        <source
+                            src={"https://raw.communitydragon.org/13.15/plugins/rcp-be-lol-game-data/global/default/assets/events/sfm2023marketing/sfx-sfmk-mus.ogg"}/>
                     </audio>
                 </div>
                 <div className={"loginDataSection"}>
@@ -97,8 +100,7 @@ function App() {
                     <input type={"password"} ref={passwordInputRef} placeholder={"Password"}/>
                     <br/>
                     {
-                        captchaData && <HCaptchaWrapper siteKey={captchaData.key} rqData={captchaData.data}
-                                                        onVerify={handleHcaptchaSubmit}/>
+                        captchaData && <CustomHCaptchaWrapper siteKey={captchaData.key} rqData={captchaData.data} onSuccess={(token) => handleHcaptchaSubmit(token)}/>
                     }
                     <br/>
                     <button type={"button"} onClick={showClientUx}>Show Client UX</button>

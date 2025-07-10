@@ -1,10 +1,9 @@
-package com.julianw03.rcls.service.base.cacheService.impl;
+package com.julianw03.rcls.service.base.cacheService.rcu.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.julianw03.rcls.generated.api.CoreSdkApi;
 import com.julianw03.rcls.model.RCUWebsocketMessage;
-import com.julianw03.rcls.service.base.cacheService.CacheService;
 import com.julianw03.rcls.service.base.cacheService.ObjectDataManager;
+import com.julianw03.rcls.service.base.cacheService.rcu.RCUStateService;
 import com.julianw03.rcls.service.base.riotclient.RiotClientService;
 import com.julianw03.rcls.service.base.riotclient.api.InternalApiResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +21,7 @@ import java.util.regex.Pattern;
 public class InstallSettingsMFAManager extends ObjectDataManager<Boolean> {
     private final Pattern lolInstallSettingsMFA = Pattern.compile("^/data-store/v1/install-settings/mfa_notification_dismissed$");
 
-    protected InstallSettingsMFAManager(RiotClientService riotClientService, CacheService cacheService) {
+    protected InstallSettingsMFAManager(RiotClientService riotClientService, RCUStateService cacheService) {
         super(riotClientService, cacheService);
     }
 

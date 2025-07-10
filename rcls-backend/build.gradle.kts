@@ -30,6 +30,10 @@ val feignVersion = "11.6"
 
 dependencies {
     implementation(project(":rcls-riot-api-client"))
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9")
+
+    compileOnly("org.msgpack:jackson-dataformat-msgpack:0.9.9")
+    compileOnly("org.msgpack:jackson-dataformat-msgpack:0.9.9")
 
     implementation("io.github.openfeign:feign-core:${feignVersion}")
     implementation("io.github.openfeign:feign-jackson:${feignVersion}")

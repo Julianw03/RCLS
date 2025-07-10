@@ -1,26 +1,26 @@
 package com.julianw03.rcls.service.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.julianw03.rcls.Util.ServletUtils;
 import com.julianw03.rcls.generated.api.CoreSdkApi;
 import com.julianw03.rcls.generated.model.*;
 import com.julianw03.rcls.model.APIException;
-import com.julianw03.rcls.service.base.cacheService.CacheService;
-import com.julianw03.rcls.service.base.cacheService.impl.RsoAuthenticationManager;
+import com.julianw03.rcls.service.base.cacheService.ObjectDataManager;
+import com.julianw03.rcls.service.base.cacheService.rcu.RCUStateService;
+import com.julianw03.rcls.service.base.cacheService.rcu.impl.RsoAuthenticationManager;
 import com.julianw03.rcls.service.base.riotclient.RiotClientService;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class LoginV1RestService {
     private final RiotClientService                            riotClientService;
-    private final CacheService                                 cacheService;
+    private final RCUStateService                              cacheService;
     private final ObjectMapper                                 mapper = new ObjectMapper();
     private final RsoAuthAuthorizationRequest                  AUTH_GRANT_REQUEST;
     private final RsoAuthenticatorV1RiotIdentityAuthStartInput IDENTITY_START_INPUT;
@@ -45,7 +45,7 @@ public class LoginV1RestService {
     @Autowired
     public LoginV1RestService(
             RiotClientService riotClientService,
-            CacheService cacheService
+            RCUStateService cacheService
     ) {
         this.riotClientService = riotClientService;
         this.cacheService = cacheService;
@@ -66,6 +66,28 @@ public class LoginV1RestService {
         rsoAuthSessionLoginToken.setAuthenticationType(RsoAuthAuthenticationTypeEnum.RIOTAUTH);
 
         return rsoAuthSessionLoginToken;
+    }
+
+    public RsoAuthenticatorV1ResponseType getLoginStatus() {
+        ObjectDataManager<RsoAuthenticatorV1AuthenticationResponse> dataManager = cacheService.getObjectDataManger(RsoAuthenticationManager.class);
+        final RsoAuthenticatorV1AuthenticationResponse currentState = dataManager.getState();
+
+        if (currentState != null) {
+            return currentState.getType();
+        }
+
+        CompletableFuture<Void> setupFuture = dataManager.setupInternalState().orTimeout(500, TimeUnit.MICROSECONDS);
+        final RsoAuthenticatorV1AuthenticationResponse internalAuthState;
+        try {
+            setupFuture.join();
+            internalAuthState = dataManager.getState();
+            if (internalAuthState == null) {
+                throw new APIException("Internal Auth State is null after setup");
+            }
+        } catch (Exception e) {
+            throw new APIException("Failed to setup RSO Authentication Manager state", e);
+        }
+        return internalAuthState.getType();
     }
 
     public void reset() {
@@ -150,6 +172,9 @@ public class LoginV1RestService {
 
         final String error = authenticationResponse.getError();
         if (error != null && !error.isBlank()) {
+            if ("auth_failure".equalsIgnoreCase(error)) {
+                throw new APIException("Invalid Credentials", HttpStatus.UNAUTHORIZED);
+            }
             throw new APIException("Request returned an non empty error " + error, HttpStatus.BAD_GATEWAY);
         }
 
@@ -260,6 +285,12 @@ public class LoginV1RestService {
             coreSdkApiClient.rsoAuthV1SessionDelete();
         } catch (Exception e) {
             throw new APIException("Failed to delete RSO Auth V1 Session", e);
+        }
+
+        try {
+            coreSdkApiClient.rsoAuthenticatorV1AuthenticationDelete();
+        } catch (Exception e) {
+            throw new APIException("Failed to delete RSO Authenticator V1 Authentication", e);
         }
     }
 }

@@ -7,13 +7,15 @@
     "dev": "cross-env VITE_RCLS_BACKEND_PORT=8080 vite",
     "build": "cross-env tsc -b && vite build",
     "lint": "eslint .",
+    "tsc": "tsc -b",
     "preview": "cross-env vite preview"
   },
   "dependencies": {
-    "@hcaptcha/react-hcaptcha": "^1.12.0",
+    "@hcaptcha/loader": "^2.0.0",
     "@reduxjs/toolkit": "^2.7.0",
     "@types/axios": "^0.9.36",
     "@types/node": "^22.14.1",
+    "@ygoe/msgpack": "^1.0.3",
     "cross-env": "^7.0.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",

@@ -23,6 +23,11 @@ server:
     key-alias: "tomcat"
   port: 8080
 
+springdoc:
+  swagger-ui:
+    path: "/api-docs"
+    operations-sorter: "method"
+
 custom:
   configurations:
     proxy:
@@ -66,3 +71,6 @@ custom:
           riot-client-lock-file-location: "${LOCALAPPDATA}/Riot Games/Riot Client/Config/lockfile"
     operating-system-provider:
       os-override:
+    publisher-service:
+      disabled-sources:
+        - proxy_service

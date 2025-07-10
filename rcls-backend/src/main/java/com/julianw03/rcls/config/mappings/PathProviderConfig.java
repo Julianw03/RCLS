@@ -7,11 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-import java.nio.file.Paths;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Slf4j
 @Data
@@ -19,6 +15,7 @@ import java.util.regex.Pattern;
 @ConfigurationProperties(prefix = "custom.configurations.path-provider", ignoreInvalidFields = true)
 public class PathProviderConfig {
     private Map<OperatingSystem, PathEntries> pathEntries;
+
     @Data
     public static class PathEntries {
         @Data
@@ -28,7 +25,13 @@ public class PathProviderConfig {
             private String                     riotClientServices;
         }
 
+        @Data
+        public static class RCLSPaths {
+            private String rclsDataPath;
+        }
+
         private Executables executables;
+        private RCLSPaths   rclsPaths;
         private String      programFilesPath;
         private String      riotGamesFolderName;
         private String      riotClientInstallsFile;
