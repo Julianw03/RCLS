@@ -1,6 +1,7 @@
 package com.julianw03.rcls.controller;
 
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,7 +22,7 @@ import java.util.regex.Pattern;
 
 @Slf4j
 @RestController
-@RequestMapping(value = "/hcaptcha-proxy", consumes = {MimeTypeUtils.APPLICATION_JSON_VALUE, MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE})
+@RequestMapping(value = "/hcaptcha-proxy", consumes = {MimeTypeUtils.APPLICATION_JSON_VALUE, MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE, "application/x-www-form-urlencoded", "text/plain"})
 public class HCaptchaProxyController {
 
     private static final String                                                                                     SUBDOMAIN_NONE       = "RCLS-INTERNAL";
@@ -171,10 +172,11 @@ public class HCaptchaProxyController {
             @PathVariable String path,
             @RequestParam Map<String, String> query,
             @RequestHeader HttpHeaders originalHeaders,
-            @RequestBody(required = false) byte[] body,
-            HttpMethod method
-    ) {
+            HttpMethod method,
+            HttpServletRequest request
+    ) throws IOException {
 
+        byte[] body = request.getInputStream().readAllBytes();
 
         RequestObject requestObject = new RequestObject(
                 subdomain,
@@ -207,13 +209,11 @@ public class HCaptchaProxyController {
             HttpHeaders returnHeaders = new HttpHeaders();
             returnHeaders.putAll(intermediateResponse.getHeaders());
 
-            ResponseEntity<byte[]> returnResponse = new ResponseEntity<>(
+            return new ResponseEntity<>(
                     intermediateResponse.getBody(),
                     returnHeaders,
                     intermediateResponse.getStatusCode()
             );
-
-            return returnResponse;
         } catch (HttpClientErrorException e) {
             log.warn("Error while trying to access {} {}", method, uri);
             try {
@@ -223,6 +223,7 @@ public class HCaptchaProxyController {
 
         return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
 
 
     private static String readStream(InputStream is) {

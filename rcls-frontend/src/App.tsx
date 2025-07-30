@@ -1,8 +1,9 @@
 import './App.css'
 import { useRef, useState} from "react";
-import * as Config from "./Config";
+import * as LocalLinkResolver from "./systems/LocalLinkResolver.ts";
 import RessourceLoadingSystem from "./systems/RessourceLoadingSystem.ts";
-import HCaptchaWrapper from "./components/HCaptchaWrapper.tsx";
+import {LocalLink} from "./types.ts";
+import CustomHCaptchaWrapper from "./components/CustomHCaptchaWrapper.tsx";
 
 
 const system = new RessourceLoadingSystem(
@@ -15,7 +16,7 @@ system.load();
 
 interface RQData {
     key: string;
-    data: string;
+    data: string | null;
 }
 
 function App() {
@@ -28,12 +29,12 @@ function App() {
     const handleHcaptchaSubmit = async (token: string) => {
         const exampleUsername = usernameInputRef.current?.value;
         const examplePassword = passwordInputRef.current?.value;
-        await fetch(Config.BACKEND_URL + "/api/riotclient/login/v1/login", {
+        await fetch(LocalLinkResolver.resolve("/api/riotclient/login/v1/login" as LocalLink), {
             method: "POST",
             body: JSON.stringify({
                 username: exampleUsername,
                 password: examplePassword,
-                remember: false,
+                remember: true,
                 language: "en_US",
                 captcha: "hcaptcha " + token
             }),
@@ -43,10 +44,11 @@ function App() {
         });
         usernameInputRef.current!.value = "";
         passwordInputRef.current!.value = "";
+        setCaptchaData({...captchaData, data: null});
     }
 
     async function showClientUx() {
-        await fetch(Config.BACKEND_URL + "/api/riotclient/launcher/v1/client", {
+        await fetch(LocalLinkResolver.resolve("/api/riotclient/launcher/v1/client" as LocalLink), {
             method: "POST"
         });
     }
@@ -56,24 +58,27 @@ function App() {
         <div className={"rootContainer"}>
             <div className={"mainDivider"}>
                 <div className={"loginMediaSection"}>
-                    <video className={"media"} autoPlay={true} loop={true} playsInline={true} controls={false} disablePictureInPicture={true}>
-                        <source src={"https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/ahri/skins/skin86/animatedsplash/ahri_skin86_uncentered.skins_ahri_hol.webm"}/>
+                    <video className={"media"} autoPlay={true} loop={true} playsInline={true} controls={false}
+                           disablePictureInPicture={true}>
+                        <source
+                            src={"https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/ahri/skins/skin86/animatedsplash/ahri_skin86_uncentered.skins_ahri_hol.webm"}/>
                     </video>
                     <audio autoPlay={true} controls={false} loop={true}>
-                        <source src={"https://raw.communitydragon.org/13.15/plugins/rcp-be-lol-game-data/global/default/assets/events/sfm2023marketing/sfx-sfmk-mus.ogg"}/>
+                        <source
+                            src={"https://raw.communitydragon.org/13.15/plugins/rcp-be-lol-game-data/global/default/assets/events/sfm2023marketing/sfx-sfmk-mus.ogg"}/>
                     </audio>
                 </div>
                 <div className={"loginDataSection"}>
                     <div>Riot Client Login Screens</div>
                     <button type={"button"} onClick={async () => {
-                        await fetch(Config.BACKEND_URL + "/api/connector/v1/connect", {
+                        await fetch(LocalLinkResolver.resolve("/api/connector/v1/connect" as LocalLink), {
                             method: "POST",
                         });
                     }}>
                         Connect Riot Client with RCLS
                     </button>
                     <button type={"button"} onClick={async () => {
-                        const response = await fetch(Config.BACKEND_URL + "/api/riotclient/login/v1/reset", {
+                        const response = await fetch(LocalLinkResolver.resolve("/api/riotclient/login/v1/reset" as LocalLink), {
                             method: "POST"
                         });
                         if (Math.floor(response.status / 100) !== 2) {
@@ -81,7 +86,7 @@ function App() {
                             return;
                         }
 
-                        await fetch(Config.BACKEND_URL + "/api/riotclient/login/v1/captcha")
+                        await fetch(LocalLinkResolver.resolve("/api/riotclient/login/v1/captcha" as LocalLink))
                             .then((response) => response.json())
                             .then((json) => {
                                 console.log(json);
@@ -96,8 +101,7 @@ function App() {
                     <input type={"password"} ref={passwordInputRef} placeholder={"Password"}/>
                     <br/>
                     {
-                        captchaData && <HCaptchaWrapper siteKey={captchaData.key} rqData={captchaData.data}
-                                                        onVerify={handleHcaptchaSubmit}/>
+                        captchaData && <CustomHCaptchaWrapper siteKey={captchaData.key} rqData={captchaData.data} onSuccess={(token) => handleHcaptchaSubmit(token)}/>
                     }
                     <br/>
                     <button type={"button"} onClick={showClientUx}>Show Client UX</button>

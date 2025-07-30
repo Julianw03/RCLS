@@ -1,12 +1,12 @@
-package com.julianw03.rcls.service.base.cacheService.impl;
+package com.julianw03.rcls.service.base.cacheService.rcu.impl.publishing;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.julianw03.rcls.generated.api.CoreSdkApi;
 import com.julianw03.rcls.generated.model.RsoAuthenticatorV1AuthenticationResponse;
 import com.julianw03.rcls.model.RCUWebsocketMessage;
-import com.julianw03.rcls.service.base.cacheService.CacheService;
-import com.julianw03.rcls.service.base.cacheService.ObjectDataManager;
+import com.julianw03.rcls.service.base.cacheService.rcu.RCUStateService;
+import com.julianw03.rcls.service.base.cacheService.PublishingObjectDataManager;
 import com.julianw03.rcls.service.base.riotclient.RiotClientService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -16,26 +16,34 @@ import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Slf4j
 @Component
-public class RsoAuthenticationManager extends ObjectDataManager<RsoAuthenticatorV1AuthenticationResponse> {
+@Slf4j
+public class PublishingRsoAuthenticationManager extends PublishingObjectDataManager<RsoAuthenticatorV1AuthenticationResponse> {
     private static final Pattern RSO_AUTHENTICATOR_V1_AUTHENTICATION_PATTERN = Pattern.compile("^/rso-authenticator/v1/authentication$");
 
-    public RsoAuthenticationManager(RiotClientService riotClientService, CacheService cacheService) {
+    protected PublishingRsoAuthenticationManager(RiotClientService riotClientService, RCUStateService cacheService) {
         super(riotClientService, cacheService);
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        objectMapper.configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL, true);
     }
 
+    @Override
+    public void setState(RsoAuthenticatorV1AuthenticationResponse state) {
+        Optional.ofNullable(state).map(RsoAuthenticatorV1AuthenticationResponse::getSuccess).ifPresent(success -> {
+            success.setLoginToken(null);
+            success.setRedirectUrl(null);
+        });
+
+        super.setState(state);
+    }
 
     @Override
     protected CompletableFuture<RsoAuthenticatorV1AuthenticationResponse> doFetchInitialData() {
-        Optional<CoreSdkApi> optionalCoreSdkApi = riotClientService.getApiClient().map(
-                client -> client.buildClient(CoreSdkApi.class)
-        );
+        Optional<CoreSdkApi> optionalCoreSdkApi = riotClientService.getApi(CoreSdkApi.class);
 
         if (optionalCoreSdkApi.isEmpty()) {
             return CompletableFuture.failedFuture(
-                    new Exception("Failed to build CoreSdkApi client for RsoAuthenticationManager")
+                    new Exception("Failed to build CoreSdkApi client for RsoAuthSessionManager")
             );
         }
 
@@ -45,13 +53,13 @@ public class RsoAuthenticationManager extends ObjectDataManager<RsoAuthenticator
         try {
             resp = coreSdkApi.rsoAuthenticatorV1AuthenticationGet();
         } catch (Exception e) {
-            log.error("Failed to fetch initial data for RsoAuthenticationManager", e);
+            log.error("Failed to fetch initial data for RsoAuthSessionManager", e);
             return CompletableFuture.failedFuture(e);
         }
 
         if (resp == null) {
             return CompletableFuture.failedFuture(
-                    new Exception("Failed to fetch initial data for RsoAuthenticationManager")
+                    new Exception("Failed to fetch initial data for RsoAuthSessionManager")
             );
         }
 
@@ -60,12 +68,11 @@ public class RsoAuthenticationManager extends ObjectDataManager<RsoAuthenticator
 
     @Override
     protected Matcher getUriMatcher(String uri) {
-        return RSO_AUTHENTICATOR_V1_AUTHENTICATION_PATTERN.matcher(uri);
+        return RSO_AUTHENTICATOR_V1_AUTHENTICATION_PATTERN .matcher(uri);
     }
 
     @Override
     protected void handleUpdate(RCUWebsocketMessage.MessageType type, JsonNode data, Matcher uriMatcher) {
-
         switch (type) {
             case DELETE -> resetInternalState();
             case CREATE, UPDATE -> {
@@ -75,6 +82,7 @@ public class RsoAuthenticationManager extends ObjectDataManager<RsoAuthenticator
                     return;
                 }
                 RsoAuthenticatorV1AuthenticationResponse authenticationResponse = updatedData.get();
+
                 setState(authenticationResponse);
             }
         }

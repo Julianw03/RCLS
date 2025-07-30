@@ -6,6 +6,7 @@ LABEL authors="JulianW03"
 RUN apt-get update
 RUN apt-get upgrade -y
 RUN apt-get install -y wget \
+    bash \
     curl \
     tar \
     openjdk-17-jdk
@@ -27,6 +28,9 @@ RUN wget https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21
 # Set JAVA_HOME
 ENV JAVA_HOME=/usr/lib/jvm/openjdk-21
 ENV PATH="$JAVA_HOME/bin:$PATH"
+
+# To allow for a Gradle cache
+ENV GRADLE_USER_HOME=/cache/gradle
 
 WORKDIR /app
 

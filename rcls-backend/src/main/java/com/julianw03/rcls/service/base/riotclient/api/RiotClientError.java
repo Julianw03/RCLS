@@ -7,7 +7,7 @@ import lombok.ToString;
 
 @Getter
 @NoArgsConstructor
-public class RiotClientError {
+public class RiotClientError extends Throwable {
     private String   errorCode;
     private Integer  httpStatus;
     private JsonNode implementationDetails;

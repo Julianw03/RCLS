@@ -4,16 +4,19 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "cross-env VITE_BACKEND_PORT=8080 vite",
-    "build": "cross-env VITE_BACKEND_PORT=443 tsc -b && vite build",
+    "dev": "cross-env VITE_RCLS_BACKEND_PORT=8080 vite",
+    "build": "cross-env tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "cross-env VITE_BACKEND_PORT=443 vite preview"
+    "tsc": "tsc -b",
+    "preview": "cross-env vite preview"
   },
   "dependencies": {
+    "@hcaptcha/loader": "^2.0.0",
     "@hcaptcha/react-hcaptcha": "^1.12.0",
     "@reduxjs/toolkit": "^2.7.0",
     "@types/axios": "^0.9.36",
     "@types/node": "^22.14.1",
+    "@ygoe/msgpack": "^1.0.3",
     "cross-env": "^7.0.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
@@ -23,7 +26,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
-    "@types/react": "^19.1.2",
+    "@types/react": "^19.1.6",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.4.1",
     "eslint": "^9.25.0",

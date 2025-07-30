@@ -1,3 +1,4 @@
 /rcls-backend/gradlew text eol=lf
+build.sh text eol=lf
 /rcls-backend/*.bat text eol=crlf
 /rcls-backend/*.jar binary

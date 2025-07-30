@@ -74,7 +74,7 @@ public enum SupportedGame {
             return Optional.empty();
         }
 
-        private static ResolveStrategy getDefault() {
+        public static ResolveStrategy getDefault() {
             return ResolveStrategy.RIOT_INTERNAL_NAME;
         }
     }

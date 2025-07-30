@@ -13,6 +13,12 @@ import java.util.concurrent.ExecutionException;
 
 public abstract class RiotClientService extends BaseService {
 
+    public enum SimpleConnectionState {
+        DISCONNECTED,
+        CONNECTING,
+        CONNECTED
+    }
+
     /**
      * @return {@link RiotClientConnectionParameters} if they are currently deemed valid by the service otherwise {@code null}
      */

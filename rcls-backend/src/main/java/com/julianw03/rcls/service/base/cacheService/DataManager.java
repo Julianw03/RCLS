@@ -22,7 +22,7 @@ import java.util.regex.Matcher;
 @Slf4j
 public abstract class DataManager<T> {
     protected final RiotClientService riotClientService;
-    protected final CacheService      cacheService;
+    protected final StateService      cacheService;
     protected final ObjectMapper      objectMapper = new ObjectMapper();
 
     private final AtomicReference<Flow.Subscription> cacheServiceSubscription = new AtomicReference<>(null);
@@ -44,7 +44,7 @@ public abstract class DataManager<T> {
     @Autowired
     protected DataManager(
             RiotClientService riotClientService,
-            CacheService cacheService
+            StateService cacheService
     ) {
         this.riotClientService = riotClientService;
         this.cacheService = cacheService;
@@ -53,6 +53,13 @@ public abstract class DataManager<T> {
     protected abstract void handleUpdate(RCUWebsocketMessage.MessageType type, JsonNode data, Matcher uriMatcher);
 
     protected abstract void setState(T state);
+
+    /**
+     * THIS MIGHT BE CALLED INSIDE SOME ATOMIC OPERATION, SO DO NOT CALL ANYTHING THAT MIGHT BLOCK OR CAUSE A DEADLOCK!
+     * */
+    protected void onStateUpdated(T previousState, T newState) {
+        // Override this method to handle state updates if needed
+    }
 
     public void reset() {
         Optional.ofNullable(cacheServiceSubscription.getAndSet(null)).ifPresent(Flow.Subscription::cancel);

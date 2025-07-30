@@ -1,4 +1,4 @@
-package com.julianw03.rcls.service.rest;
+package com.julianw03.rcls.service.rest.launch;
 
 import com.julianw03.rcls.Util.ServletUtils;
 import com.julianw03.rcls.generated.api.PluginProductLauncherApi;
@@ -7,40 +7,40 @@ import com.julianw03.rcls.generated.model.RsoAuthenticatorV1AuthenticationRespon
 import com.julianw03.rcls.generated.model.RsoAuthenticatorV1ResponseType;
 import com.julianw03.rcls.model.APIException;
 import com.julianw03.rcls.model.SupportedGame;
-import com.julianw03.rcls.service.base.cacheService.CacheService;
-import com.julianw03.rcls.service.base.cacheService.impl.RsoAuthenticationManager;
+import com.julianw03.rcls.service.base.cacheService.rcu.RCUStateService;
+import com.julianw03.rcls.service.base.cacheService.rcu.impl.RsoAuthenticationManager;
 import com.julianw03.rcls.service.base.process.ProcessService;
 import com.julianw03.rcls.service.base.riotclient.RiotClientService;
 import com.julianw03.rcls.service.base.riotclient.api.InternalApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 @Service
-public class LaunchV1RestService {
+public class LaunchV1ServiceImpl implements LaunchV1Service {
 
     private final RiotClientService riotClientService;
     private final ProcessService    processService;
-    private final CacheService      cacheService;
+    private final RCUStateService   cacheService;
 
     @Autowired
-    public LaunchV1RestService(
+    public LaunchV1ServiceImpl(
             RiotClientService riotClientService,
             ProcessService processService,
-            CacheService cacheService
+            RCUStateService cacheService
     ) {
         this.riotClientService = riotClientService;
         this.processService = processService;
         this.cacheService = cacheService;
     }
 
-    public void launchRiotClientUx() {
+    public void launchRiotClientUx() throws ExecutionException {
         InternalApiResponse response = riotClientService.request(
                 HttpMethod.POST,
                 "/riot-client-lifecycle/v1/show",
@@ -49,10 +49,10 @@ public class LaunchV1RestService {
 
         switch (response) {
             case InternalApiResponse.ApiError error -> {
-                throw new APIException(error.getError());
+                throw new ExecutionException(error.getError());
             }
             case InternalApiResponse.InternalException exception -> {
-                throw new APIException(exception.getException());
+                throw new ExecutionException(exception.getException());
             }
             default -> {
                 return;
@@ -60,7 +60,7 @@ public class LaunchV1RestService {
         }
     }
 
-    public void hideRiotClientUx() {
+    public void hideRiotClientUx() throws ExecutionException {
         PluginRiotClientLifecycleApi riotClientLifecycleApi = riotClientService.getApi(PluginRiotClientLifecycleApi.class).orElseThrow(
                 () -> new APIException("Failed to get riotClientLifecycleApi client")
         );
@@ -68,54 +68,40 @@ public class LaunchV1RestService {
         try {
             riotClientLifecycleApi.riotClientLifecycleV1HidePost();
         } catch (Exception e) {
-            throw new APIException(e);
+            throw new ExecutionException(e);
         }
     }
 
-    public List<String> getOperatingSystemSupportedGames(String resolveStrategy) {
-        Optional<SupportedGame.ResolveStrategy> optResolveStrategy = SupportedGame.ResolveStrategy.fromString(resolveStrategy);
-        if (optResolveStrategy.isEmpty())
-            throw new APIException("Invalid Request", HttpStatus.BAD_REQUEST, "The provided resolveStrategy is not recognized");
-
-        SupportedGame.ResolveStrategy resolveStrategyEnum = optResolveStrategy.get();
+    public List<String> getOperatingSystemSupportedGames(SupportedGame.ResolveStrategy resolveStrategy) {
+        SupportedGame.ResolveStrategy resolveStrategyEnum = Optional.ofNullable(resolveStrategy).orElseGet(SupportedGame.ResolveStrategy::getDefault);
         return processService.getSupportedGames().stream()
                 .map(resolveStrategyEnum::getId)
                 .toList();
     }
 
-    public List<String> getAllSupportedGames(String resolveStrategy) {
-        Optional<SupportedGame.ResolveStrategy> optResolveStrategy = SupportedGame.ResolveStrategy.fromString(resolveStrategy);
-        if (optResolveStrategy.isEmpty())
-            throw new APIException("Invalid Request", HttpStatus.BAD_REQUEST, "The provided resolveStrategy is not recognized");
-
-        SupportedGame.ResolveStrategy resolveStrategyEnum = optResolveStrategy.get();
+    public List<String> getAllSupportedGames(SupportedGame.ResolveStrategy resolveStrategy) {
+        SupportedGame.ResolveStrategy resolveStrategyEnum = Optional.ofNullable(resolveStrategy).orElseGet(SupportedGame.ResolveStrategy::getDefault);
 
         return Arrays.stream(SupportedGame.values())
                 .map(resolveStrategyEnum::getId)
                 .toList();
     }
 
-    public void launchGameWithPatchline(String gameId, String patchlineId, String lookupStrategy) {
+    public void launchGameWithPatchline(String gameId, String patchlineId, SupportedGame.ResolveStrategy lookupStrategy) throws ExecutionException {
         RsoAuthenticatorV1AuthenticationResponse rsoAuthState = cacheService.getObjectDataManger(RsoAuthenticationManager.class).getState();
-        ;
         ServletUtils.assertEqual("VerifyLoggedIn", RsoAuthenticatorV1ResponseType.SUCCESS, rsoAuthState.getType());
 
-        Optional<SupportedGame> optSupportedGame = SupportedGame.ResolveStrategy.fromString(lookupStrategy)
-                .flatMap(resolveStrategy -> resolveStrategy.resolve(gameId));
+        SupportedGame.ResolveStrategy resolveStrategy = Optional.ofNullable(lookupStrategy).orElseGet(SupportedGame.ResolveStrategy::getDefault);
+        SupportedGame game = resolveStrategy.resolve(gameId).orElseThrow(() -> new IllegalArgumentException("Game with ID " + gameId + " not found"));
 
-        if (optSupportedGame.isEmpty())
-            throw new APIException("Invalid Request", HttpStatus.BAD_REQUEST, "The provided gameId is not recognized");
-
-        //TODO: This is vulnerable to path injection, fix this
         if (patchlineId == null || patchlineId.isEmpty()) {
-            throw new APIException("Invalid Request", HttpStatus.BAD_REQUEST, "The provided patchlineId is invalid");
+            throw new IllegalArgumentException("Patchline ID cannot be null or empty");
         }
-
-        SupportedGame game = optSupportedGame.get();
 
         PluginProductLauncherApi productLauncherApi = riotClientService.getApi(PluginProductLauncherApi.class).orElseThrow(
                 () -> new APIException("Failed to get CoreSdkApi client")
         );
+
 
         try {
             productLauncherApi.productLauncherV1ProductsProductIdPatchlinesPatchlineIdPost(
@@ -123,26 +109,20 @@ public class LaunchV1RestService {
                     patchlineId
             );
         } catch (Exception e) {
-            throw new APIException(e);
+            throw new ExecutionException(e);
         }
 
         hideRiotClientUx();
-
-        return;
     }
 
-    public void killGame(String gameId, String lookupStrategy) {
-        Optional<SupportedGame> optSupportedGame = SupportedGame.ResolveStrategy.fromString(lookupStrategy)
-                .flatMap(resolveStrategy -> resolveStrategy.resolve(gameId));
-        if (optSupportedGame.isEmpty())
-            throw new APIException("Invalid Request", HttpStatus.BAD_REQUEST, "The provided gameId is not recognized");
-
-        SupportedGame game = optSupportedGame.get();
+    public void killGame(String gameId, SupportedGame.ResolveStrategy lookupStrategy) throws ExecutionException {
+        SupportedGame.ResolveStrategy resolveStrategy = Optional.ofNullable(lookupStrategy).orElseGet(SupportedGame.ResolveStrategy::getDefault);
+        SupportedGame game = resolveStrategy.resolve(gameId).orElseThrow(() -> new IllegalArgumentException("Game with ID " + gameId + " not found"));
 
         try {
             processService.killGameProcess(game).orTimeout(5, TimeUnit.SECONDS).join();
         } catch (Exception e) {
-            throw new APIException(e);
+            throw new ExecutionException(e);
         }
     }
 }

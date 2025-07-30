@@ -10,7 +10,6 @@ import java.util.regex.Pattern;
 
 @Slf4j
 public class PathProvider implements Supplier<PathProviderConfig.PathEntries> {
-    protected static final Pattern ENV_VAR_PATH_PATTERN = Pattern.compile("%([^%]+)%");
 
     protected final PathProviderConfig config;
     protected final OperatingSystem    os;

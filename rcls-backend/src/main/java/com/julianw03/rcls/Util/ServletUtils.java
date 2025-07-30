@@ -2,21 +2,24 @@ package com.julianw03.rcls.Util;
 
 import com.julianw03.rcls.model.APIException;
 import com.julianw03.rcls.service.base.riotclient.api.InternalApiResponse;
+import org.springframework.http.HttpStatus;
 
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class ServletUtils {
 
-    private ServletUtils() {}
+    private ServletUtils() {
+    }
 
     public static <T> void assertEqual(
             String scope,
             T expected,
             T actual
-    ) throws APIException {
+    ) throws IllegalStateException {
         if (!Objects.equals(expected, actual)) {
             final String message = String.format("[%s]: Expected value \"%s\", but got \"%s\"",
                     scope,
@@ -25,7 +28,17 @@ public class ServletUtils {
             );
 
 
-            throw new APIException("Processing failed", message);
+            throw new IllegalStateException(message);
+        }
+    }
+
+    public static <T, E extends Throwable> void assertEqualOrElseThrow(
+            T expected,
+            T actual,
+            Function<T, E> exceptionSupplier
+    ) throws E {
+        if (!Objects.equals(expected, actual)) {
+            throw exceptionSupplier.apply(actual);
         }
     }
 
@@ -117,7 +130,7 @@ public class ServletUtils {
                     statusCode
             );
 
-            throw new APIException("Processing failed", message);
+            throw new APIException("Processing failed", HttpStatus.INTERNAL_SERVER_ERROR, message);
         }
     }
 

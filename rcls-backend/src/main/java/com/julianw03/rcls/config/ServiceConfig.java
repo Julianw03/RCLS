@@ -1,10 +1,7 @@
 package com.julianw03.rcls.config;
 
-import com.julianw03.rcls.config.mappings.OperatingSystemProviderConfig;
-import com.julianw03.rcls.config.mappings.PathProviderConfig;
-import com.julianw03.rcls.config.mappings.ProcessServiceConfig;
-import com.julianw03.rcls.config.mappings.RiotClientServiceConfig;
-import com.julianw03.rcls.service.base.cacheService.CacheService;
+import com.julianw03.rcls.config.mappings.*;
+import com.julianw03.rcls.service.base.cacheService.rcu.RCUStateService;
 import com.julianw03.rcls.providers.os.OperatingSystemProvider;
 import com.julianw03.rcls.providers.paths.PathProvider;
 import com.julianw03.rcls.service.base.process.ProcessService;
@@ -77,15 +74,14 @@ public class ServiceConfig {
 
     @Bean
     public RiotClientService getRiotclientService(
-            @Autowired ProcessService processService,
             @Autowired PublisherService publisherService,
-            @Autowired CacheService cacheService,
+            @Autowired RCUStateService cacheService,
             @Autowired RiotClientServiceConfig riotClientServiceConfig,
             @Autowired RiotClientConnectionStrategy connectionStrategy
     ) {
 
         RiotClientService riotClientService = new RiotClientServiceImpl(
-                processService,
+                publisherService,
                 connectionStrategy,
                 riotClientServiceConfig
         );
@@ -97,7 +93,9 @@ public class ServiceConfig {
     }
 
     @Bean
-    public PublisherService getPublisherService() {
-        return new PublisherServiceImpl();
+    public PublisherService getPublisherService(
+            @Autowired PublisherServiceConfig publisherServiceConfig
+    ) {
+        return new PublisherServiceImpl(publisherServiceConfig);
     }
 }

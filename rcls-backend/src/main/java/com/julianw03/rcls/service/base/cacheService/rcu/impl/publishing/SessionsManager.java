@@ -1,12 +1,11 @@
-package com.julianw03.rcls.service.base.cacheService.impl;
+package com.julianw03.rcls.service.base.cacheService.rcu.impl.publishing;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.julianw03.rcls.generated.api.CoreSdkApi;
-import com.julianw03.rcls.generated.model.ProductSession;
 import com.julianw03.rcls.generated.model.ProductSessionSession;
 import com.julianw03.rcls.model.RCUWebsocketMessage;
-import com.julianw03.rcls.service.base.cacheService.CacheService;
-import com.julianw03.rcls.service.base.cacheService.MapDataManager;
+import com.julianw03.rcls.service.base.cacheService.PublishingMapDataManager;
+import com.julianw03.rcls.service.base.cacheService.rcu.RCUStateService;
 import com.julianw03.rcls.service.base.riotclient.RiotClientService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -19,18 +18,16 @@ import java.util.regex.Pattern;
 
 @Slf4j
 @Component
-public class SessionsManager extends MapDataManager<String, ProductSessionSession> {
+public class SessionsManager extends PublishingMapDataManager<String, ProductSessionSession> {
     private static final Pattern lolProductSessionPattern = Pattern.compile("^/product-session/v1/sessions/([\\w-_]{0,50})$");
 
-    public SessionsManager(RiotClientService riotClientService, CacheService cacheService) {
+    public SessionsManager(RiotClientService riotClientService, RCUStateService cacheService) {
         super(riotClientService, cacheService);
     }
 
     @Override
     protected CompletableFuture<Map<String, ProductSessionSession>> doFetchInitialData() {
-        Optional<CoreSdkApi> optionalCoreSdkApi = riotClientService.getApiClient().map(
-                client -> client.buildClient(CoreSdkApi.class)
-        );
+        Optional<CoreSdkApi> optionalCoreSdkApi = riotClientService.getApi(CoreSdkApi.class);
 
         if (optionalCoreSdkApi.isEmpty()) {
             return CompletableFuture.failedFuture(
@@ -75,12 +72,12 @@ public class SessionsManager extends MapDataManager<String, ProductSessionSessio
                     return;
                 }
                 ProductSessionSession session = updatedSession.get();
-                log.warn("Add Session {}: {}", sessionId, session);
-                map.put(sessionId, session);
+                log.debug("Add Session {}: {}", sessionId, session);
+                put(sessionId, session);
             }
             case DELETE -> {
-                log.warn("Remove Session {}", sessionId);
-                map.remove(sessionId);
+                log.debug("Remove Session {}", sessionId);
+                remove(sessionId);
             }
         }
     }
