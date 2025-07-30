@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@hcaptcha/loader": "^2.0.0",
+    "@hcaptcha/react-hcaptcha": "^1.12.0",
     "@reduxjs/toolkit": "^2.7.0",
     "@types/axios": "^0.9.36",
     "@types/node": "^22.14.1",
