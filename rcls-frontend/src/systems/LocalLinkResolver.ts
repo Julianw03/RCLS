@@ -29,7 +29,7 @@ const getBackendUrl = (protocol: string) => {
 
 const createBackendUrl = (protocol: string, backendPort: string | undefined) => {
     if (isNil(backendPort)) {
-        return ".";
+        return `${protocol}://${window.location.hostname}`
     }
     const backendUrl = `${protocol}://127.0.0.1`;
     if (DEFAULT_SSL_PORT === backendPort) {

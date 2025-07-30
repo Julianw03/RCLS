@@ -1,4 +1,7 @@
-import React from "react";
+import {useEffect, useRef} from "react";
+import * as LocalLinkResolver from "@/systems/LocalLinkResolver.ts";
+import {LocalLink} from "@/types.ts";
+import HCaptcha from "@hcaptcha/react-hcaptcha";
 
 type Props = {
     siteKey: string;
@@ -6,72 +9,53 @@ type Props = {
     onSuccess?: (token: string) => void;
 };
 
-class CustomHCaptchaWrapper extends React.Component<Props> {
-    captchaRef = React.createRef<HTMLDivElement>();
-    widgetId?: string;
-    prevSiteKey?: string;
+const CustomHCaptchaWrapper = (
+    {
+        siteKey,
+        rqData,
+        onSuccess
+    }: Props
+) => {
+    const captchaRef = useRef<HCaptcha>(null);
 
-    componentDidMount() {
-        this.renderCaptchaInitial();
-        this.prevSiteKey = this.props.siteKey;
-    }
-
-    triggerCaptcha = async () => {
-        if (!this.widgetId) {
-            return
-        }
-        const promise = window.hcaptcha.execute(this.widgetId, {async: true}) as Promise<{
-            response: string,
-            key: string
-        }>;
-        promise.then(({response, key}) => {
-            console.log("Captcha executed:", response, key);
-            if (this.props.onSuccess) {
-                this.props.onSuccess(response);
-            }
-        })
-    };
-
-    componentDidUpdate(prevProps: Props) {
-        if (prevProps.rqData !== this.props.rqData) {
-            console.log("rqData changed:", prevProps.rqData, "→", this.props.rqData);
-            this.handleRqDataChange(this.props.rqData || "");
+    const triggerCaptcha = () => {
+        if (captchaRef.current) {
+            captchaRef.current.execute({"async": false})
         }
     }
 
-    handleRqDataChange(rqData: string) {
-        console.log("Setting rqData:", rqData);
-        window.hcaptcha.setData({rqdata: rqData});
-    }
+    useEffect(() => {
+        setRQData();
+    }, [rqData]);
 
-    componentWillUnmount() {
-        if (this.widgetId !== undefined) {
-            window.hcaptcha.reset(this.widgetId);
+    const setRQData = () => {
+        if (captchaRef.current) {
+            console.log("Set rqdata");
+            captchaRef.current.setData({"rqdata": rqData})
         }
     }
 
-    renderCaptchaInitial() {
-        if (this.captchaRef.current && !this.widgetId) {
-            try {
-                this.widgetId = window.hcaptcha.render(this.captchaRef.current, {
-                    sitekey: "019f1553-3845-481c-a6f5-5a60ccf6d830",
-                    size: "invisible"
-                });
-            } catch (e) {
-                console.log("Failed to render hCaptcha:", e);
-            }
-            this.handleRqDataChange(this.props.rqData ?? "");
-        }
-    }
 
-    render() {
-        return (
-            <>
-                <div ref={this.captchaRef}/>
-                <button role={"button"} onClick={() => (this.triggerCaptcha())}></button>
-            </>
-        )
-    }
+    return (
+        <>
+            <HCaptcha
+                sitekey={siteKey}
+                onVerify={(token) => {
+                    console.log("OnVerify", token);
+                    onSuccess?.(token);
+                }}
+                scriptSource={LocalLinkResolver.resolve("/hcaptcha-proxy/RCLS-INTERNAL/1/api.js" as LocalLink)}
+                ref={captchaRef}
+                size={"invisible"}
+                onExpire={() => console.log("Expired")}
+                onLoad={() => {
+                    setRQData();
+                }}
+                onChalExpired={() => console.log("Challenge Expired")}
+            />
+            <button role={"button"} onClick={() => triggerCaptcha()}></button>
+        </>
+    )
 }
 
 export default CustomHCaptchaWrapper;

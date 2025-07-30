@@ -16,7 +16,7 @@ system.load();
 
 interface RQData {
     key: string;
-    data: string;
+    data: string | null;
 }
 
 function App() {
@@ -34,7 +34,7 @@ function App() {
             body: JSON.stringify({
                 username: exampleUsername,
                 password: examplePassword,
-                remember: false,
+                remember: true,
                 language: "en_US",
                 captcha: "hcaptcha " + token
             }),
@@ -44,6 +44,7 @@ function App() {
         });
         usernameInputRef.current!.value = "";
         passwordInputRef.current!.value = "";
+        setCaptchaData({...captchaData, data: null});
     }
 
     async function showClientUx() {
