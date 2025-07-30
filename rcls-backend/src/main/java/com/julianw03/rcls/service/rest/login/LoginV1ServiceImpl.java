@@ -1,4 +1,4 @@
-package com.julianw03.rcls.service.rest;
+package com.julianw03.rcls.service.rest.login;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.julianw03.rcls.Util.ServletUtils;
@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -68,12 +69,12 @@ public class LoginV1RestService {
         return rsoAuthSessionLoginToken;
     }
 
-    public RsoAuthenticatorV1ResponseType getLoginStatus() {
+    public LoginStatusDTO getLoginStatus() throws ExecutionException {
         ObjectDataManager<RsoAuthenticatorV1AuthenticationResponse> dataManager = cacheService.getObjectDataManger(RsoAuthenticationManager.class);
         final RsoAuthenticatorV1AuthenticationResponse currentState = dataManager.getState();
 
         if (currentState != null) {
-            return currentState.getType();
+            return loginStatusFromInternal(currentState.getType());
         }
 
         CompletableFuture<Void> setupFuture = dataManager.setupInternalState().orTimeout(500, TimeUnit.MICROSECONDS);
@@ -87,10 +88,10 @@ public class LoginV1RestService {
         } catch (Exception e) {
             throw new APIException("Failed to setup RSO Authentication Manager state", e);
         }
-        return internalAuthState.getType();
+        return loginStatusFromInternal(internalAuthState.getType());
     }
 
-    public void reset() {
+    public void resetHCaptcha() throws ExecutionException, IllegalStateException {
         CoreSdkApi coreSdkApiClient = riotClientService.getApi(CoreSdkApi.class).orElseThrow(
                 () -> new APIException("Failed to get CoreSdkApi client")
         );
@@ -118,7 +119,7 @@ public class LoginV1RestService {
         }
     }
 
-    public RsoAuthenticatorV1HCaptcha getCaptcha() {
+    public RsoAuthenticatorV1HCaptcha getHCaptcha() throws ExecutionException, IllegalStateException {
         CoreSdkApi coreSdkApiClient = riotClientService.getApi(CoreSdkApi.class).orElseThrow(
                 () -> new APIException("Failed to get CoreSdkApi client")
         );
@@ -140,16 +141,16 @@ public class LoginV1RestService {
         return authenticationResponse.getCaptcha().getHcaptcha();
     }
 
-    public InternalRsoLoginResponse performLogin(RsoAuthenticatorV1RiotIdentityAuthCompleteInput input) {
+    public LoginStatusDTO login(LoginInputDTO input) throws ExecutionException, IllegalStateException, IllegalArgumentException {
         if (input == null) {
-            throw new APIException("Input cannot be null", HttpStatus.BAD_REQUEST);
+            throw new IllegalArgumentException("Input is null");
         }
 
         ServletUtils.assertFieldsNotNull(
                 input,
-                RsoAuthenticatorV1RiotIdentityAuthCompleteInput::getUsername,
-                RsoAuthenticatorV1RiotIdentityAuthCompleteInput::getPassword,
-                RsoAuthenticatorV1RiotIdentityAuthCompleteInput::getCaptcha
+                LoginInputDTO::getUsername,
+                LoginInputDTO::getPassword,
+                LoginInputDTO::getCaptcha
         );
 
         RsoAuthenticatorV1AuthenticationResponse currentState = cacheService.getObjectDataManger(RsoAuthenticationManager.class).getState();
@@ -164,16 +165,19 @@ public class LoginV1RestService {
 
         try {
             authenticationResponse = coreSdkApiClient.rsoAuthenticatorV1AuthenticationRiotIdentityCompletePost(
-                    input
+                    new RsoAuthenticatorV1RiotIdentityAuthCompleteInput()
+                            .username(input.getUsername())
+                            .password(input.getPassword())
+                            .captcha(input.getCaptcha())
             );
         } catch (Exception e) {
-            throw new APIException("Failed to get RSO Authenticator V1 Authentication response", e);
+            throw new ExecutionException("Failed to get RSO Authenticator V1 Authentication response", e);
         }
 
         final String error = authenticationResponse.getError();
         if (error != null && !error.isBlank()) {
             if ("auth_failure".equalsIgnoreCase(error)) {
-                throw new APIException("Invalid Credentials", HttpStatus.UNAUTHORIZED);
+                throw new ExecutionException(new IllegalArgumentException(error));
             }
             throw new APIException("Request returned an non empty error " + error, HttpStatus.BAD_GATEWAY);
         }
@@ -183,20 +187,20 @@ public class LoginV1RestService {
         if (successResponse == null || successResponse.getLoginToken() == null || successResponse.getLoginToken().isBlank()) {
             final RsoAuthenticatorV1MultifactorResponseDetails multifactorDetails = authenticationResponse.getMultifactor();
             if (multifactorDetails == null || multifactorDetails.getAuthMethod() == null) {
-                throw new APIException("Invalid Multifactor response", HttpStatus.BAD_GATEWAY);
+                throw new ExecutionException(new IllegalArgumentException("Auth method is null"));
             }
-            return new InternalRsoLoginResponse.Multifactor(
-                    new RsoAuthMultifactorDetails()
+            throw new MultifactorRequiredException(
+                    MultifactorInfoDTO.builder()
                             .email(multifactorDetails.getEmail())
                             .methods(multifactorDetails.getMethods())
+                            .build()
             );
         }
 
         return resumeNormalAuthflow(authenticationResponse);
-
     }
 
-    private InternalRsoLoginResponse.Success resumeNormalAuthflow(RsoAuthenticatorV1AuthenticationResponse authResponse) {
+    private LoginStatusDTO resumeNormalAuthflow(RsoAuthenticatorV1AuthenticationResponse authResponse) throws ExecutionException {
         String loginToken = authResponse.getSuccess().getLoginToken();
 
         CoreSdkApi coreSdkApiClient = riotClientService.getApi(CoreSdkApi.class).orElseThrow(
@@ -210,21 +214,15 @@ public class LoginV1RestService {
                     createSessionLoginObject(loginToken)
             );
         } catch (Exception e) {
-            throw new APIException("Failed to get RSO Auth Session response", e);
+            throw new ExecutionException("Failed to get RSO Auth Session response", e);
         }
 
 
         ServletUtils.assertEqual(
-                "RSO Login Token",
+                "RSO Auth Session",
                 RsoAuthSessionResponseType.AUTHENTICATED,
                 authSessionResponse.getType()
         );
-
-        try {
-
-        } catch (Exception e) {
-            throw new APIException("Failed to get RSO Auth Session response", e);
-        }
 
         final RsoAuthAuthorizationResponse grantsResponse;
         try {
@@ -232,7 +230,7 @@ public class LoginV1RestService {
                     AUTH_GRANT_REQUEST
             );
         } catch (Exception e) {
-            throw new APIException("Failed to get RSO Auth V2 Authorization response", e);
+            throw new ExecutionException("Failed to get RSO Auth V2 Authorization response", e);
         }
 
         ServletUtils.assertEqual(
@@ -241,13 +239,14 @@ public class LoginV1RestService {
                 grantsResponse.getType()
         );
 
-        return new InternalRsoLoginResponse.Success();
+        return LoginStatusDTO.LOGGED_IN;
     }
 
-    public InternalRsoLoginResponse.Success resolveMultifactor(RsoAuthenticatorV1MultifactorInput multifactorInput) {
-        if (multifactorInput == null || multifactorInput.getOtp() == null) {
-            throw new APIException("Invalid Input", HttpStatus.BAD_REQUEST, "Your object is null or missing required attributes");
-        }
+    public LoginStatusDTO loginWithMultifactor(MultifactorInputDTO multifactorInput) throws ExecutionException {
+        ServletUtils.assertFieldsNotNull(
+                multifactorInput,
+                MultifactorInputDTO::getOtp
+        );
 
         CoreSdkApi coreSdkApiClient = riotClientService.getApi(CoreSdkApi.class).orElseThrow(
                 () -> new APIException("Failed to get CoreSdkApi client")
@@ -256,16 +255,19 @@ public class LoginV1RestService {
         final RsoAuthenticatorV1AuthenticationResponse authenticationResponse;
         try {
             authenticationResponse = coreSdkApiClient.rsoAuthenticatorV1AuthenticationMultifactorPost(
-                    new RsoAuthenticatorV1AuthenticateMultifactorInput().multifactor(multifactorInput)
+                    new RsoAuthenticatorV1AuthenticateMultifactorInput().multifactor(
+                            new RsoAuthenticatorV1MultifactorInput()
+                                    .otp(multifactorInput.getOtp())
+                    )
             );
         } catch (Exception e) {
-            throw new APIException("Failed to get RSO Authenticator V1 Authentication response", e);
+            throw new ExecutionException("Failed to get RSO Authenticator V1 Authentication response", e);
         }
 
         return resumeNormalAuthflow(authenticationResponse);
     }
 
-    public void logout() {
+    public void logout() throws ExecutionException {
         CoreSdkApi coreSdkApiClient = riotClientService.getApi(CoreSdkApi.class).orElseThrow(
                 () -> new APIException("Failed to get CoreSdkApi client")
         );
@@ -276,7 +278,7 @@ public class LoginV1RestService {
                     AUTH_GRANT_REQUEST
             );
         } catch (Exception e) {
-            throw new APIException("Failed to get RSO Auth V2 Authorization response", e);
+            throw new ExecutionException("Failed to get RSO Auth V2 Authorization response", e);
         }
 
         ServletUtils.assertEqual("VerifyLoggedIn", RsoAuthAuthorizationResponseType.AUTHORIZED, grantsResponse.getType());
@@ -284,13 +286,37 @@ public class LoginV1RestService {
         try {
             coreSdkApiClient.rsoAuthV1SessionDelete();
         } catch (Exception e) {
-            throw new APIException("Failed to delete RSO Auth V1 Session", e);
+            throw new ExecutionException("Failed to delete RSO Auth V1 Session", e);
         }
 
         try {
             coreSdkApiClient.rsoAuthenticatorV1AuthenticationDelete();
         } catch (Exception e) {
-            throw new APIException("Failed to delete RSO Authenticator V1 Authentication", e);
+            throw new ExecutionException("Failed to delete RSO Authenticator V1 Authentication", e);
+        }
+    }
+
+    private static LoginStatusDTO loginStatusFromInternal(RsoAuthenticatorV1ResponseType type) {
+        if (type == null) {
+            return LoginStatusDTO.UNKNOWN;
+        }
+
+        switch (type) {
+            case AUTH -> {
+                return LoginStatusDTO.LOGGED_OUT;
+            }
+            case ERROR -> {
+                return LoginStatusDTO.ERROR;
+            }
+            case MULTIFACTOR -> {
+                return LoginStatusDTO.MULTIFACTOR_REQUIRED;
+            }
+            case SUCCESS -> {
+                return LoginStatusDTO.LOGGED_IN;
+            }
+            default -> {
+                return LoginStatusDTO.UNKNOWN;
+            }
         }
     }
 }
