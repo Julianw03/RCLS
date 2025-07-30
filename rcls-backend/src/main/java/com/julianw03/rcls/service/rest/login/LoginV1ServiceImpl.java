@@ -11,15 +11,15 @@ import com.julianw03.rcls.service.base.cacheService.rcu.impl.RsoAuthenticationMa
 import com.julianw03.rcls.service.base.riotclient.RiotClientService;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 @Service
-public class LoginV1RestService {
+public class LoginV1ServiceImpl implements LoginV1Service {
     private final RiotClientService                            riotClientService;
     private final RCUStateService                              cacheService;
     private final ObjectMapper                                 mapper = new ObjectMapper();
@@ -44,7 +44,7 @@ public class LoginV1RestService {
     }
 
     @Autowired
-    public LoginV1RestService(
+    public LoginV1ServiceImpl(
             RiotClientService riotClientService,
             RCUStateService cacheService
     ) {
@@ -83,10 +83,10 @@ public class LoginV1RestService {
             setupFuture.join();
             internalAuthState = dataManager.getState();
             if (internalAuthState == null) {
-                throw new APIException("Internal Auth State is null after setup");
+                throw new IllegalStateException("Internal authentication state is null");
             }
         } catch (Exception e) {
-            throw new APIException("Failed to setup RSO Authentication Manager state", e);
+            throw new ExecutionException("Failed to setup RSO Authentication Manager state", e);
         }
         return loginStatusFromInternal(internalAuthState.getType());
     }
@@ -119,7 +119,7 @@ public class LoginV1RestService {
         }
     }
 
-    public RsoAuthenticatorV1HCaptcha getHCaptcha() throws ExecutionException, IllegalStateException {
+    public HCaptchaDTO getHCaptcha() throws ExecutionException, IllegalStateException {
         CoreSdkApi coreSdkApiClient = riotClientService.getApi(CoreSdkApi.class).orElseThrow(
                 () -> new APIException("Failed to get CoreSdkApi client")
         );
@@ -138,10 +138,18 @@ public class LoginV1RestService {
             throw new APIException("Failed to get RSO Authenticator V1 Authentication response", e);
         }
 
-        return authenticationResponse.getCaptcha().getHcaptcha();
+        RsoAuthenticatorV1HCaptcha hcaptcha = Optional.ofNullable(authenticationResponse)
+                .map(RsoAuthenticatorV1AuthenticationResponse::getCaptcha)
+                .map(RsoAuthenticatorV1Captcha::getHcaptcha)
+                .orElseThrow(() -> new ExecutionException(new IllegalStateException()));
+
+        return HCaptchaDTO.builder()
+                .data(hcaptcha.getData())
+                .key(hcaptcha.getKey())
+                .build();
     }
 
-    public LoginStatusDTO login(LoginInputDTO input) throws ExecutionException, IllegalStateException, IllegalArgumentException {
+    public LoginStatusDTO login(LoginInputDTO input) throws ExecutionException, IllegalStateException, IllegalArgumentException, MultifactorRequiredException {
         if (input == null) {
             throw new IllegalArgumentException("Input is null");
         }
@@ -150,7 +158,8 @@ public class LoginV1RestService {
                 input,
                 LoginInputDTO::getUsername,
                 LoginInputDTO::getPassword,
-                LoginInputDTO::getCaptcha
+                LoginInputDTO::getCaptcha,
+                LoginInputDTO::getRemember
         );
 
         RsoAuthenticatorV1AuthenticationResponse currentState = cacheService.getObjectDataManger(RsoAuthenticationManager.class).getState();
@@ -169,6 +178,7 @@ public class LoginV1RestService {
                             .username(input.getUsername())
                             .password(input.getPassword())
                             .captcha(input.getCaptcha())
+                            .remember(input.getRemember())
             );
         } catch (Exception e) {
             throw new ExecutionException("Failed to get RSO Authenticator V1 Authentication response", e);
@@ -179,7 +189,7 @@ public class LoginV1RestService {
             if ("auth_failure".equalsIgnoreCase(error)) {
                 throw new ExecutionException(new IllegalArgumentException(error));
             }
-            throw new APIException("Request returned an non empty error " + error, HttpStatus.BAD_GATEWAY);
+            throw new ExecutionException("Request returned a non-empty error: " + error, new IllegalStateException());
         }
 
         final RsoAuthenticatorV1SuccessResponseDetails successResponse = authenticationResponse.getSuccess();
@@ -193,6 +203,7 @@ public class LoginV1RestService {
                     MultifactorInfoDTO.builder()
                             .email(multifactorDetails.getEmail())
                             .methods(multifactorDetails.getMethods())
+                            .method(multifactorDetails.getMethod())
                             .build()
             );
         }
@@ -245,7 +256,8 @@ public class LoginV1RestService {
     public LoginStatusDTO loginWithMultifactor(MultifactorInputDTO multifactorInput) throws ExecutionException {
         ServletUtils.assertFieldsNotNull(
                 multifactorInput,
-                MultifactorInputDTO::getOtp
+                MultifactorInputDTO::getOtp,
+                MultifactorInputDTO::getRememberDevice
         );
 
         CoreSdkApi coreSdkApiClient = riotClientService.getApi(CoreSdkApi.class).orElseThrow(
@@ -255,10 +267,12 @@ public class LoginV1RestService {
         final RsoAuthenticatorV1AuthenticationResponse authenticationResponse;
         try {
             authenticationResponse = coreSdkApiClient.rsoAuthenticatorV1AuthenticationMultifactorPost(
-                    new RsoAuthenticatorV1AuthenticateMultifactorInput().multifactor(
-                            new RsoAuthenticatorV1MultifactorInput()
-                                    .otp(multifactorInput.getOtp())
-                    )
+                    new RsoAuthenticatorV1AuthenticateMultifactorInput()
+                            .multifactor(
+                                    new RsoAuthenticatorV1MultifactorInput()
+                                            .otp(multifactorInput.getOtp())
+                                            .rememberDevice(multifactorInput.getRememberDevice())
+                            )
             );
         } catch (Exception e) {
             throw new ExecutionException("Failed to get RSO Authenticator V1 Authentication response", e);

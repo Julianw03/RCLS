@@ -1,43 +1,50 @@
 package com.julianw03.rcls.service.rest.connector;
 
-import com.julianw03.rcls.model.APIException;
 import com.julianw03.rcls.model.RiotClientConnectionParameters;
 import com.julianw03.rcls.service.base.riotclient.RiotClientService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.ExecutionException;
 
 @Service
-public class ConnectorV1RestService {
+public class ConnectorV1ServiceImpl implements ConnectorV1Service {
     private final RiotClientService riotClientService;
 
-    public ConnectorV1RestService(
+    public ConnectorV1ServiceImpl(
             @Autowired RiotClientService riotClientService
     ) {
         this.riotClientService = riotClientService;
     }
 
-    public RiotClientConnectionParameters connectToRiotClient() throws APIException {
-        try {
-            riotClientService.connect();
-        } catch (IllegalStateException e) {
-            throw new APIException("Riot Client is already connected", HttpStatus.CONFLICT, e);
-        } catch (ExecutionException e) {
-            throw new APIException("Failed to connect to Riot Client", HttpStatus.INTERNAL_SERVER_ERROR, e);
-        } catch (Exception e) {
-            throw new APIException("An unexpected error occurred", HttpStatus.INTERNAL_SERVER_ERROR, e);
-        }
-        return riotClientService.getConnectionParameters();
+    public RiotClientConnectionParametersDTO connect() throws ExecutionException, IllegalStateException {
+        riotClientService.connect();
+        return this.getConnectionParameters();
     }
 
-    public RiotClientConnectionParameters getConnectionParameters() throws APIException {
+    public RiotClientConnectionParametersDTO getConnectionParameters() throws IllegalStateException {
+        if (!riotClientService.isConnectionEstablished()) throw new IllegalStateException("Connection is not established.");
         RiotClientConnectionParameters params = riotClientService.getConnectionParameters();
         if (params == null) {
-            throw new APIException("Failed to get Process Parameters", HttpStatus.NOT_FOUND, "Maybe the application is not connected ?");
+            throw new IllegalStateException("Connection parameters are not available.");
         }
 
-        return params;
+        return fromInternalType(params);
+    }
+
+    @Override
+    public void disconnect() throws IllegalStateException, ExecutionException {
+        riotClientService.disconnect();
+    }
+
+    private RiotClientConnectionParametersDTO fromInternalType(RiotClientConnectionParameters params) {
+        if (params == null) {
+            throw new IllegalArgumentException("params cannot be null");
+        }
+        return RiotClientConnectionParametersDTO.builder()
+                .port(params.getPort())
+                .authSecret(params.getAuthSecret())
+                .authHeader(params.getAuthHeader())
+                .build();
     }
 }

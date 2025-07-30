@@ -1,9 +1,5 @@
 package com.julianw03.rcls.controller.login;
 
-import com.julianw03.rcls.generated.model.RsoAuthenticatorV1HCaptcha;
-import com.julianw03.rcls.generated.model.RsoAuthenticatorV1MultifactorInput;
-import com.julianw03.rcls.generated.model.RsoAuthenticatorV1ResponseType;
-import com.julianw03.rcls.generated.model.RsoAuthenticatorV1RiotIdentityAuthCompleteInput;
 import com.julianw03.rcls.model.APIException;
 import com.julianw03.rcls.service.rest.login.*;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -40,11 +36,11 @@ import java.util.concurrent.ExecutionException;
                 )
         )
 })
-public class LoginControllerV1 {
+public class LoginController {
     private final LoginV1Service loginV1Service;
 
     @Autowired
-    public LoginControllerV1(
+    public LoginController(
             LoginV1Service loginV1Service
     ) {
         this.loginV1Service = loginV1Service;

@@ -29,12 +29,12 @@ import java.util.concurrent.ExecutionException;
                 )
         )
 })
-public class LaunchControllerV1 {
+public class LaunchController {
 
     private final LaunchV1Service launchV1ServiceImpl;
 
     @Autowired
-    public LaunchControllerV1(
+    public LaunchController(
             LaunchV1Service launchV1ServiceImpl
     ) {
         this.launchV1ServiceImpl = launchV1ServiceImpl;

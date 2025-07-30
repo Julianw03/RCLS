@@ -21,12 +21,12 @@ import java.util.concurrent.ExecutionException;
 @Slf4j
 @RestController
 @RequestMapping("/api/connector/v1")
-public class ConnectorControllerV1 {
+public class ConnectorController {
 
     private final ConnectorV1Service connectorV1Service;
 
     @Autowired
-    public ConnectorControllerV1(
+    public ConnectorController(
             ConnectorV1Service riotClientService
     ) {
         this.connectorV1Service = riotClientService;

@@ -155,7 +155,7 @@ public class RiotClientServiceImpl extends RiotClientService {
         expectAndSetState(ConnectionState.WAITING_FOR_WEBSOCKET_CONNECTION, ConnectionState.CONNECTED);
     }
 
-    private void expectAndSetState(ConnectionState expected, ConnectionState newState) {
+    private void expectAndSetState(ConnectionState expected, ConnectionState newState) throws IllegalStateException {
         if (!this.connectionStateRef.compareAndSet(expected, newState)) {
             log.error("Service statemachine expected different state: {} instead of {}", expected, this.connectionStateRef.get());
             this.connectionStateRef.set(ConnectionState.DISCONNECTED);
@@ -166,6 +166,7 @@ public class RiotClientServiceImpl extends RiotClientService {
 
     @Override
     public void disconnect() throws IllegalStateException, UnsupportedOperationException, ExecutionException {
+        expectAndSetState(ConnectionState.CONNECTED, ConnectionState.DISCONNECTED);
         try {
             connectionStrategy.disconnect();
         } catch (Exception e) {
@@ -369,8 +370,11 @@ public class RiotClientServiceImpl extends RiotClientService {
                             stringBuffer.append(data);
 
                             if (last) {
-                                final String message = stringBuffer.toString();
-                                stringBuffer.setLength(0);
+                                final String message;
+                                synchronized (stringBuffer) {
+                                    message = stringBuffer.toString();
+                                    stringBuffer.setLength(0);
+                                }
 
                                 messageExecutorService.submit(() -> {
                                     Thread.currentThread().setName("Message-Dispatch");

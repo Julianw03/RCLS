@@ -23,14 +23,14 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 @Service
-public class LaunchV1RestService implements LaunchV1Service {
+public class LaunchV1ServiceImpl implements LaunchV1Service {
 
     private final RiotClientService riotClientService;
     private final ProcessService    processService;
     private final RCUStateService   cacheService;
 
     @Autowired
-    public LaunchV1RestService(
+    public LaunchV1ServiceImpl(
             RiotClientService riotClientService,
             ProcessService processService,
             RCUStateService cacheService
