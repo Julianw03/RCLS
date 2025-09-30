@@ -1,11 +1,11 @@
 package com.julianw03.rcls.providers.paths;
 
 import com.julianw03.rcls.config.mappings.PathProviderConfig;
-import com.julianw03.rcls.service.base.process.OperatingSystem;
+import com.julianw03.rcls.service.process.OperatingSystem;
 import lombok.extern.slf4j.Slf4j;
 
+import java.nio.file.Path;
 import java.util.function.Supplier;
-import java.util.regex.Pattern;
 
 
 @Slf4j
@@ -30,6 +30,21 @@ public class PathProvider implements Supplier<PathProviderConfig.PathEntries> {
 
     @Override
     public PathProviderConfig.PathEntries get() {
-        return config.getPathEntries().get(os);
+        return config.getPathEntries()
+                     .get(os);
+    }
+
+    public PathProviderConfig.SharedEntries getSharedEntries() {
+        return config.getSharedEntries();
+    }
+
+    public Path getBaseConfigPath() {
+        return Path.of(
+                           this.get()
+                               .getConfigBasePath())
+                   .resolve(
+                           this.getSharedEntries()
+                               .getApplicationFolderName()
+                   );
     }
 }

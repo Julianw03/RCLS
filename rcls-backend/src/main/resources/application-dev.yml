@@ -3,16 +3,12 @@ server:
 
 logging:
   level:
-    com.julianw03.rcls.service.base.riotclient.RiotClientServiceImpl: DEBUG
-    com.julianw03.rcls.service.base.process.ProcessService: DEBUG
-    com.julianw03.rcls.service.base.publisher.PublisherService: DEBUG
-    com.julianw03.rcls.service.base.riotclient.RiotClientService: DEBUG
+    com.julianw03.rcls: DEBUG
 
 custom:
   configurations:
     riotclient-service:
       connection-strategy:
         strategy: process_takeover
-    publisher-service:
-      disabled-sources:
-        - proxy_service
+    publishing:
+      publishing-format: raw_json

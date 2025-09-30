@@ -11,7 +11,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -22,13 +25,17 @@ import java.util.regex.Pattern;
 
 @Slf4j
 @RestController
-@RequestMapping(value = "/hcaptcha-proxy", consumes = {MimeTypeUtils.APPLICATION_JSON_VALUE, MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE, "application/x-www-form-urlencoded", "text/plain"})
+@RequestMapping(value = "/hcaptcha-proxy", consumes = {
+        MimeTypeUtils.APPLICATION_JSON_VALUE,
+        MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE,
+        "application/x-www-form-urlencoded",
+        "text/plain"
+})
 public class HCaptchaProxyController {
 
-    private static final String                                                                                     SUBDOMAIN_NONE       = "RCLS-INTERNAL";
-    private static final String                                                                                     RIOT_MAGIC_USERAGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) riot-client-ux/100.0.0 Chrome/108.0.5359.215 Electron/22.3.27 Safari/537.36";
-    private static final HashMap<String, BiFunction<RequestObject, ResponseEntity<byte[]>, ResponseEntity<byte[]>>> handlerMap           = new HashMap<>();
-    private static final Pattern                                                                                    pattern              = Pattern.compile("((\\w{1,20})\\.)hcaptcha\\.com"); //For the sake of performance we limit the amount of chars in the subdomain
+    private static final String                                                                                     SUBDOMAIN_NONE = "RCLS-INTERNAL";
+    private static final HashMap<String, BiFunction<RequestObject, ResponseEntity<byte[]>, ResponseEntity<byte[]>>> handlerMap     = new HashMap<>();
+    private static final Pattern                                                                                    pattern        = Pattern.compile("((\\w{1,20})\\.)hcaptcha\\.com"); //For the sake of performance we limit the amount of chars in the subdomain
 
     @Getter
     protected static class RequestObject {
@@ -36,7 +43,7 @@ public class HCaptchaProxyController {
         private final String              originalSubdomain;
         private final String              path;
         private final Map<String, String> query;
-        private final String regexSubstitution;
+        private final String              regexSubstitution;
 
         public RequestObject(
                 String subdomain,
@@ -45,7 +52,9 @@ public class HCaptchaProxyController {
                 String regexSubstitution
         ) {
             this.originalSubdomain = subdomain;
-            this.subdomain = SUBDOMAIN_NONE.equals(subdomain) ? null : subdomain;
+            this.subdomain = SUBDOMAIN_NONE.equals(subdomain)
+                    ? null
+                    : subdomain;
             this.path = path;
             this.query = query;
             this.regexSubstitution = regexSubstitution;
@@ -55,7 +64,8 @@ public class HCaptchaProxyController {
             StringBuilder sb = new StringBuilder();
             sb.append("https://");
             if (subdomain != null) {
-                sb.append(subdomain).append('.');
+                sb.append(subdomain)
+                  .append('.');
             }
             sb.append(baseUrl);
             if (path != null) {
@@ -64,7 +74,10 @@ public class HCaptchaProxyController {
             if (query != null) {
                 sb.append('?');
                 for (Map.Entry<String, String> entry : query.entrySet()) {
-                    sb.append(entry.getKey()).append('=').append(entry.getValue()).append('&');
+                    sb.append(entry.getKey())
+                      .append('=')
+                      .append(entry.getValue())
+                      .append('&');
                 }
                 sb.deleteCharAt(sb.length() - 1);
             }
@@ -74,68 +87,86 @@ public class HCaptchaProxyController {
     }
 
     static {
-        handlerMap.put(SUBDOMAIN_NONE, (originalRequest, originalResponse) -> {
-            if (originalResponse.getBody() != null) {
-                if (originalRequest.getPath().endsWith("api.js")) {
-                    String body = readStream(new ByteArrayInputStream(originalResponse.getBody()));
-                    String newResp = pattern.matcher(body).replaceAll(originalRequest.getRegexSubstitution());
+        handlerMap.put(
+                SUBDOMAIN_NONE,
+                (originalRequest, originalResponse) -> {
+                    if (originalResponse.getBody() != null) {
+                        if (originalRequest.getPath()
+                                           .endsWith("api.js")) {
+                            String body = readStream(new ByteArrayInputStream(originalResponse.getBody()));
+                            String newResp = pattern.matcher(body)
+                                                    .replaceAll(originalRequest.getRegexSubstitution());
 
-                    HttpHeaders headers = new HttpHeaders();
-                    headers.putAll(originalResponse.getHeaders());
-                    headers.remove(HttpHeaders.CONTENT_LENGTH);
+                            HttpHeaders headers = new HttpHeaders();
+                            headers.putAll(originalResponse.getHeaders());
+                            headers.remove(HttpHeaders.CONTENT_LENGTH);
 
-                    return new ResponseEntity<>(
-                            newResp.getBytes(StandardCharsets.UTF_8),
-                            headers,
-                            originalResponse.getStatusCode()
-                    );
+                            return new ResponseEntity<>(
+                                    newResp.getBytes(StandardCharsets.UTF_8),
+                                    headers,
+                                    originalResponse.getStatusCode()
+                            );
+                        }
+                    }
+
+                    return originalResponse;
                 }
-            }
+        );
+        handlerMap.put(
+                "newassets",
+                (originalRequest, originalResponse) -> {
+                    if (originalResponse.getBody() != null) {
+                        HttpHeaders headers = new HttpHeaders(originalResponse.getHeaders());
+                        headers.remove(HttpHeaders.CONTENT_LENGTH);
 
-            return originalResponse;
-        });
-        handlerMap.put("newassets", (originalRequest, originalResponse) -> {
-            if (originalResponse.getBody() != null) {
-                HttpHeaders headers = new HttpHeaders(originalResponse.getHeaders());
-                headers.remove(HttpHeaders.CONTENT_LENGTH);
+                        if (originalRequest.getPath()
+                                           .endsWith("hsw.js")) {
+                            String body = readStream(new ByteArrayInputStream(originalResponse.getBody()));
+                            String newResp = pattern.matcher(body)
+                                                    .replaceAll(originalRequest.getRegexSubstitution());
+                            newResp = newResp.replaceAll(
+                                    "<meta http-equiv=\"Content-Security-Policy\"[^>]+>",
+                                    ""
+                            );
 
-                if (originalRequest.getPath().endsWith("hsw.js")) {
-                    String body = readStream(new ByteArrayInputStream(originalResponse.getBody()));
-                    String newResp = pattern.matcher(body).replaceAll(originalRequest.getRegexSubstitution());
-                    newResp = newResp.replaceAll("<meta http-equiv=\"Content-Security-Policy\"[^>]+>", "");
-
-                    byte[] modifiedBody = newResp.getBytes(StandardCharsets.UTF_8);
+                            byte[] modifiedBody = newResp.getBytes(StandardCharsets.UTF_8);
 
 
-                    return new ResponseEntity<>(
-                            modifiedBody,
-                            headers,
-                            originalResponse.getStatusCode()
-                    );
-                } else if (originalRequest.getPath().endsWith("hcaptcha.html")) {
-                    String body = readStream(new ByteArrayInputStream(originalResponse.getBody()));
-                    String newResp = pattern.matcher(body).replaceAll(originalRequest.getRegexSubstitution());
-                    newResp = newResp.replaceAll("<meta http-equiv=\"Content-Security-Policy\"[^>]+>", "");
+                            return new ResponseEntity<>(
+                                    modifiedBody,
+                                    headers,
+                                    originalResponse.getStatusCode()
+                            );
+                        } else if (originalRequest.getPath()
+                                                  .endsWith("hcaptcha.html")) {
+                            String body = readStream(new ByteArrayInputStream(originalResponse.getBody()));
+                            String newResp = pattern.matcher(body)
+                                                    .replaceAll(originalRequest.getRegexSubstitution());
+                            newResp = newResp.replaceAll(
+                                    "<meta http-equiv=\"Content-Security-Policy\"[^>]+>",
+                                    ""
+                            );
 
-                    byte[] modifiedBody = newResp.getBytes(StandardCharsets.UTF_8);
+                            byte[] modifiedBody = newResp.getBytes(StandardCharsets.UTF_8);
 
-                    return new ResponseEntity<>(
-                            modifiedBody,
-                            headers,
-                            originalResponse.getStatusCode()
-                    );
+                            return new ResponseEntity<>(
+                                    modifiedBody,
+                                    headers,
+                                    originalResponse.getStatusCode()
+                            );
+                        }
+
+
+                        return new ResponseEntity<>(
+                                originalResponse.getBody(),
+                                headers,
+                                originalResponse.getStatusCode()
+                        );
+                    }
+
+                    return originalResponse;
                 }
-
-
-                return new ResponseEntity<>(
-                        originalResponse.getBody(),
-                        headers,
-                        originalResponse.getStatusCode()
-                );
-            }
-
-            return originalResponse;
-        });
+        );
     }
 
     @Value("${custom.configurations.proxy.target.url}")
@@ -143,6 +174,9 @@ public class HCaptchaProxyController {
 
     @Value("${server.port}")
     private String port;
+
+    @Value("${custom.configurations.proxy.overrides.user-agent}")
+    private String riotMagicUserAgent;
 
     private String regexSubstitution;
 
@@ -152,11 +186,18 @@ public class HCaptchaProxyController {
     @PostConstruct
     private void init() {
         this.regexSubstitution = "127.0.0.1:" + port + "/hcaptcha-proxy/$2";
+        log.debug(
+                "Using regex substitution: {}",
+                regexSubstitution
+        );
+        log.debug(
+                "Will use \"{}\" as external User-Agent",
+                riotMagicUserAgent
+        );
     }
 
     public HCaptchaProxyController(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
-        log.info("Proxy controller up and running. Will use \"{}\" as external User-Agent", RIOT_MAGIC_USERAGENT);
     }
 
     @RequestMapping(path = "/{subdomain}/{*path}", method = {
@@ -167,6 +208,7 @@ public class HCaptchaProxyController {
             RequestMethod.PATCH,
             RequestMethod.OPTIONS
     })
+    @ResponseBody
     public ResponseEntity<byte[]> proxyRequest(
             @PathVariable String subdomain,
             @PathVariable String path,
@@ -176,7 +218,8 @@ public class HCaptchaProxyController {
             HttpServletRequest request
     ) throws IOException {
 
-        byte[] body = request.getInputStream().readAllBytes();
+        byte[] body = request.getInputStream()
+                             .readAllBytes();
 
         RequestObject requestObject = new RequestObject(
                 subdomain,
@@ -187,27 +230,53 @@ public class HCaptchaProxyController {
 
         String requestUrl = requestObject.getExternalUrl(targetUrl);
 
-        log.info("Proxying from /{}{} to {}", subdomain, path, requestUrl);
+        log.info(
+                "Proxying from /{}{} to {}",
+                subdomain,
+                path,
+                requestUrl
+        );
 
         URI uri = URI.create(requestUrl);
 
         HttpHeaders headers = new HttpHeaders();
         headers.putAll(originalHeaders);
         headers.remove(HttpHeaders.HOST);
-        headers.put(HttpHeaders.USER_AGENT, Collections.singletonList(RIOT_MAGIC_USERAGENT));
-        headers.put(HttpHeaders.ACCEPT_ENCODING, Collections.emptyList());
+        headers.put(
+                HttpHeaders.USER_AGENT,
+                Collections.singletonList(riotMagicUserAgent)
+        );
+        headers.put(
+                HttpHeaders.ACCEPT_ENCODING,
+                Collections.emptyList()
+        );
 
-        HttpEntity<byte[]> entity = new HttpEntity<>(body, headers);
+        HttpEntity<byte[]> entity = new HttpEntity<>(
+                body,
+                headers
+        );
 
         try {
-            ResponseEntity<byte[]> response = restTemplate.exchange(uri, method, entity, byte[].class);
+            ResponseEntity<byte[]> response = restTemplate.exchange(
+                    uri,
+                    method,
+                    entity,
+                    byte[].class
+            );
 
             ResponseEntity<byte[]> intermediateResponse = handlerMap
-                    .getOrDefault(requestObject.getOriginalSubdomain(), (p, resp) -> resp)
-                    .apply(requestObject, response);
+                    .getOrDefault(
+                            requestObject.getOriginalSubdomain(),
+                            (p, resp) -> resp
+                    )
+                    .apply(
+                            requestObject,
+                            response
+                    );
 
             HttpHeaders returnHeaders = new HttpHeaders();
             returnHeaders.putAll(intermediateResponse.getHeaders());
+            returnHeaders.remove("Access-Control-Allow-Origin");
 
             return new ResponseEntity<>(
                     intermediateResponse.getBody(),
@@ -215,15 +284,23 @@ public class HCaptchaProxyController {
                     intermediateResponse.getStatusCode()
             );
         } catch (HttpClientErrorException e) {
-            log.warn("Error while trying to access {} {}", method, uri);
+            log.warn(
+                    "Error while trying to access {} {}",
+                    method,
+                    uri
+            );
             try {
-                return new ResponseEntity<>(e.getResponseBodyAsByteArray(), e.getResponseHeaders(), e.getStatusCode());
-            } catch (Exception ex) {}
+                return new ResponseEntity<>(
+                        e.getResponseBodyAsByteArray(),
+                        e.getResponseHeaders(),
+                        e.getStatusCode()
+                );
+            } catch (Exception ex) {
+            }
         }
 
         return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
 
 
     private static String readStream(InputStream is) {
@@ -231,7 +308,11 @@ public class HCaptchaProxyController {
             ByteArrayOutputStream result = new ByteArrayOutputStream();
             byte[] buffer = new byte[1024];
             for (int length; (length = is.read(buffer)) != -1; ) {
-                result.write(buffer, 0, length);
+                result.write(
+                        buffer,
+                        0,
+                        length
+                );
             }
 
             return result.toString(StandardCharsets.UTF_8);

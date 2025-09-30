@@ -1,6 +1,6 @@
 package com.julianw03.rcls.config.mappings;
 
-import com.julianw03.rcls.service.base.process.OperatingSystem;
+import com.julianw03.rcls.service.process.OperatingSystem;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;

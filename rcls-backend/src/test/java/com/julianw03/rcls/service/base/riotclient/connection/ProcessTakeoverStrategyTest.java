@@ -2,8 +2,8 @@ package com.julianw03.rcls.service.base.riotclient.connection;
 
 import com.julianw03.rcls.model.RiotClientConnectionParameters;
 import com.julianw03.rcls.model.SupportedGame;
-import com.julianw03.rcls.service.base.process.ProcessService;
-import com.julianw03.rcls.service.base.riotclient.connection.ProcessTakeoverConnectionStrategy;
+import com.julianw03.rcls.service.process.ProcessService;
+import com.julianw03.rcls.service.riotclient.connection.ProcessTakeoverConnectionStrategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

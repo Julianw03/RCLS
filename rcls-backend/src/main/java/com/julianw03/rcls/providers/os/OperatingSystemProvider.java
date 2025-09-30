@@ -1,7 +1,7 @@
 package com.julianw03.rcls.providers.os;
 
 import com.julianw03.rcls.config.mappings.OperatingSystemProviderConfig;
-import com.julianw03.rcls.service.base.process.OperatingSystem;
+import com.julianw03.rcls.service.process.OperatingSystem;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 

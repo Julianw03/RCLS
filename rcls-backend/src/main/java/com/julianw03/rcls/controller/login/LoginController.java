@@ -1,7 +1,8 @@
 package com.julianw03.rcls.controller.login;
 
 import com.julianw03.rcls.model.APIException;
-import com.julianw03.rcls.service.rest.login.*;
+import com.julianw03.rcls.service.modules.login.LoginV1Service;
+import com.julianw03.rcls.service.modules.login.model.*;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;

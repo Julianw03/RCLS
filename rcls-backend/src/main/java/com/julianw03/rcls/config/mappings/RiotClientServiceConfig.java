@@ -1,6 +1,6 @@
 package com.julianw03.rcls.config.mappings;
 
-import com.julianw03.rcls.service.base.riotclient.connection.ConnectionStrategy;
+import com.julianw03.rcls.service.riotclient.connection.ConnectionStrategy;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;

@@ -3,7 +3,7 @@ package com.julianw03.rcls.service.base.riotclient.connection;
 import com.julianw03.rcls.config.mappings.PathProviderConfig;
 import com.julianw03.rcls.model.RiotClientConnectionParameters;
 import com.julianw03.rcls.providers.paths.PathProvider;
-import com.julianw03.rcls.service.base.riotclient.connection.LockfileConnectionStrategy;
+import com.julianw03.rcls.service.riotclient.connection.LockfileConnectionStrategy;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;

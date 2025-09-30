@@ -1,19 +1,19 @@
 package com.julianw03.rcls.config;
 
-import com.julianw03.rcls.config.mappings.*;
-import com.julianw03.rcls.service.base.cacheService.rcu.RCUStateService;
+import com.julianw03.rcls.config.mappings.OperatingSystemProviderConfig;
+import com.julianw03.rcls.config.mappings.PathProviderConfig;
+import com.julianw03.rcls.config.mappings.ProcessServiceConfig;
+import com.julianw03.rcls.config.mappings.RiotClientServiceConfig;
+import com.julianw03.rcls.eventBus.model.MultiChannelBus;
 import com.julianw03.rcls.providers.os.OperatingSystemProvider;
 import com.julianw03.rcls.providers.paths.PathProvider;
-import com.julianw03.rcls.service.base.process.ProcessService;
-import com.julianw03.rcls.service.base.publisher.PublisherService;
-import com.julianw03.rcls.service.base.publisher.PublisherServiceImpl;
-import com.julianw03.rcls.service.base.publisher.formats.ProxyFormat;
-import com.julianw03.rcls.service.base.riotclient.RiotClientService;
-import com.julianw03.rcls.service.base.riotclient.RiotClientServiceImpl;
-import com.julianw03.rcls.service.base.riotclient.connection.ConnectionStrategy;
-import com.julianw03.rcls.service.base.riotclient.connection.LockfileConnectionStrategy;
-import com.julianw03.rcls.service.base.riotclient.connection.ProcessTakeoverConnectionStrategy;
-import com.julianw03.rcls.service.base.riotclient.connection.RiotClientConnectionStrategy;
+import com.julianw03.rcls.service.process.ProcessService;
+import com.julianw03.rcls.service.riotclient.RiotClientService;
+import com.julianw03.rcls.service.riotclient.RiotClientServiceImpl;
+import com.julianw03.rcls.service.riotclient.connection.ConnectionStrategy;
+import com.julianw03.rcls.service.riotclient.connection.LockfileConnectionStrategy;
+import com.julianw03.rcls.service.riotclient.connection.ProcessTakeoverConnectionStrategy;
+import com.julianw03.rcls.service.riotclient.connection.RiotClientConnectionStrategy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -46,7 +46,8 @@ public class ServiceConfig {
             @Autowired PathProvider pathProvider,
             @Autowired RiotClientServiceConfig riotClientServiceConfig
     ) {
-        ConnectionStrategy strategy = riotClientServiceConfig.getConnectionStrategy().getStrategy();
+        ConnectionStrategy strategy = riotClientServiceConfig.getConnectionStrategy()
+                                                             .getStrategy();
         final RiotClientConnectionStrategy connectionStrategy;
         switch (strategy) {
             case LOCKFILE -> connectionStrategy = new LockfileConnectionStrategy(pathProvider);
@@ -74,28 +75,17 @@ public class ServiceConfig {
 
     @Bean
     public RiotClientService getRiotclientService(
-            @Autowired PublisherService publisherService,
-            @Autowired RCUStateService cacheService,
+            @Autowired MultiChannelBus eventBus,
             @Autowired RiotClientServiceConfig riotClientServiceConfig,
             @Autowired RiotClientConnectionStrategy connectionStrategy
     ) {
 
         RiotClientService riotClientService = new RiotClientServiceImpl(
-                publisherService,
                 connectionStrategy,
+                eventBus,
                 riotClientServiceConfig
         );
-        riotClientService.addMessageListener(message -> {
-            publisherService.dispatchChange(PublisherService.Source.PROXY_SERVICE, new ProxyFormat(message));
-        });
-        riotClientService.addMessageListener(cacheService);
         return riotClientService;
     }
 
-    @Bean
-    public PublisherService getPublisherService(
-            @Autowired PublisherServiceConfig publisherServiceConfig
-    ) {
-        return new PublisherServiceImpl(publisherServiceConfig);
-    }
 }

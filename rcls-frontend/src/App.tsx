@@ -59,9 +59,9 @@ function App() {
             <div className={"mainDivider"}>
                 <div className={"loginMediaSection"}>
                     <video className={"media"} autoPlay={true} loop={true} playsInline={true} controls={false}
-                           disablePictureInPicture={true}>
+                           disablePictureInPicture={true} muted={true}>
                         <source
-                            src={"https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/ahri/skins/skin86/animatedsplash/ahri_skin86_uncentered.skins_ahri_hol.webm"}/>
+                            src={LocalLinkResolver.resolve("/api/rcls/media/v1/background" as LocalLink)}/>
                     </video>
                     <audio autoPlay={true} controls={false} loop={true}>
                         <source

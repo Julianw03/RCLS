@@ -2,7 +2,7 @@ package com.julianw03.rcls.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.julianw03.rcls.service.base.riotclient.RiotClientService;
+import com.julianw03.rcls.service.riotclient.RiotClientService;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;

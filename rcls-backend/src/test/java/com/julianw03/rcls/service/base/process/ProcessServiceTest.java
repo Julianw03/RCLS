@@ -4,6 +4,7 @@ import com.julianw03.rcls.config.mappings.PathProviderConfig;
 import com.julianw03.rcls.config.mappings.ProcessServiceConfig;
 import com.julianw03.rcls.model.SupportedGame;
 import com.julianw03.rcls.providers.paths.PathProvider;
+import com.julianw03.rcls.service.process.ProcessService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;

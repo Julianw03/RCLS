@@ -15,12 +15,12 @@ public abstract class BaseService {
      * The method may be blocking.
      * */
     @PostConstruct
-    public void startup() {};
+    protected void startup() {};
     /**
      * Should be called upon destruction. Used to clean up components in the service.
      * The related service should be assumed to be unusable after this call.
      * The method may be blocking.
      * */
     @PreDestroy
-    public void shutdown() {};
+    protected void shutdown() {};
 }

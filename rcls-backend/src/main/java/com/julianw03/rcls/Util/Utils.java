@@ -102,4 +102,9 @@ public class Utils {
             log.error("Error in secure wrapper", e);
         }
     }
+
+    @SuppressWarnings("unchecked")
+    public static <T,R> R castUnsafe(T obj) {
+        return (R) obj;
+    }
 }

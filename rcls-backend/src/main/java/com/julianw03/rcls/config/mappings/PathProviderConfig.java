@@ -1,7 +1,8 @@
 package com.julianw03.rcls.config.mappings;
 
+import com.julianw03.rcls.model.PluginModuleType;
 import com.julianw03.rcls.model.SupportedGame;
-import com.julianw03.rcls.service.base.process.OperatingSystem;
+import com.julianw03.rcls.service.process.OperatingSystem;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -15,6 +16,14 @@ import java.util.Map;
 @ConfigurationProperties(prefix = "custom.configurations.path-provider", ignoreInvalidFields = true)
 public class PathProviderConfig {
     private Map<OperatingSystem, PathEntries> pathEntries;
+    private SharedEntries                     sharedEntries;
+
+
+    @Data
+    public static class SharedEntries {
+        private Map<PluginModuleType, String> pluginFolderNames;
+        private String                        applicationFolderName;
+    }
 
     @Data
     public static class PathEntries {
@@ -25,14 +34,10 @@ public class PathProviderConfig {
             private String                     riotClientServices;
         }
 
-        @Data
-        public static class RCLSPaths {
-            private String rclsDataPath;
-        }
 
         private Executables executables;
-        private RCLSPaths   rclsPaths;
         private String      programFilesPath;
+        private String      configBasePath;
         private String      riotGamesFolderName;
         private String      riotClientInstallsFile;
         private String      riotClientLockFileLocation;
