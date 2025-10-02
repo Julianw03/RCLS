@@ -18,7 +18,7 @@
     "@types/axios": "^0.9.36",
     "@types/node": "^22.14.1",
     "@ygoe/msgpack": "^1.0.3",
-    "cross-env": "^7.0.3",
+    "cross-env": "^10.1.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-redux": "^9.2.0",

@@ -16,12 +16,12 @@ const fetchBackgroundInfo = async () => {
 }
 
 const DynamicBackground = () => {
-    const { data, error, isLoading } = useQuery<BackgroundType>({
+    const {data, error, isLoading} = useQuery<BackgroundType>({
         queryKey: ["backgroundInfo"],
         queryFn: fetchBackgroundInfo,
     });
 
-    if (isLoading || error) return <div></div>
+    if (isLoading || error || data === undefined) return <div></div>
 
     console.log("Background type: ", data);
 
@@ -34,7 +34,8 @@ const DynamicBackground = () => {
             )
         case BackgroundType.IMAGE:
             return (
-                <img className={"media"} src={LocalLinkResolver.resolve("/api/rcls/media/v1/background" as LocalLink)} alt={"Background"}/>
+                <img className={"media"} src={LocalLinkResolver.resolve("/api/rcls/media/v1/background" as LocalLink)}
+                     alt={"Background"}/>
             )
         default:
             console.warn("Unknown background type: ", data);

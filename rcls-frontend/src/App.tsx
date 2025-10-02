@@ -6,11 +6,12 @@ import DynamicBackground from "@/components/DynamicBackground.tsx";
 import {useDispatch, useSelector} from "react-redux";
 import {AppState} from "@/store.ts";
 import LoginFlowHandler from "@/components/login/LoginFlowHandler.tsx";
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
 import {ACTION_SET_RCU_CONNECTED} from "@/store/RCUConnectionStateReducer.ts";
 import {LoginState} from "@/store/LoginStateReducer.ts";
 import SimpleSessionsLauncher from "@/components/sessionsLauncher/SimpleSessionsLauncher.tsx";
 import {ToastContainer} from "react-toastify";
+import BackgroundUploadDialog from "@/components/BackgroundUploadDialog.tsx";
 
 
 const system = new RessourceLoadingSystem(
@@ -28,6 +29,7 @@ function App() {
 
     const rcuConnectionState = useSelector((state: AppState) => state.rcuConnectionState);
     const loginState = useSelector((state: AppState) => state.loginState);
+    const [dialogOpen, setDialogOpen] = useState<boolean>(false);
 
     useEffect(() => {
         //Only check once on mount
@@ -54,6 +56,11 @@ function App() {
 
     return (
         <div className={"rootContainer"}>
+            {
+                dialogOpen ? (
+                    <BackgroundUploadDialog onClose={() => setDialogOpen(false)}/>
+                ) : null
+            }
             <div className={"mainDivider"}>
                 <div className={"loginMediaSection"}>
                     <DynamicBackground/>
@@ -84,6 +91,11 @@ function App() {
                 </div>
             </div>
             <ToastContainer position={"bottom-left"}/>
+            <div className={"buttonContainer"}>
+                <button type={"button"} onClick={() => setDialogOpen(true)}>
+                    Change Background
+                </button>
+            </div>
         </div>
     )
 }
