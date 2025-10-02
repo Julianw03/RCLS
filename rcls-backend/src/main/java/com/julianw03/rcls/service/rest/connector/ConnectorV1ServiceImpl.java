@@ -1,7 +1,7 @@
 package com.julianw03.rcls.service.rest.connector;
 
 import com.julianw03.rcls.model.RiotClientConnectionParameters;
-import com.julianw03.rcls.service.base.riotclient.RiotClientService;
+import com.julianw03.rcls.service.riotclient.RiotClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

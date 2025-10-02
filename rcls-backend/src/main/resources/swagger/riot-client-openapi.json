@@ -2,9 +2,21 @@
   "openapi": "3.0.0",
   "info": {
     "title": "Riot Client API",
-    "version": "110.0.0.3217",
-    "description": "Created with SDK - Version 25.5.0.5663"
+    "version": "116.0.1.3585",
+    "description": "Created with SDK - Version 25.8.0.6214"
   },
+  "servers": [
+    {
+      "url": "https://127.0.0.1:{port}",
+      "description": "Riot Client API",
+      "variables": {
+        "port": {
+          "default": "0",
+          "description": "Local port of the Riot Client"
+        }
+      }
+    }
+  ],
   "paths": {
     "/agent/v1/requests/third-party-dependency/{requestId}": {
       "delete": {
@@ -2598,6 +2610,96 @@
         }
       }
     },
+    "/discord-account/v1/authorization/{recipient}": {
+      "delete": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Deletes the current Discord authorization session ",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "recipient",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Gets authorization status from Discord. ",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "recipient",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiscordAccountDiscordAuthorizationResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Starts a new authorization request with Discord ",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "recipient",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DiscordAccountDiscordAuthorizationParameters"
+              }
+            }
+          }
+        }
+      }
+    },
     "/eula/v1/product-context": {
       "delete": {
         "tags": [
@@ -3372,6 +3474,69 @@
         }
       }
     },
+    "/keypair-account/v1/authorization": {
+      "delete": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Delete authorization status for KeyPair Account ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Retrieve authorization from the KeyPair Account ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeypairAccountKeyPairAuthorizationResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Create authorization with KeyPair Account from the stored key pair ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KeypairAccountKeyPairAuthorizationParameters"
+              }
+            }
+          }
+        }
+      }
+    },
     "/mailbox/v1/debug/caller-id/mock-id": {
       "delete": {
         "tags": [
@@ -3864,7 +4029,7 @@
         "tags": [
           "core-sdk"
         ],
-        "description": "Delete the install resource \n [Help] \nDelete an install resource. All outstanding requests will be cancelled but the files on disk will be left intact.\n",
+        "description": "Delete the install resource \n [Help] \nDelete an install resource. All outstanding requests will be cancelled but the files on disk will be left intact.\n\n\nThis endpoint is deprecated and will be removed December 2025. Please use the rpatch C API instead.",
         "parameters": [
           {
             "in": "path",
@@ -3882,13 +4047,14 @@
           "2XX": {
             "description": "Returns nothing"
           }
-        }
+        },
+        "deprecated": true
       },
       "get": {
         "tags": [
           "core-sdk"
         ],
-        "description": "Get detailed information about an install, including current requests and status. ",
+        "description": "Get detailed information about an install, including current requests and status. \n [Help] This endpoint is deprecated and will be removed December 2025. Please use the rpatch C API instead.",
         "parameters": [
           {
             "in": "path",
@@ -3913,13 +4079,14 @@
               }
             }
           }
-        }
+        },
+        "deprecated": true
       },
       "put": {
         "tags": [
           "core-sdk"
         ],
-        "description": "Register a new install \n [Help] \n**Data**\n* `excluded_paths`: List of paths (relative to the install root) that are excluded from the update. Files under these paths won't be checked during the verification and repair processes.\n* `metadata_path`:  The location for the install .db and .manifest files. The extension will be directly appended to this path.\n* `seed_path`: The location where updated chunks will be stored for this install when performing a seed operation, and the location where chunks will be sourced from when performing a patch operation.\n",
+        "description": "Register a new install \n [Help] \n**Data**\n* `excluded_paths`: List of paths (relative to the install root) that are excluded from the update. Files under these paths won't be checked during the verification and repair processes.\n* `metadata_path`:  The location for the install .db and .manifest files. The extension will be directly appended to this path.\n* `seed_path`: The location where updated chunks will be stored for this install when performing a seed operation, and the location where chunks will be sourced from when performing a patch operation.\n\n\nThis endpoint is deprecated and will be removed December 2025. Please use the rpatch C API instead.",
         "parameters": [
           {
             "in": "path",
@@ -3946,7 +4113,8 @@
               }
             }
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "/patch/v1/installs/{install-id}/requests/patch": {
@@ -3954,7 +4122,7 @@
         "tags": [
           "core-sdk"
         ],
-        "description": "Delete patch request for install \n [Help] \nDelete the patch request, interrupting any ongoing patching operations.\n",
+        "description": "Delete patch request for install \n [Help] \nDelete the patch request, interrupting any ongoing patching operations.\n\n\nThis endpoint is deprecated and will be removed December 2025. Please use the rpatch C API instead.",
         "parameters": [
           {
             "in": "path",
@@ -3972,13 +4140,14 @@
           "2XX": {
             "description": "Returns nothing"
           }
-        }
+        },
+        "deprecated": true
       },
       "put": {
         "tags": [
           "core-sdk"
         ],
-        "description": "Submit patch request for install \n [Help] \n**Note**\n* If a request already exists it will be replaced by the new resource.\n\n**Data**\n* `headers`: Headers to send with every request. If the manifest url is behind SCD then a Cookie header is required.\n* `url`: Url for the release manifest.\n* `max_download_speed`: Maximum download speed, in bytes/sec. If zero then no limits will be applied.\n* `repair`: Whether a full repair should be performed prior to the update.\n* `tags`: Tags to filter which content gets patched. https://riotsdk.rpg.riotgames.com/docs/for-users/patching/onboarding/localization/\n* `stage`: Only patch up to the specified stage.\n* `temp_path`: (Optional) Custom directory to use for working storage during patching.\n* `delete_foreign_paths`:  (optional) If true, paths that are not considered part of the install will be checked during the verification and repair processes and removed.\n",
+        "description": "Submit patch request for install \n [Help] \n**Note**\n* If a request already exists it will be replaced by the new resource.\n\n**Data**\n* `headers`: Headers to send with every request. If the manifest url is behind SCD then a Cookie header is required.\n* `url`: Url for the release manifest.\n* `max_download_speed`: Maximum download speed, in bytes/sec. If zero then no limits will be applied.\n* `repair`: Whether a full repair should be performed prior to the update.\n* `tags`: Tags to filter which content gets patched. https://riotsdk.rpg.riotgames.com/docs/for-users/patching/onboarding/localization/\n* `stage`: Only patch up to the specified stage.\n* `temp_path`: (Optional) Custom directory to use for working storage during patching.\n* `delete_foreign_paths`:  (optional) If true, paths that are not considered part of the install will be checked during the verification and repair processes and removed.\n\n\nThis endpoint is deprecated and will be removed December 2025. Please use the rpatch C API instead.",
         "parameters": [
           {
             "in": "path",
@@ -4005,7 +4174,8 @@
               }
             }
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "/patch/v1/installs/{install-id}/requests/preview": {
@@ -4013,7 +4183,7 @@
         "tags": [
           "core-sdk"
         ],
-        "description": "Delete preview request for install \n [Help] \nDelete the preview request, interrupting any ongoing preview operations.\n",
+        "description": "Delete preview request for install \n [Help] \nDelete the preview request, interrupting any ongoing preview operations.\n\n\nThis endpoint is deprecated and will be removed December 2025. Please use the rpatch C API instead.",
         "parameters": [
           {
             "in": "path",
@@ -4031,13 +4201,14 @@
           "2XX": {
             "description": "Returns nothing"
           }
-        }
+        },
+        "deprecated": true
       },
       "put": {
         "tags": [
           "core-sdk"
         ],
-        "description": "Submit preview request for install \n [Help] \n**Notes**\n* The request contains all the info needed, including the full url to the release manifest, http headers and tags.\n* If a request already exists it will be replaced by the new resource.\n\n**Data**\n* `headers`: Headers to send with every request. If the manifest url is behind SCD then a Cookie header is required.\n* `url`: Url for the release manifest.\n* `stage`: Only patch up to the specified stage.\n* `fast`: Whether to perform a fast (but less accurate) estimation.\n* `tags`: Tags to filter which content gets patched. https://riotsdk.rpg.riotgames.com/docs/for-users/patching/onboarding/localization/\n",
+        "description": "Submit preview request for install \n [Help] \n**Notes**\n* The request contains all the info needed, including the full url to the release manifest, http headers and tags.\n* If a request already exists it will be replaced by the new resource.\n\n**Data**\n* `headers`: Headers to send with every request. If the manifest url is behind SCD then a Cookie header is required.\n* `url`: Url for the release manifest.\n* `stage`: Only patch up to the specified stage.\n* `fast`: Whether to perform a fast (but less accurate) estimation.\n* `tags`: Tags to filter which content gets patched. https://riotsdk.rpg.riotgames.com/docs/for-users/patching/onboarding/localization/\n\n\nThis endpoint is deprecated and will be removed December 2025. Please use the rpatch C API instead.",
         "parameters": [
           {
             "in": "path",
@@ -4064,7 +4235,8 @@
               }
             }
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "/patch/v1/installs/{install-id}/requests/repair": {
@@ -4072,7 +4244,7 @@
         "tags": [
           "core-sdk"
         ],
-        "description": "Delete the repair request, interrupting any ongoing repair operations. ",
+        "description": "Delete the repair request, interrupting any ongoing repair operations. \n [Help] This endpoint is deprecated and will be removed December 2025. Please use the rpatch C API instead.",
         "parameters": [
           {
             "in": "path",
@@ -4090,13 +4262,14 @@
           "2XX": {
             "description": "Returns nothing"
           }
-        }
+        },
+        "deprecated": true
       },
       "put": {
         "tags": [
           "core-sdk"
         ],
-        "description": "Triggers a repair operation \n [Help] \n**Notes**\n* Allows you to perform a repair on a set of files or a full repair without having to wait or game client to exit. Only use this if you're\nabsolutely certain that the files are not currently in use.\n* Game is responsible for displaying repair progress and can get progress using the GET /patch/v1/installs/{install-id}/status/repair endpoint.\n\n**Data**\n* `files`: a list of file paths for files that need to be repaired. If none specified then the patcher will perform a full repair. File paths must\nbe relative to the install root.\n* `manifest_url`: Url for the release manifest.\n* `headers`: Headers to send with every request. If the manifest url is behind SCD then a Cookie header is required.\n* `max_download_speed`: Maximum download speed, in bytes/sec. If zero then no limits will be applied.\n* `allowed_http_fallback_hostnames`: List of hostnames for which we'll fall back to HTTP instead of HTTPS if they resolve to an RFC1918 private IP address.\n* `delete_foreign_paths`:  (optional) If true, paths that are not considered part of the install will be checked during the verification and repair processes and removed.\n",
+        "description": "Triggers a repair operation \n [Help] \n**Notes**\n* Allows you to perform a repair on a set of files or a full repair without having to wait or game client to exit. Only use this if you're\nabsolutely certain that the files are not currently in use.\n* Game is responsible for displaying repair progress and can get progress using the GET /patch/v1/installs/{install-id}/status/repair endpoint.\n\n**Data**\n* `files`: a list of file paths for files that need to be repaired. If none specified then the patcher will perform a full repair. File paths must\nbe relative to the install root.\n* `manifest_url`: Url for the release manifest.\n* `headers`: Headers to send with every request. If the manifest url is behind SCD then a Cookie header is required.\n* `max_download_speed`: Maximum download speed, in bytes/sec. If zero then no limits will be applied.\n* `allowed_http_fallback_hostnames`: List of hostnames for which we'll fall back to HTTP instead of HTTPS if they resolve to an RFC1918 private IP address.\n* `delete_foreign_paths`:  (optional) If true, paths that are not considered part of the install will be checked during the verification and repair processes and removed.\n\n\nThis endpoint is deprecated and will be removed December 2025. Please use the rpatch C API instead.",
         "parameters": [
           {
             "in": "path",
@@ -4123,7 +4296,8 @@
               }
             }
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "/patch/v1/installs/{install-id}/requests/seed": {
@@ -4131,7 +4305,7 @@
         "tags": [
           "core-sdk"
         ],
-        "description": "Delete seed request for install \n [Help] \nDelete the seed request, interrupting any ongoing seed operations.\n",
+        "description": "Delete seed request for install \n [Help] \nDelete the seed request, interrupting any ongoing seed operations.\n\n\nThis endpoint is deprecated and will be removed December 2025. Please use the rpatch C API instead.",
         "parameters": [
           {
             "in": "path",
@@ -4149,13 +4323,14 @@
           "2XX": {
             "description": "Returns nothing"
           }
-        }
+        },
+        "deprecated": true
       },
       "put": {
         "tags": [
           "core-sdk"
         ],
-        "description": "Submit seed request for install \n [Help] \n**Notes**\n* Seeding will download any chunks needed to the seed path, but will not modify any files in the install directory. The seed path is specified in the install.\n* If a request already exists it will be replaced by the new resource. https://riotsdk.rpg.riotgames.com/docs/for-users/patching/concepts/seeding/\n\n**Data**\n* `headers`: Headers to send with every request. If the manifest url is behind SCD then a Cookie header is required.\n* `url`: Url for the release manifest.\n* `max_download_speed`: Maximum download speed, in bytes/sec. If zero then no limits will be applied.\n* `stage`: Only patch up to the specified stage.\n* `tags`: Tags to filter which content gets patched. https://riotsdk.rpg.riotgames.com/docs/for-users/patching/onboarding/localization/\n* `delete_foreign_paths`:  (optional) If true, paths that are not considered part of the install will be checked during the verification and repair processes and removed.\n",
+        "description": "Submit seed request for install \n [Help] \n**Notes**\n* Seeding will download any chunks needed to the seed path, but will not modify any files in the install directory. The seed path is specified in the install.\n* If a request already exists it will be replaced by the new resource. https://riotsdk.rpg.riotgames.com/docs/for-users/patching/concepts/seeding/\n\n**Data**\n* `headers`: Headers to send with every request. If the manifest url is behind SCD then a Cookie header is required.\n* `url`: Url for the release manifest.\n* `max_download_speed`: Maximum download speed, in bytes/sec. If zero then no limits will be applied.\n* `stage`: Only patch up to the specified stage.\n* `tags`: Tags to filter which content gets patched. https://riotsdk.rpg.riotgames.com/docs/for-users/patching/onboarding/localization/\n* `delete_foreign_paths`:  (optional) If true, paths that are not considered part of the install will be checked during the verification and repair processes and removed.\n\n\nThis endpoint is deprecated and will be removed December 2025. Please use the rpatch C API instead.",
         "parameters": [
           {
             "in": "path",
@@ -4182,7 +4357,8 @@
               }
             }
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "/payments/v1/debug/countryCodeOverride": {
@@ -4208,6 +4384,60 @@
           "core-sdk"
         ],
         "description": "Deletes stored session data ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        }
+      }
+    },
+    "/platform-ui/v1/account-linking": {
+      "delete": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Force close Account Linking UI ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Subscribe to get Account Linking UI availability and visibility status ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformUiPlatformUIAccountLinkingStatus"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Trigger Account Linking UI ",
         "parameters": [],
         "responses": {
           "401": {
@@ -4262,6 +4492,60 @@
           "core-sdk"
         ],
         "description": "Trigger Account Deletion UI ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        }
+      }
+    },
+    "/platform-ui/v1/discord-link": {
+      "delete": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Disable Discord Account linking UI. While it aborts on-going Discord authorizations, it does not disable their UI. ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Subscribe to get Discord Link availability and visibility status ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformUiPlatformUILinkDiscordStatus"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Enable Discord Account linking UI ",
         "parameters": [],
         "responses": {
           "401": {
@@ -5308,6 +5592,40 @@
                 "$ref": "#/components/schemas/ProductIntegrationAppRepairApplyRequest"
               }
             }
+          }
+        }
+      }
+    },
+    "/product-launcher/v1/compat-mode/products/{product-id}/patchlines/{patchline-id}": {
+      "delete": {
+        "tags": [
+          "Plugin product-launcher"
+        ],
+        "description": "Deletes the compatibility mode registry key value for the given product and patchline. ",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "product-id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "patchline-id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
           }
         }
       }
@@ -6602,6 +6920,13 @@
         "description": "Acquires a shared session patch lock for the product-patchline ",
         "parameters": [
           {
+            "in": "query",
+            "name": "isExclusive",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
             "in": "path",
             "name": "productId",
             "schema": {
@@ -7525,6 +7850,28 @@
           }
         }
       },
+      "get": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Get the player's presence ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SocialPresenceSessionV1"
+                }
+              }
+            }
+          }
+        }
+      },
       "put": {
         "tags": [
           "core-sdk"
@@ -7736,6 +8083,69 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/AnyType"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tracing/v1/debug/caller-id/mock-id": {
+      "delete": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Stops mocking the caller ID for Swagger calls \n [Help] Deletes the currently set `productId` and `patchlineId`. Plugin APIs will receive `swagger` as the `productId`.",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Checks the caller ID in use when APIs are called from Swagger \n [Help] Returns the `productId` and `patchlineId` being passed to APIs in this plugin when called via Swagger.\n\nReturns 404 if a mock caller ID is not in use.",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TracingPluginCallerId_MockCallerId"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Sets the caller ID to use when calling this plugin from Swagger \n [Help] Sets the `productId` and `patchlineId` to pass to APIs in this plugin during future calls from Swagger.\n\nUse this functionality to test APIs in this plugin with Swagger, as if they were being called from another product.",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TracingPluginCallerId_MockCallerId"
               }
             }
           }
@@ -8549,13 +8959,22 @@
         }
       }
     },
-    "/xbox-account/v2/authorization": {
+    "/xbox-account/v2/authorization/{recipient}": {
       "delete": {
         "tags": [
           "core-sdk"
         ],
         "description": "Deletes the current Xbox authorization session ",
-        "parameters": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "recipient",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
         "responses": {
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
@@ -8570,7 +8989,16 @@
           "core-sdk"
         ],
         "description": "Gets current Xbox authorization status ",
-        "parameters": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "recipient",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
         "responses": {
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
@@ -8592,7 +9020,16 @@
           "core-sdk"
         ],
         "description": "Gets authorization from the Xbox Account of the player logged in the Xbox or start authentication with native browser ",
-        "parameters": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "recipient",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
         "responses": {
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
@@ -8617,7 +9054,7 @@
         "tags": [
           "core-sdk"
         ],
-        "description": "Returns the action need to be done and outbound URL for it ",
+        "description": "Returns the action need to be done and outbound URL for it \n [Help] Endpoint to be deleted September 2025.",
         "parameters": [],
         "responses": {
           "401": {
@@ -8629,6 +9066,39 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AccountsSecurityAccountsSecurity"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/aes/v1/config/{provider}": {
+      "get": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Return the provider authorization configuration for the given provider ",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "provider",
+            "schema": {
+              "$ref": "#/components/schemas/AesAESProvider"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AesAESProviderConfig"
                 }
               }
             }
@@ -11372,7 +11842,7 @@
         "tags": [
           "core-sdk"
         ],
-        "description": "Gets a list of all available clusters. Cluster IDs arrive asynchronously and may not be immediately avaiable. The logic of selecting the optimal cluster for a player is up to the game team. ",
+        "description": "Gets a list of all available clusters. Cluster IDs arrive asynchronously and may not be immediately available. The logic of selecting the optimal cluster for a player is up to the game team. ",
         "parameters": [],
         "responses": {
           "401": {
@@ -11415,6 +11885,33 @@
         }
       }
     },
+    "/integration-test/v1/observed-mode-manager-states": {
+      "get": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "[FOR TESTING ONLY] Returns a list of observed mode manager notifications, used in suspend-resume flow tests. ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/IntegrationTestMode"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/jwt-authenticator/v1/headers": {
       "get": {
         "tags": [
@@ -11432,6 +11929,30 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/JwtAuthenticatorHeaders"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/keypair-account/v1/status": {
+      "get": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Retrieve the device attestation status ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeypairAccountKeyPairStatus"
                 }
               }
             }
@@ -11682,30 +12203,6 @@
         }
       }
     },
-    "/mailbox/v1/enabled": {
-      "get": {
-        "tags": [
-          "core-sdk"
-        ],
-        "description": "Returns whether or not the mailbox feature is enabled for this environment \n [Help] \n**Description**\n\nThis API is subscribable and use to verify the feature is enabled in the current loaded cluster config.\n\n",
-        "parameters": [],
-        "responses": {
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          },
-          "2XX": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "boolean"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/mailbox/v1/ready": {
       "get": {
         "tags": [
@@ -11832,6 +12329,54 @@
                 "schema": {
                   "type": "string"
                 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mode-manager/mode": {
+      "get": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Gets the current mode. ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModeManagerMode"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Sets the current mode. The call will immediately return, but the mode will take some time to finish transitioning to. ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModeManagerSetModeRequest"
               }
             }
           }
@@ -11981,6 +12526,33 @@
         }
       }
     },
+    "/patch-proxy/v2/install-states": {
+      "get": {
+        "tags": [
+          "Plugin patch-proxy"
+        ],
+        "description": "Get install states for all product patchlines. ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PatchProxyProductPatchlineInstallState"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/patch-proxy/v2/patch-states/out-of-date": {
       "get": {
         "tags": [
@@ -12049,12 +12621,56 @@
         }
       }
     },
+    "/patch-proxy/v2/products/{productId}/patchlines/{patchlineId}/dependencies": {
+      "get": {
+        "tags": [
+          "Plugin patch-proxy"
+        ],
+        "description": "Get the dependencies for a product patchline. ",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "productId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "patchlineId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PatchProxyProductPatchlineDependencyState"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/patch/v1/configuration": {
       "get": {
         "tags": [
           "core-sdk"
         ],
-        "description": "Retrieve the configuration ",
+        "description": "Retrieve the configuration \n [Help] This endpoint is deprecated and will be removed December 2025. Please use the rpatch C API instead.",
         "parameters": [],
         "responses": {
           "401": {
@@ -12070,13 +12686,14 @@
               }
             }
           }
-        }
+        },
+        "deprecated": true
       },
       "put": {
         "tags": [
           "core-sdk"
         ],
-        "description": "Configure plugin settings such as cache size and location \n [Help] \n**Data**\n* `cache_path`:  Path to the global cache used to store downloaded chunks.\n* `cache_size`: Cache size in bytes.\n",
+        "description": "Configure plugin settings such as cache size and location \n [Help] \n**Data**\n* `cache_path`:  Path to the global cache used to store downloaded chunks.\n* `cache_size`: Cache size in bytes.\n\n\nThis endpoint is deprecated and will be removed December 2025. Please use the rpatch C API instead.",
         "parameters": [],
         "responses": {
           "401": {
@@ -12094,7 +12711,8 @@
               }
             }
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "/patch/v1/installs": {
@@ -12102,7 +12720,7 @@
         "tags": [
           "core-sdk"
         ],
-        "description": "Get list of installs on disk ",
+        "description": "Get list of installs on disk \n [Help] This endpoint is deprecated and will be removed December 2025. Please use the rpatch C API instead.",
         "parameters": [],
         "responses": {
           "401": {
@@ -12121,7 +12739,8 @@
               }
             }
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "/patch/v1/installs/{install-id}/status": {
@@ -12129,7 +12748,7 @@
         "tags": [
           "core-sdk"
         ],
-        "description": "Retrieve the current patch, preview and seed statuses of an install resource \n [Help] \n**Note**\n* The status is always relative to a manifest and set of tags, specified by the `url` and `tags` fields respectively.\n* If there is any work in progress, `url` and `tags` will match those from the request.\n* If there are no pending requests, `url` and `tags` will match the files in the install folder.\n\n**Responses**\n\n**Patch**\n* `updating`: Currently performing a patching / seeding request.\n* `out_of_date`: The last request was partially completed and more work needs to be done before all files are in sync with the release manifest.\n* `up_to_date`: The last request completed successfully and files are in sync with the release manifest.\n* `not_installed`: The last request completed successfully and detected that the install-id is not installed.\n* `pending_verify`: The last request has not completed verification step.\n\n**Seed**\n* `seeding`: Currently performing a seeding request.\n* `out_of_date`: The last request was partially completed and more work needs to be done before all data needed to update the install has been downloaded.\n* `up_to_date`: The last request completed successfully and all data needed to update the install has been downloaded.\n* `pending_verify`: The last request has not completed verification step.\n\n**Preview**\n* `pending`: The preview request has not finished.\n* `done`: The last preview request completed successfully.\n\n**Repair**\n* `manifest_url`: the url of the release manifest.\n* `repair_progress`: The progress of the repair operation. Contains:\n    * `bytes_to_repair`: Total number of bytes to read.\n    * `files_to_repair`: Total number of files to read.\n    * `repaired_bytes`: Number of bytes read from disk so far.\n    * `repaired_files`: Number of files read from disk so far.\n* `state`: The overall state of the repair operation. Possible states include:\n    * `pending`: No repair requests have been made.\n    * `in_progress`: Repair is in progress.\n    * `canceled`: The repair operation was canceled.\n    * `done`: Repair operation is complete.\n",
+        "description": "Retrieve the current patch, preview and seed statuses of an install resource \n [Help] \n**Note**\n* The status is always relative to a manifest and set of tags, specified by the `url` and `tags` fields respectively.\n* If there is any work in progress, `url` and `tags` will match those from the request.\n* If there are no pending requests, `url` and `tags` will match the files in the install folder.\n\n**Responses**\n\n**Patch**\n* `updating`: Currently performing a patching / seeding request.\n* `out_of_date`: The last request was partially completed and more work needs to be done before all files are in sync with the release manifest.\n* `up_to_date`: The last request completed successfully and files are in sync with the release manifest.\n* `not_installed`: The last request completed successfully and detected that the install-id is not installed.\n* `pending_verify`: The last request has not completed verification step.\n\n**Seed**\n* `seeding`: Currently performing a seeding request.\n* `out_of_date`: The last request was partially completed and more work needs to be done before all data needed to update the install has been downloaded.\n* `up_to_date`: The last request completed successfully and all data needed to update the install has been downloaded.\n* `pending_verify`: The last request has not completed verification step.\n\n**Preview**\n* `pending`: The preview request has not finished.\n* `done`: The last preview request completed successfully.\n\n**Repair**\n* `manifest_url`: the url of the release manifest.\n* `repair_progress`: The progress of the repair operation. Contains:\n    * `bytes_to_repair`: Total number of bytes to read.\n    * `files_to_repair`: Total number of files to read.\n    * `repaired_bytes`: Number of bytes read from disk so far.\n    * `repaired_files`: Number of files read from disk so far.\n* `state`: The overall state of the repair operation. Possible states include:\n    * `pending`: No repair requests have been made.\n    * `in_progress`: Repair is in progress.\n    * `canceled`: The repair operation was canceled.\n    * `done`: Repair operation is complete.\n\n\nThis endpoint is deprecated and will be removed December 2025. Please use the rpatch C API instead.",
         "parameters": [
           {
             "in": "path",
@@ -12154,7 +12773,8 @@
               }
             }
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "/patch/v1/installs/{install-id}/status/patch": {
@@ -12162,7 +12782,7 @@
         "tags": [
           "core-sdk"
         ],
-        "description": "Retrieve the current patch status of an install. \n [Help] \n**Notes**\n* The status is always relative to a manifest and set of tags, specified by the `url` and `tags` fields respectively.\n* If there is any work in progress, `url` and `tags` will match those from the request.\n* If there are no pending requests, `url` and `tags` will match the files in the install folder.\n\n**Response**\n\nThe `state` field will is populated based on the current work with the following values:\n* `updating`: Currently performing a patching / seeding request.\n* `out_of_date`: The last request was partially completed and more work needs to be done before all files are in sync with the release manifest.\n* `up_to_date`: The last request completed successfully and files are in sync with the release manifest.\n* `not_installed`: The last request completed successfully and detected that the install-id is not installed.\n* `pending_verify`: The last request has not completed verification step.\n",
+        "description": "Retrieve the current patch status of an install. \n [Help] \n**Notes**\n* The status is always relative to a manifest and set of tags, specified by the `url` and `tags` fields respectively.\n* If there is any work in progress, `url` and `tags` will match those from the request.\n* If there are no pending requests, `url` and `tags` will match the files in the install folder.\n\n**Response**\n\nThe `state` field will is populated based on the current work with the following values:\n* `updating`: Currently performing a patching / seeding request.\n* `out_of_date`: The last request was partially completed and more work needs to be done before all files are in sync with the release manifest.\n* `up_to_date`: The last request completed successfully and files are in sync with the release manifest.\n* `not_installed`: The last request completed successfully and detected that the install-id is not installed.\n* `pending_verify`: The last request has not completed verification step.\n\n\nThis endpoint is deprecated and will be removed December 2025. Please use the rpatch C API instead.",
         "parameters": [
           {
             "in": "path",
@@ -12187,7 +12807,8 @@
               }
             }
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "/patch/v1/installs/{install-id}/status/preview": {
@@ -12195,7 +12816,7 @@
         "tags": [
           "core-sdk"
         ],
-        "description": "Retrieve the current preview status of an install. \n [Help] \n**Response**\n\nThe `state` field will is populated based on the current work with the following values:\n* `pending`: The preview request has not finished.\n* `done`: The last preview request completed successfully.\n",
+        "description": "Retrieve the current preview status of an install. \n [Help] \n**Response**\n\nThe `state` field will is populated based on the current work with the following values:\n* `pending`: The preview request has not finished.\n* `done`: The last preview request completed successfully.\n\n\nThis endpoint is deprecated and will be removed December 2025. Please use the rpatch C API instead.",
         "parameters": [
           {
             "in": "path",
@@ -12220,7 +12841,8 @@
               }
             }
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "/patch/v1/installs/{install-id}/status/repair": {
@@ -12228,7 +12850,7 @@
         "tags": [
           "core-sdk"
         ],
-        "description": "Retrieve the current repair status of an install. \n [Help] \n**Response**\n* `manifest_url`: the url of the release manifest.\n* `repair_progress`: The progress of the repair operation. Contains:\n    * `bytes_to_repair`: Total number of bytes to read.\n    * `files_to_repair`: Total number of files to read.\n    * `repaired_bytes`: Number of bytes read from disk so far.\n    * `repaired_files`: Number of files read from disk so far.\n* `state`: The overall state of the repair operation.\n    * `pending`: No repair requests have been made.\n    * `in_progress`: Repair is in progress.\n    * `canceled`: The repair operation was canceled.\n    * `done`: Repair operation is complete.\n",
+        "description": "Retrieve the current repair status of an install. \n [Help] \n**Response**\n* `manifest_url`: the url of the release manifest.\n* `repair_progress`: The progress of the repair operation. Contains:\n    * `bytes_to_repair`: Total number of bytes to read.\n    * `files_to_repair`: Total number of files to read.\n    * `repaired_bytes`: Number of bytes read from disk so far.\n    * `repaired_files`: Number of files read from disk so far.\n* `state`: The overall state of the repair operation.\n    * `pending`: No repair requests have been made.\n    * `in_progress`: Repair is in progress.\n    * `canceled`: The repair operation was canceled.\n    * `done`: Repair operation is complete.\n\n\nThis endpoint is deprecated and will be removed December 2025. Please use the rpatch C API instead.",
         "parameters": [
           {
             "in": "path",
@@ -12253,7 +12875,8 @@
               }
             }
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "/patch/v1/installs/{install-id}/status/seed": {
@@ -12261,7 +12884,7 @@
         "tags": [
           "core-sdk"
         ],
-        "description": "Retrieve the current seed status of an install. \n [Help] \n**Notes**\n* If there is any work in progress, `url` and `tags` will match those from the request.\n* If there are no pending requests, `url` and `tags` will match the files in the install folder.\n\n**Response**\n\nThe `state` field will is populated based on the current work with the following values:\n* `seeding`: Currently performing a seeding request.\n* `out_of_date`: The last request was partially completed and more work needs to be done before all files are in sync with the release manifest.\n* `up_to_date`: The last request completed successfully and files are in sync with the release manifest.\n* `pending_verify`: The last request has not completed verification step.\n",
+        "description": "Retrieve the current seed status of an install. \n [Help] \n**Notes**\n* If there is any work in progress, `url` and `tags` will match those from the request.\n* If there are no pending requests, `url` and `tags` will match the files in the install folder.\n\n**Response**\n\nThe `state` field will is populated based on the current work with the following values:\n* `seeding`: Currently performing a seeding request.\n* `out_of_date`: The last request was partially completed and more work needs to be done before all files are in sync with the release manifest.\n* `up_to_date`: The last request completed successfully and files are in sync with the release manifest.\n* `pending_verify`: The last request has not completed verification step.\n\n\nThis endpoint is deprecated and will be removed December 2025. Please use the rpatch C API instead.",
         "parameters": [
           {
             "in": "path",
@@ -12286,7 +12909,8 @@
               }
             }
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "/pay-mobile/v1/productListResult": {
@@ -14443,6 +15067,54 @@
         }
       }
     },
+    "/presences/v1/status-message": {
+      "get": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Get the presence status message ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresencesPresencesStatusMessage"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Update the presence status message \n [Help] The update to the presence status message is persisted between sessions and is global across all products and devices",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PresencesStatusMessageUpdate"
+              }
+            }
+          }
+        }
+      }
+    },
     "/privacy/v1/tracking": {
       "get": {
         "tags": [
@@ -16368,7 +17040,7 @@
         "tags": [
           "core-sdk"
         ],
-        "description": "The player's home base country \n [Help] *Internal Riot Client API. Please don't use outside of Riot Client.*\n\nProvides the home base country provided by RSO, intended for internal use by plugins that don't provide game-specific data.",
+        "description": "The player's home base country \n [Help] *Internal Riot Client API. Please don't use outside of Riot Client.*\n\nProvides the home base country provided by RSO, intended for internal use by plugins that don't provide game-specific data.\n\nThis endpoint is deprecated and will be removed February 2026; Please use PSL session state's country field instead.",
         "parameters": [],
         "responses": {
           "401": {
@@ -16384,7 +17056,8 @@
               }
             }
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "/riot-client-auth/v1/login-country": {
@@ -18876,7 +19549,7 @@
         "tags": [
           "core-sdk"
         ],
-        "description": "Returns a list of supported authentication strategies. ",
+        "description": "Returns a list of supported authentication strategies. \n [Help] Endpoint to be deleted December 2025; This endpoint has no function anymore.",
         "parameters": [],
         "responses": {
           "401": {
@@ -18948,7 +19621,7 @@
         "tags": [
           "core-sdk"
         ],
-        "description": "Returns a partner auth config ",
+        "description": "Returns a partner auth config \n [Help] Endpoint to be deleted December 2025; This endpoint has no function anymore.",
         "parameters": [],
         "responses": {
           "401": {
@@ -18996,7 +19669,7 @@
         "tags": [
           "core-sdk"
         ],
-        "description": "Retrieve a player's access token. \n [Help] If the player has a valid authorization, this API will return the player's access token, as well as their approximate expiration time and scope. This token can be used as the `Bearer` value of an `Authorization` header in order to make requets against services protected by RSO tokens. This token represents permission sets granted to the application by the player.\n\nAccess tokens expire. This plugin will handle refreshing access tokens automatically, but it's up to your plugin to either request an access token for each request, or subscribe to resource updated events for the token.\n\nAccess tokens are intended to be server-authoritative, despite being verifiable client-side as well. Scopes are included as a means for UIs to anticipate which scopes are available.\n\n**Note:** This API returns the token's expiry as seconds since the unix epoch. Do not trust this value locally in the client, as the player's system clock may be incorrect. This value is *deprecated*, and may be removed in a future version.\n\n",
+        "description": "Retrieve a player's access token. \n [Help] If the player has a valid authorization, this API will return the player's access token, as well as their approximate expiration time and scope. This token can be used as the `Bearer` value of an `Authorization` header in order to make requests against services protected by RSO tokens. This token represents permission sets granted to the application by the player.\n\nAccess tokens expire. This plugin will handle refreshing access tokens automatically, but it's up to your plugin to either request an access token for each request, or subscribe to resource updated events for the token.\n\nAccess tokens are intended to be server-authoritative, despite being verifiable client-side as well. Scopes are included as a means for UIs to anticipate which scopes are available.\n\n**Note:** This API returns the token's expiry as seconds since the unix epoch. Do not trust this value locally in the client, as the player's system clock may be incorrect. This value is *deprecated*, and may be removed in a future version.\n\n",
         "parameters": [],
         "responses": {
           "401": {
@@ -19227,7 +19900,7 @@
         "tags": [
           "core-sdk"
         ],
-        "description": "Get the current RSO status message ",
+        "description": "Get the current RSO status message \n [Help] Endpoint to be deleted December 2025; This endpoint has no function anymore.",
         "parameters": [],
         "responses": {
           "401": {
@@ -19249,7 +19922,7 @@
         "tags": [
           "core-sdk"
         ],
-        "description": "Update the RSO auth status ",
+        "description": "Update the RSO auth status \n [Help] Endpoint to be deleted December 2025; This endpoint has no function anymore.",
         "parameters": [],
         "responses": {
           "401": {
@@ -19716,6 +20389,30 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SocialBlockList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/social/v1/debug/discord-registered-apps": {
+      "get": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "For internal use. Gets the list of registered Discord apps. ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SocialDiscordRegisteredApplicationsV1"
                 }
               }
             }
@@ -20300,6 +20997,30 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/TencentLauncherProductIntegrationAppUpdateStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tracing/v1/context": {
+      "get": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Get the telemetry context from the SDK \n [Help] \n**Description**\nGet the telemetry context from the SDK. This endpoints returns an object that consists of two parts:\n\n* `traceStateHeader` - an that has header key and header body, that can be attached to your outgoing requests.\n* `traceStateComponents` - a map containing all individual elements stored in `traceStateHeader`, each element is a key-value pair:\n    * key: element identifier\n        * componentType: enum with information about the source of element\n        * value: element value\n\nPrefer to subscribe to this instead of polling.\n",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TracingV1TraceContext"
                 }
               }
             }
@@ -22742,6 +23463,47 @@
         }
       }
     },
+    "/keypair-account/v1/attestation-start": {
+      "post": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Triggers attestation ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        }
+      }
+    },
+    "/keypair-account/v1/force-unsupported": {
+      "post": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Let the plugin know that attestation created by the device failed ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeypairAccountKeyPairStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/loyalty/v1/debug/set-loyalty-resource/{pcbId}": {
       "post": {
         "tags": [
@@ -23154,6 +23916,13 @@
               "type": "string"
             },
             "required": true
+          },
+          {
+            "in": "query",
+            "name": "options",
+            "schema": {
+              "$ref": "#/components/schemas/PatchProxyRefreshRequestOptions"
+            }
           }
         ],
         "responses": {
@@ -24698,7 +25467,7 @@
         "tags": [
           "core-sdk"
         ],
-        "description": " \n [Help] \nUsed to submit a player report when no signed token is available\n**Data**\n* `offenderId`: The id of the offender. For players this is their puuid.\n* `categories`: List of category strings that player is reporting another player for. Different products use different categories.\n* `location`: The location where the offending behavior occurred. Example: `in-game`.\n* `comment`: Player written comment associated with this report.\n* `conversationContext`: (OPTIONAL) The ID and type of conversation from where the report was filed\n* `unstructuredContext`: (OPTIONAL) An additional payload where game teams can pass in custom payload to CPD for analysis\n",
+        "description": " \n [Help] \nUsed to submit a player report when no signed token is available\n**Data**\n* `offenderId`: The id of the offender. For players this is their puuid.\n* `categories`: List of category strings that player is reporting another player for. Different products use different categories.\n* `location`: The location where the offending behavior occurred. Example: `in-game`.\n* `comment`: Player written comment associated with this report.\n* `conversationContext`: (OPTIONAL) The ID and type of conversation from where the report was filed\n* `unstructuredContext`: (OPTIONAL) An additional payload where game teams can pass in custom payload to CPD for analysis\n* `incidentTimestampMillis`: (OPTIONAL) The timestamp of the reported incident (e.g., timestamp of the chat message)\n",
         "parameters": [],
         "responses": {
           "401": {
@@ -24739,6 +25508,82 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/PlayerReportingPlayerReportV2"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/player-session-lifecycle/v1/force-login-token-exchange": {
+      "post": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Attempt to force an updated login token exchange.  ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlayerSessionLifecycleUpdateLoginTokenRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/player-session-lifecycle/v1/require-recoverable-account": {
+      "post": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Inform the SDK that the current player should be prompted to make their account recoverable when possible. \n [Help] Set a requirement for that current player should be prompted to address any issues with their account that prevent it from being recoverable. This currently means that the player's account should either have the ability to authenticate with username/password (ie. Riot Identity) or with an acceptable federated auth provider (ex. Google, Facebook, etc.). Forcing recoverable accounts is desirable when the player has spent money or a significant amount of time, so accidental account loss would be very undesirable.",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        }
+      }
+    },
+    "/player-session-lifecycle/v1/riot-identity-login": {
+      "post": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Submit the sign-in request with Riot Identity credentials (dev flow only when captcha is known). ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayerSessionLifecycleRiotIdentityLoginResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlayerSessionLifecycleRiotIdentityLoginRequest"
               }
             }
           }
@@ -26115,33 +26960,6 @@
         }
       }
     },
-    "/rso-auth/v1/authorization/simulate-error": {
-      "post": {
-        "tags": [
-          "core-sdk"
-        ],
-        "description": "Set simulated error response code for logging in \n [Help] Sets a simulated error response code to be used next time `POST`:`/rso-auth/v1/authorization/gas` occurs. Then resets to normal functionality",
-        "parameters": [],
-        "responses": {
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          },
-          "2XX": {
-            "description": "Returns nothing"
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "number",
-                "format": "int32"
-              }
-            }
-          }
-        }
-      }
-    },
     "/rso-auth/v1/authorization/token-exchange": {
       "post": {
         "tags": [
@@ -26169,30 +26987,6 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/RsoAuthLoginToken"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/rso-auth/v1/device-id": {
-      "post": {
-        "tags": [
-          "core-sdk"
-        ],
-        "description": "Retrieves device ID configuration. \n [Help] Provides client-side settings for collecting device ID information, including a session id, collector server and merchant id. The session ID is programmatically generated by the plugin at startup.\n\nThis endpoint is not available until the OpenID configuration is retrieved.\n\nEndpoint to be deleted March 2025; This endpoint has no function anymore.",
-        "parameters": [],
-        "responses": {
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          },
-          "2XX": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RsoAuthDeviceId"
-                }
               }
             }
           }
@@ -27640,6 +28434,32 @@
         }
       }
     },
+    "/social/v1/discord/register-launch-commands": {
+      "post": {
+        "tags": [
+          "core-sdk"
+        ],
+        "description": "Registers Discord launch commands using the cached Discord application ID list from AES. ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SocialDiscordRegisterLaunchCommandsRequestV1"
+              }
+            }
+          }
+        }
+      }
+    },
     "/social/v1/initialize": {
       "post": {
         "tags": [
@@ -28942,32 +29762,6 @@
         }
       }
     },
-    "/presences/v1/status-message": {
-      "put": {
-        "tags": [
-          "core-sdk"
-        ],
-        "description": "Update the presence status message \n [Help] The update to the presence status message is persisted between sessions and is global across all products and devices",
-        "parameters": [],
-        "responses": {
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          },
-          "2XX": {
-            "description": "Returns nothing"
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PresencesStatusMessageUpdate"
-              }
-            }
-          }
-        }
-      }
-    },
     "/product-integration/v1/app-update/apply": {
       "put": {
         "tags": [
@@ -29811,7 +30605,7 @@
         "tags": [
           "core-sdk"
         ],
-        "description": "Update an authentication session with a token from signup-api. \n [Help] Authenticates a player using a token from signup-api",
+        "description": "Update an authentication session with a token from signup-api. \n [Help] Authenticates a player using a token from signup-api\n\nEndpoint to be deleted December 2025; This endpoint has no function anymore.",
         "parameters": [],
         "responses": {
           "401": {
@@ -30639,7 +31433,7 @@
       "AccountsSecurityHomeBaseCountry": {
         "type": "object",
         "properties": {
-          "home_base_country": {
+          "homeBaseCountry": {
             "type": "string"
           }
         }
@@ -30648,6 +31442,80 @@
         "type": "object",
         "properties": {
           "productId": {
+            "type": "string"
+          }
+        }
+      },
+      "AesAESDiscordAuthCodeRequest": {
+        "type": "object",
+        "properties": {
+          "auth_code": {
+            "type": "string"
+          },
+          "redirect_uri": {
+            "type": "string"
+          }
+        }
+      },
+      "AesAESDiscordAuthorizationResponse": {
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string"
+          },
+          "errorCode": {
+            "type": "string"
+          },
+          "expires_in": {
+            "type": "number",
+            "format": "int64"
+          },
+          "httpStatus": {
+            "type": "number",
+            "format": "int32"
+          },
+          "scope": {
+            "type": "string"
+          },
+          "token_type": {
+            "type": "string"
+          }
+        }
+      },
+      "AesAESDiscordMetadataResponse": {
+        "type": "object",
+        "properties": {
+          "client_id": {
+            "type": "string"
+          },
+          "errorCode": {
+            "type": "string"
+          },
+          "httpStatus": {
+            "type": "number",
+            "format": "int32"
+          },
+          "product_metadata": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AesAESDiscordProductMetadataResponse"
+            }
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "AesAESDiscordProductMetadataResponse": {
+        "type": "object",
+        "properties": {
+          "product": {
+            "type": "string"
+          },
+          "product_client_id": {
             "type": "string"
           }
         }
@@ -30733,13 +31601,47 @@
       "AesAESProvider": {
         "type": "string",
         "enum": [
-          "playstation"
+          "playstation",
+          "xbox",
+          "discord"
         ]
+      },
+      "AesAESProviderConfig": {
+        "type": "object",
+        "properties": {
+          "clientId": {
+            "type": "string"
+          },
+          "productMetadata": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AesAESProviderProductMetadata"
+            }
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "AesAESProviderProductMetadata": {
+        "type": "object",
+        "properties": {
+          "product": {
+            "type": "string"
+          },
+          "productClientId": {
+            "type": "string"
+          }
+        }
       },
       "AesAESStatus": {
         "type": "string",
         "enum": [
           "None",
+          "Disabled",
           "Pending",
           "Missing",
           "Available"
@@ -30756,9 +31658,38 @@
           }
         }
       },
+      "AesAESXboxAuthzRequest": {
+        "type": "object",
+        "properties": {
+          "user_hash": {
+            "type": "string"
+          },
+          "xsts_token": {
+            "type": "string"
+          }
+        }
+      },
+      "AesAESXboxAuthzResponse": {
+        "type": "object",
+        "properties": {
+          "errorCode": {
+            "type": "string"
+          },
+          "httpStatus": {
+            "type": "number",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          }
+        }
+      },
       "AesAccessToken": {
         "type": "object",
         "properties": {
+          "clientId": {
+            "type": "string"
+          },
           "expiry": {
             "type": "number",
             "format": "int64"
@@ -30774,7 +31705,53 @@
           }
         }
       },
-      "AesV2AuthorizationError": {
+      "AesDiscordAuthorizationError": {
+        "type": "string",
+        "enum": [
+          "unknown"
+        ]
+      },
+      "AesDiscordAuthorizationParameters": {
+        "type": "object",
+        "properties": {
+          "discordClientId": {
+            "type": "string"
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "AesDiscordAuthorizationResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "error": {
+            "$ref": "#/components/schemas/AesDiscordAuthorizationError"
+          },
+          "redirectUri": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/AesDiscordAuthorizationResponseType"
+          }
+        }
+      },
+      "AesDiscordAuthorizationResponseType": {
+        "type": "string",
+        "enum": [
+          "none",
+          "cancelled",
+          "error",
+          "code"
+        ]
+      },
+      "AesplaystationV2AuthorizationError": {
         "type": "string",
         "enum": [
           "Aborted",
@@ -30797,7 +31774,7 @@
           "UnknownJavaError"
         ]
       },
-      "AesV2AuthorizationNativeCode": {
+      "AesplaystationV2AuthorizationNativeCode": {
         "type": "object",
         "properties": {
           "authorizationCode": {
@@ -30808,7 +31785,7 @@
           }
         }
       },
-      "AesV2AuthorizationParameters": {
+      "AesplaystationV2AuthorizationParameters": {
         "type": "object",
         "properties": {
           "clientId": {
@@ -30825,24 +31802,24 @@
           }
         }
       },
-      "AesV2AuthorizationResponse": {
+      "AesplaystationV2AuthorizationResponse": {
         "type": "object",
         "properties": {
           "code": {
             "type": "string"
           },
           "error": {
-            "$ref": "#/components/schemas/AesV2AuthorizationError"
+            "$ref": "#/components/schemas/AesplaystationV2AuthorizationError"
           },
           "nativeCode": {
-            "$ref": "#/components/schemas/AesV2AuthorizationNativeCode"
+            "$ref": "#/components/schemas/AesplaystationV2AuthorizationNativeCode"
           },
           "type": {
-            "$ref": "#/components/schemas/AesV2AuthorizationResponseType"
+            "$ref": "#/components/schemas/AesplaystationV2AuthorizationResponseType"
           }
         }
       },
-      "AesV2AuthorizationResponseType": {
+      "AesplaystationV2AuthorizationResponseType": {
         "type": "string",
         "enum": [
           "None",
@@ -30851,6 +31828,79 @@
           "Code",
           "NativeCode"
         ]
+      },
+      "AesxboxV2AuthorizationError": {
+        "type": "string",
+        "enum": [
+          "Aborted",
+          "SignedOut",
+          "UserNotFound",
+          "NoDefaultUser",
+          "EmptyResponse",
+          "FailedToGetRsoAuthenticatorUrl",
+          "Unknown",
+          "MissingResult",
+          "MissingCode",
+          "ASWebAuthenticationSessionPresentationContextInvalid",
+          "ASWebAuthenticationSessionPresentationContextNotProvided",
+          "InvalidRedirectPath",
+          "InvalidRedirectSchema",
+          "RedirectMissingQueryParameters",
+          "UnknownASWebAuthenticationSessionError",
+          "UnknownSFAuthenticationSessionError",
+          "UnknownJavaError",
+          "TooYoung",
+          "ContentUpdateRequired"
+        ]
+      },
+      "AesxboxV2AuthorizationParameters": {
+        "type": "object",
+        "properties": {
+          "locale": {
+            "type": "string"
+          },
+          "showUserSelector": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AesxboxV2AuthorizationResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "error": {
+            "$ref": "#/components/schemas/AesxboxV2AuthorizationError"
+          },
+          "token": {
+            "$ref": "#/components/schemas/AesxboxV2AuthorizationToken"
+          },
+          "type": {
+            "$ref": "#/components/schemas/AesxboxV2AuthorizationResponseType"
+          }
+        }
+      },
+      "AesxboxV2AuthorizationResponseType": {
+        "type": "string",
+        "enum": [
+          "None",
+          "Cancelled",
+          "Error",
+          "Code",
+          "Token"
+        ]
+      },
+      "AesxboxV2AuthorizationToken": {
+        "type": "object",
+        "properties": {
+          "user_hash": {
+            "type": "string"
+          },
+          "xsts_token": {
+            "type": "string"
+          }
+        }
       },
       "AgeRestriction": {
         "type": "object",
@@ -30877,7 +31927,7 @@
       "AgeRestrictionHomeBaseCountry": {
         "type": "object",
         "properties": {
-          "home_base_country": {
+          "homeBaseCountry": {
             "type": "string"
           }
         }
@@ -31083,6 +32133,14 @@
           "MODAL_DIALOG",
           "PASSIVE_DIPLAY"
         ]
+      },
+      "AntiAddictionHomeBaseCountry": {
+        "type": "object",
+        "properties": {
+          "homeBaseCountry": {
+            "type": "string"
+          }
+        }
       },
       "AntiAddictionPolicyType": {
         "type": "string",
@@ -32296,51 +33354,6 @@
           }
         }
       },
-      "ChatCommandTelemetry": {
-        "type": "object",
-        "properties": {
-          "commandGroupUuid": {
-            "type": "string"
-          },
-          "commandType": {
-            "type": "string"
-          },
-          "hasPromiseToFulfill": {
-            "type": "boolean"
-          },
-          "isBlocking": {
-            "type": "boolean"
-          },
-          "mutatorExecutionTimeUs": {
-            "type": "number",
-            "format": "int64"
-          },
-          "notifierExecutionTimeUs": {
-            "type": "number",
-            "format": "int64"
-          },
-          "promiseFulfillmentTimeUs": {
-            "type": "number",
-            "format": "int64"
-          },
-          "queueSize": {
-            "type": "number",
-            "format": "int64"
-          },
-          "timeInQueueMs": {
-            "type": "number",
-            "format": "int64"
-          },
-          "totalExecutionTimeUs": {
-            "type": "number",
-            "format": "int64"
-          },
-          "validatorExecutionTimeUs": {
-            "type": "number",
-            "format": "int64"
-          }
-        }
-      },
       "ChatConfigReadinessEnum": {
         "type": "string",
         "enum": [
@@ -32747,86 +33760,6 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ChatError"
-            }
-          }
-        }
-      },
-      "ChatExecutionTime": {
-        "type": "object",
-        "properties": {
-          "executionTimeUs": {
-            "type": "number",
-            "format": "int64"
-          },
-          "measurementName": {
-            "type": "string"
-          },
-          "measurementType": {
-            "$ref": "#/components/schemas/ChatMeasurementType"
-          },
-          "optionalData": {
-            "$ref": "#/components/schemas/ChatOptionalMeasurementInformation"
-          }
-        }
-      },
-      "ChatExecutionTimeSummarization": {
-        "type": "object",
-        "properties": {
-          "measurementExecutionTimeUs": {
-            "type": "number",
-            "format": "int64"
-          },
-          "measurementName": {
-            "type": "string"
-          },
-          "measurementsNum": {
-            "type": "number",
-            "format": "int32"
-          },
-          "optionalData": {
-            "$ref": "#/components/schemas/ChatOptionalMeasurementInformation"
-          },
-          "totalExecutionTimeUs": {
-            "type": "number",
-            "format": "int64"
-          }
-        }
-      },
-      "ChatExecutionTimes": {
-        "type": "object",
-        "properties": {
-          "executionTimes": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ChatExecutionTime"
-            }
-          }
-        }
-      },
-      "ChatExecutionTimesTelemetry": {
-        "type": "object",
-        "properties": {
-          "allMeasurementsExecutionTimeUs": {
-            "type": "number",
-            "format": "int64"
-          },
-          "longestCategoryMeasurementExecutionTimeUs": {
-            "type": "number",
-            "format": "int64"
-          },
-          "longestCategoryMeasurementType": {
-            "$ref": "#/components/schemas/ChatMeasurementType"
-          },
-          "longestIndividualMeasurement": {
-            "$ref": "#/components/schemas/ChatExecutionTimeSummarization"
-          },
-          "longestIndividualMeasurementType": {
-            "$ref": "#/components/schemas/ChatMeasurementType"
-          },
-          "longestMeasurements": {
-            "type": "object",
-            "additionalProperties": {
-              "$ref": "#/components/schemas/AnyType"
             }
           }
         }
@@ -33484,27 +34417,6 @@
           }
         }
       },
-      "ChatMeasurementType": {
-        "type": "string",
-        "enum": [
-          "unknown",
-          "notifyResourceCreated",
-          "notifyResourceUpdated",
-          "notifyResourceDeleted",
-          "externalRequestHead",
-          "externalRequestGet",
-          "externalRequestPost",
-          "externalRequestPut",
-          "externalRequestPatch",
-          "externalRequestDelete",
-          "queueJob",
-          "queueCommand",
-          "fulfillPromise",
-          "log",
-          "lockGrabTime",
-          "lockHoldTime"
-        ]
-      },
       "ChatMessage": {
         "type": "object",
         "properties": {
@@ -33781,32 +34693,6 @@
           "switch",
           "xbox"
         ]
-      },
-      "ChatOptionalMeasurementInformation": {
-        "type": "object",
-        "properties": {
-          "filename": {
-            "type": "string"
-          },
-          "firstGenericType": {
-            "type": "string"
-          },
-          "functionName": {
-            "type": "string"
-          },
-          "logMessage": {
-            "type": "string"
-          },
-          "logSeverity": {
-            "$ref": "#/components/schemas/ChatRiotLogLevel"
-          },
-          "secondGenericType": {
-            "type": "string"
-          },
-          "thirdGenericType": {
-            "type": "string"
-          }
-        }
       },
       "ChatParticipantEdit": {
         "type": "object",
@@ -34363,15 +35249,6 @@
           }
         }
       },
-      "ChatRiotLogLevel": {
-        "type": "string",
-        "enum": [
-          "Okay",
-          "Warning",
-          "Error",
-          "Always"
-        ]
-      },
       "ChatRiotUser": {
         "type": "object",
         "properties": {
@@ -34914,6 +35791,66 @@
           }
         }
       },
+      "ChatboxAESProvider": {
+        "type": "string",
+        "enum": [
+          "playstation",
+          "xbox",
+          "discord"
+        ]
+      },
+      "ChatboxAESProviderConfig": {
+        "type": "object",
+        "properties": {
+          "clientId": {
+            "type": "string"
+          },
+          "productMetadata": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChatboxAESProviderProductMetadata"
+            }
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ChatboxAESProviderProductMetadata": {
+        "type": "object",
+        "properties": {
+          "product": {
+            "type": "string"
+          },
+          "productClientId": {
+            "type": "string"
+          }
+        }
+      },
+      "ChatboxAESStatus": {
+        "type": "string",
+        "enum": [
+          "None",
+          "Disabled",
+          "Pending",
+          "Missing",
+          "Available"
+        ]
+      },
+      "ChatboxAESStatusResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ChatboxAESStatus"
+          }
+        }
+      },
       "ChatboxAccountState": {
         "type": "string",
         "enum": [
@@ -34968,6 +35905,9 @@
             "type": "string"
           },
           "relationshipOnConsole": {
+            "$ref": "#/components/schemas/ChatboxUserRelationship"
+          },
+          "relationshipOnDiscord": {
             "$ref": "#/components/schemas/ChatboxUserRelationship"
           },
           "relationshipOnRiot": {
@@ -35390,6 +36330,110 @@
           }
         }
       },
+      "ChatboxCrossPlayPermissions": {
+        "type": "object",
+        "properties": {
+          "hasPartyCrossPlayEnabled": {
+            "type": "boolean"
+          },
+          "hasPlayerCrossPlayEnabled": {
+            "type": "boolean"
+          },
+          "isInParty": {
+            "type": "boolean"
+          },
+          "partyMemberPlatforms": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChatboxOnlinePlatform"
+            }
+          }
+        }
+      },
+      "ChatboxDiscordInfoV4": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string"
+          },
+          "isPlayingSameTitle": {
+            "type": "boolean"
+          },
+          "onlineStatus": {
+            "$ref": "#/components/schemas/ChatboxDiscordStatusV4"
+          },
+          "relationship": {
+            "$ref": "#/components/schemas/ChatboxUserRelationship"
+          }
+        }
+      },
+      "ChatboxDiscordRegisterLaunchCommandsRequestV1": {
+        "type": "object",
+        "properties": {
+          "launchCommand": {
+            "type": "string"
+          }
+        }
+      },
+      "ChatboxDiscordRegisteredApplicationV1": {
+        "type": "object",
+        "properties": {
+          "applicationId": {
+            "type": "number",
+            "format": "int64"
+          },
+          "product": {
+            "type": "string"
+          }
+        }
+      },
+      "ChatboxDiscordRegisteredApplicationsV1": {
+        "type": "object",
+        "properties": {
+          "apps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChatboxDiscordRegisteredApplicationV1"
+            }
+          }
+        }
+      },
+      "ChatboxDiscordRelationship": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string"
+          },
+          "puuid": {
+            "type": "string"
+          },
+          "relationship": {
+            "$ref": "#/components/schemas/ChatboxUserRelationship"
+          },
+          "userId": {
+            "type": "number",
+            "format": "int64"
+          }
+        }
+      },
+      "ChatboxDiscordRelationshipList": {
+        "type": "object",
+        "properties": {
+          "relationships": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChatboxDiscordRelationship"
+            }
+          }
+        }
+      },
+      "ChatboxDiscordStatusV4": {
+        "type": "string",
+        "enum": [
+          "online",
+          "offline"
+        ]
+      },
       "ChatboxErrorCode": {
         "type": "string",
         "enum": [
@@ -35805,6 +36849,15 @@
           "activity": {
             "$ref": "#/components/schemas/ChatboxPresenceActivityV1"
           },
+          "crossPlay": {
+            "type": "boolean"
+          },
+          "crossPlayPermissions": {
+            "$ref": "#/components/schemas/ChatboxCrossPlayPermissions"
+          },
+          "discordInfo": {
+            "$ref": "#/components/schemas/ChatboxDiscordInfoV4"
+          },
           "displayGroup": {
             "type": "string"
           },
@@ -35879,6 +36932,9 @@
           },
           "show": {
             "$ref": "#/components/schemas/ChatboxPresenceShowV1"
+          },
+          "state": {
+            "type": "string"
           },
           "statusMessage": {
             "type": "string"
@@ -36691,6 +37747,15 @@
       "ChatboxPresencePartyV1": {
         "type": "object",
         "properties": {
+          "actions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "crossPlay": {
+            "type": "boolean"
+          },
           "currentSize": {
             "type": "number",
             "format": "int64"
@@ -36704,12 +37769,21 @@
           "maxSize": {
             "type": "number",
             "format": "int64"
+          },
+          "platforms": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
       "ChatboxPresencePlayerV1": {
         "type": "object",
         "properties": {
+          "crossPlay": {
+            "type": "boolean"
+          },
           "profileBanner": {
             "type": "string"
           },
@@ -36718,6 +37792,44 @@
           },
           "show": {
             "$ref": "#/components/schemas/ChatboxPresenceShowV1"
+          },
+          "state": {
+            "type": "string"
+          }
+        }
+      },
+      "ChatboxPresenceSessionV1": {
+        "type": "object",
+        "properties": {
+          "activity": {
+            "$ref": "#/components/schemas/ChatboxPresenceActivityV1"
+          },
+          "crossPlayPermissions": {
+            "$ref": "#/components/schemas/ChatboxCrossPlayPermissions"
+          },
+          "party": {
+            "$ref": "#/components/schemas/ChatboxPresencePartyV1"
+          },
+          "patchline": {
+            "type": "string"
+          },
+          "platform": {
+            "type": "string"
+          },
+          "player": {
+            "$ref": "#/components/schemas/ChatboxPresencePlayerV1"
+          },
+          "product": {
+            "type": "string"
+          },
+          "productData": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AnyType"
+            }
+          },
+          "region": {
+            "type": "string"
           }
         }
       },
@@ -36736,6 +37848,9 @@
         "properties": {
           "activity": {
             "$ref": "#/components/schemas/ChatboxPresenceActivityV1"
+          },
+          "crossPlayPermissions": {
+            "$ref": "#/components/schemas/ChatboxCrossPlayPermissions"
           },
           "party": {
             "$ref": "#/components/schemas/ChatboxPresencePartyV1"
@@ -37529,13 +38644,58 @@
           "up_to_date",
           "needs_repair",
           "not_installed",
-          "repairing",
           "bad_install_path",
+          "repairing",
           "status_error",
           "checking_for_update",
           "dependency_update",
           "paused"
         ]
+      },
+      "CommandTelemetry": {
+        "type": "object",
+        "properties": {
+          "commandGroupUuid": {
+            "type": "string"
+          },
+          "commandType": {
+            "type": "string"
+          },
+          "hasPromiseToFulfill": {
+            "type": "boolean"
+          },
+          "isBlocking": {
+            "type": "boolean"
+          },
+          "mutatorExecutionTimeUs": {
+            "type": "number",
+            "format": "int64"
+          },
+          "notifierExecutionTimeUs": {
+            "type": "number",
+            "format": "int64"
+          },
+          "promiseFulfillmentTimeUs": {
+            "type": "number",
+            "format": "int64"
+          },
+          "queueSize": {
+            "type": "number",
+            "format": "int64"
+          },
+          "timeInQueueMs": {
+            "type": "number",
+            "format": "int64"
+          },
+          "totalExecutionTimeUs": {
+            "type": "number",
+            "format": "int64"
+          },
+          "validatorExecutionTimeUs": {
+            "type": "number",
+            "format": "int64"
+          }
+        }
       },
       "CommercePluginCallerId_MockCallerId": {
         "type": "object",
@@ -38246,6 +39406,70 @@
           }
         }
       },
+      "DiscordAccountAccountPluginTelemetryEvent": {
+        "type": "object",
+        "properties": {
+          "durationMs": {
+            "type": "number",
+            "format": "int32"
+          },
+          "operation": {
+            "type": "string"
+          },
+          "responseType": {
+            "type": "string"
+          },
+          "result": {
+            "type": "string"
+          }
+        }
+      },
+      "DiscordAccountDiscordAuthorizationError": {
+        "type": "string",
+        "enum": [
+          "unknown"
+        ]
+      },
+      "DiscordAccountDiscordAuthorizationParameters": {
+        "type": "object",
+        "properties": {
+          "discordClientId": {
+            "type": "string"
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "DiscordAccountDiscordAuthorizationResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "error": {
+            "$ref": "#/components/schemas/DiscordAccountDiscordAuthorizationError"
+          },
+          "redirectUri": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/DiscordAccountDiscordAuthorizationResponseType"
+          }
+        }
+      },
+      "DiscordAccountDiscordAuthorizationResponseType": {
+        "type": "string",
+        "enum": [
+          "none",
+          "cancelled",
+          "error",
+          "code"
+        ]
+      },
       "DownloadProgress": {
         "type": "object",
         "properties": {
@@ -38592,6 +39816,86 @@
           },
           "region": {
             "type": "string"
+          }
+        }
+      },
+      "ExecutionTime": {
+        "type": "object",
+        "properties": {
+          "executionTimeUs": {
+            "type": "number",
+            "format": "int64"
+          },
+          "measurementName": {
+            "type": "string"
+          },
+          "measurementType": {
+            "$ref": "#/components/schemas/MeasurementType"
+          },
+          "optionalData": {
+            "$ref": "#/components/schemas/OptionalMeasurementInformation"
+          }
+        }
+      },
+      "ExecutionTimeSummarization": {
+        "type": "object",
+        "properties": {
+          "measurementExecutionTimeUs": {
+            "type": "number",
+            "format": "int64"
+          },
+          "measurementName": {
+            "type": "string"
+          },
+          "measurementsNum": {
+            "type": "number",
+            "format": "int32"
+          },
+          "optionalData": {
+            "$ref": "#/components/schemas/OptionalMeasurementInformation"
+          },
+          "totalExecutionTimeUs": {
+            "type": "number",
+            "format": "int64"
+          }
+        }
+      },
+      "ExecutionTimes": {
+        "type": "object",
+        "properties": {
+          "executionTimes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExecutionTime"
+            }
+          }
+        }
+      },
+      "ExecutionTimesTelemetry": {
+        "type": "object",
+        "properties": {
+          "allMeasurementsExecutionTimeUs": {
+            "type": "number",
+            "format": "int64"
+          },
+          "longestCategoryMeasurementExecutionTimeUs": {
+            "type": "number",
+            "format": "int64"
+          },
+          "longestCategoryMeasurementType": {
+            "$ref": "#/components/schemas/MeasurementType"
+          },
+          "longestIndividualMeasurement": {
+            "$ref": "#/components/schemas/ExecutionTimeSummarization"
+          },
+          "longestIndividualMeasurementType": {
+            "$ref": "#/components/schemas/MeasurementType"
+          },
+          "longestMeasurements": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AnyType"
+            }
           }
         }
       },
@@ -39266,9 +40570,6 @@
       "ExternalMessageHandlerProductPatchlineProgress": {
         "type": "object",
         "properties": {
-          "launchable": {
-            "type": "boolean"
-          },
           "overallProgress": {
             "type": "number",
             "format": "double"
@@ -39331,6 +40632,9 @@
       "ExternalMessageHandlerProductPatchlineStatus": {
         "type": "object",
         "properties": {
+          "launchable": {
+            "type": "boolean"
+          },
           "state": {
             "$ref": "#/components/schemas/ExternalMessageHandlerState"
           },
@@ -40717,6 +42021,9 @@
       "GameSessionAccessToken": {
         "type": "object",
         "properties": {
+          "clientId": {
+            "type": "string"
+          },
           "expiry": {
             "type": "number",
             "format": "int64"
@@ -41126,38 +42433,23 @@
           }
         }
       },
-      "GameSessionDeviceId": {
+      "GameSessionEntitlementsTokenResource": {
         "type": "object",
         "properties": {
-          "collectorServerName": {
+          "accessToken": {
             "type": "string"
           },
-          "frameUrl": {
-            "type": "string"
-          },
-          "installId": {
-            "type": "string"
-          },
-          "merchantId": {
-            "type": "string"
-          },
-          "sessionId": {
-            "type": "string"
-          }
-        }
-      },
-      "GameSessionEntitlementsToken": {
-        "type": "object",
-        "properties": {
           "entitlements": {
             "type": "array",
             "items": {
               "type": "string"
             }
           },
-          "expiry": {
-            "type": "number",
-            "format": "int64"
+          "issuer": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
           },
           "token": {
             "type": "string"
@@ -41413,9 +42705,15 @@
       "GameSessionIdToken": {
         "type": "object",
         "properties": {
+          "clientId": {
+            "type": "string"
+          },
           "expiry": {
             "type": "number",
             "format": "int64"
+          },
+          "nonce": {
+            "type": "string"
           },
           "token": {
             "type": "string"
@@ -41850,12 +43148,6 @@
           "currentPlatformId": {
             "type": "string"
           },
-          "entitlementsToken": {
-            "$ref": "#/components/schemas/GameSessionTokenContext"
-          },
-          "hasGasToken": {
-            "type": "boolean"
-          },
           "hasRefreshToken": {
             "type": "boolean"
           },
@@ -42123,6 +43415,9 @@
           "cltkeyLength": {
             "type": "string"
           },
+          "ext_str": {
+            "type": "string"
+          },
           "gameSignatureLength": {
             "type": "string"
           },
@@ -42139,12 +43434,6 @@
         "properties": {
           "clientId": {
             "type": "string"
-          },
-          "entitlements": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
           },
           "expiry": {
             "type": "number",
@@ -42329,6 +43618,28 @@
           "error",
           "token",
           "code"
+        ]
+      },
+      "GoogleAccountGoogleNativeGoogleAccountResult": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/GoogleAccountGoogleAuthorizationError"
+          },
+          "idToken": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/GoogleAccountGoogleNativeGoogleAccountResultType"
+          }
+        }
+      },
+      "GoogleAccountGoogleNativeGoogleAccountResultType": {
+        "type": "string",
+        "enum": [
+          "cancelled",
+          "success",
+          "error"
         ]
       },
       "GoogleAccountPluginConfigResponse": {
@@ -42637,12 +43948,36 @@
           }
         }
       },
+      "IntegrationTestDesiredMode": {
+        "type": "string",
+        "enum": [
+          "Suspending",
+          "Resuming"
+        ]
+      },
+      "IntegrationTestMode": {
+        "type": "string",
+        "enum": [
+          "Suspending",
+          "Suspended",
+          "Resuming",
+          "NormalOperation"
+        ]
+      },
       "IntegrationTestRequestMethod": {
         "type": "string",
         "enum": [
           "GET",
           "POST"
         ]
+      },
+      "IntegrationTestSetModeRequest": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "$ref": "#/components/schemas/IntegrationTestDesiredMode"
+          }
+        }
       },
       "IntegrationTestV1ExternalRequest": {
         "type": "object",
@@ -42749,6 +44084,101 @@
             "type": "string"
           }
         }
+      },
+      "KeypairAccountAccountPluginTelemetryEvent": {
+        "type": "object",
+        "properties": {
+          "durationMs": {
+            "type": "number",
+            "format": "int32"
+          },
+          "operation": {
+            "type": "string"
+          },
+          "responseType": {
+            "type": "string"
+          },
+          "result": {
+            "type": "string"
+          }
+        }
+      },
+      "KeypairAccountKeyPairAttestationStatusType": {
+        "type": "string",
+        "enum": [
+          "PendingInitialCheck",
+          "InitialCheckFailed",
+          "PendingConfig",
+          "PendingAttestation",
+          "LocalVerificationFailed",
+          "ServerVerificationFailed",
+          "DisabledByConfig",
+          "DisabledByRollout",
+          "Success"
+        ]
+      },
+      "KeypairAccountKeyPairAuthorizationError": {
+        "type": "string",
+        "enum": [
+          "missing_credentials",
+          "unsupported",
+          "unknown"
+        ]
+      },
+      "KeypairAccountKeyPairAuthorizationParameters": {
+        "type": "object",
+        "properties": {
+          "locale": {
+            "type": "string"
+          }
+        }
+      },
+      "KeypairAccountKeyPairAuthorizationResponse": {
+        "type": "object",
+        "properties": {
+          "assertion": {
+            "type": "string"
+          },
+          "attestation": {
+            "type": "string"
+          },
+          "error": {
+            "$ref": "#/components/schemas/KeypairAccountKeyPairAuthorizationError"
+          },
+          "type": {
+            "$ref": "#/components/schemas/KeypairAccountKeyPairAuthorizationResponseType"
+          }
+        }
+      },
+      "KeypairAccountKeyPairAuthorizationResponseType": {
+        "type": "string",
+        "enum": [
+          "none",
+          "error",
+          "keypair"
+        ]
+      },
+      "KeypairAccountKeyPairStatus": {
+        "type": "object",
+        "properties": {
+          "attestationStatus": {
+            "$ref": "#/components/schemas/KeypairAccountKeyPairAttestationStatusType"
+          },
+          "publicKey": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/KeypairAccountKeyPairStatusType"
+          }
+        }
+      },
+      "KeypairAccountKeyPairStatusType": {
+        "type": "string",
+        "enum": [
+          "initializing",
+          "keypair_supported",
+          "keypair_unsupported"
+        ]
       },
       "KrAccountAccessToken": {
         "type": "object",
@@ -42989,6 +44419,14 @@
             "type": "string"
           },
           "productId": {
+            "type": "string"
+          }
+        }
+      },
+      "LoyaltyV2HomeBaseCountry": {
+        "type": "object",
+        "properties": {
+          "homeBaseCountry": {
             "type": "string"
           }
         }
@@ -43749,6 +45187,27 @@
           }
         }
       },
+      "MeasurementType": {
+        "type": "string",
+        "enum": [
+          "unknown",
+          "notifyResourceCreated",
+          "notifyResourceUpdated",
+          "notifyResourceDeleted",
+          "externalRequestHead",
+          "externalRequestGet",
+          "externalRequestPost",
+          "externalRequestPut",
+          "externalRequestPatch",
+          "externalRequestDelete",
+          "queueJob",
+          "queueCommand",
+          "fulfillPromise",
+          "log",
+          "lockGrabTime",
+          "lockHoldTime"
+        ]
+      },
       "MiddlewareManagerPhase": {
         "type": "string",
         "enum": [
@@ -43910,6 +45369,30 @@
           },
           "token": {
             "type": "string"
+          }
+        }
+      },
+      "ModeManagerDesiredMode": {
+        "type": "string",
+        "enum": [
+          "Suspending",
+          "Resuming"
+        ]
+      },
+      "ModeManagerMode": {
+        "type": "string",
+        "enum": [
+          "Suspending",
+          "Suspended",
+          "Resuming",
+          "NormalOperation"
+        ]
+      },
+      "ModeManagerSetModeRequest": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "$ref": "#/components/schemas/ModeManagerDesiredMode"
           }
         }
       },
@@ -44398,6 +45881,32 @@
           "xbox"
         ]
       },
+      "OptionalMeasurementInformation": {
+        "type": "object",
+        "properties": {
+          "filename": {
+            "type": "string"
+          },
+          "firstGenericType": {
+            "type": "string"
+          },
+          "functionName": {
+            "type": "string"
+          },
+          "logMessage": {
+            "type": "string"
+          },
+          "logSeverity": {
+            "$ref": "#/components/schemas/RiotLogLevel"
+          },
+          "secondGenericType": {
+            "type": "string"
+          },
+          "thirdGenericType": {
+            "type": "string"
+          }
+        }
+      },
       "PatchConfiguration": {
         "type": "object",
         "properties": {
@@ -44803,24 +46312,52 @@
           }
         }
       },
-      "PatchProxyArtifactPatchUrlOverride": {
+      "PatchProxyArtifactReleaseIdOverride": {
         "type": "object",
         "properties": {
           "artifactId": {
             "type": "string"
           },
-          "patchUrl": {
+          "overrideReleaseId": {
             "type": "string"
           }
         }
       },
-      "PatchProxyArtifactPatchUrlOverrideRequest": {
+      "PatchProxyArtifactReleaseIdOverrideRequest": {
         "type": "object",
         "properties": {
           "artifacts": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/PatchProxyArtifactPatchUrlOverride"
+              "$ref": "#/components/schemas/PatchProxyArtifactReleaseIdOverride"
+            }
+          }
+        }
+      },
+      "PatchProxyArtifactReleaseIds": {
+        "type": "object",
+        "properties": {
+          "artifactId": {
+            "type": "string"
+          },
+          "currentReleaseId": {
+            "type": "string"
+          },
+          "targetReleaseId": {
+            "type": "string"
+          },
+          "overrideReleaseId": {
+            "type": "string"
+          }
+        }
+      },
+      "PatchProxyArtifactReleaseIdsResponse": {
+        "type": "object",
+        "properties": {
+          "artifacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PatchProxyArtifactReleaseIds"
             }
           }
         }
@@ -45091,6 +46628,26 @@
           }
         }
       },
+      "PatchProxyErrorCode": {
+        "type": "string",
+        "enum": [
+          "OK",
+          "Unspecified",
+          "Cancelled",
+          "NotEnoughDiskSpace",
+          "AccessDenied",
+          "FileNotFound",
+          "DownloaderConnection",
+          "DownloaderClientError",
+          "DownloaderServerError",
+          "DownloaderAuthorization",
+          "DownloadedCorruptData",
+          "CorruptData",
+          "AddressResolutionFailed",
+          "FileLocked",
+          "InvalidArgument"
+        ]
+      },
       "PatchProxyEventType": {
         "type": "string",
         "enum": [
@@ -45318,11 +46875,11 @@
           "createShortcut": {
             "type": "boolean"
           },
-          "installPath": {
-            "type": "string"
-          },
           "isRepair": {
             "type": "boolean"
+          },
+          "installPath": {
+            "type": "string"
           }
         }
       },
@@ -45400,6 +46957,14 @@
             }
           }
         }
+      },
+      "PatchProxyPatchlineInstallState": {
+        "type": "string",
+        "enum": [
+          "unknown",
+          "not_installed",
+          "installed"
+        ]
       },
       "PatchProxyPatchlineResource": {
         "type": "object",
@@ -45588,6 +47153,66 @@
           }
         }
       },
+      "PatchProxyProductPatchlineDependency": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "minVersion": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "hash": {
+            "type": "string"
+          },
+          "args": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "validExitCodes": {
+            "type": "string"
+          },
+          "elevate": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PatchProxyProductPatchlineDependencyState": {
+        "type": "object",
+        "properties": {
+          "dependency": {
+            "$ref": "#/components/schemas/PatchProxyProductPatchlineDependency"
+          },
+          "phase": {
+            "$ref": "#/components/schemas/ThirdPartyDependencyStatusPhase"
+          }
+        }
+      },
+      "PatchProxyProductPatchlineInstallState": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "has_installed_patchline": {
+            "type": "boolean"
+          },
+          "patchline_install_states": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/PatchProxyPatchlineInstallState"
+            }
+          }
+        }
+      },
       "PatchProxyProductPatchlineKey": {
         "type": "object",
         "properties": {
@@ -45602,9 +47227,6 @@
       "PatchProxyProductPatchlineProgress": {
         "type": "object",
         "properties": {
-          "launchable": {
-            "type": "boolean"
-          },
           "overallProgress": {
             "type": "number",
             "format": "double"
@@ -45667,6 +47289,9 @@
       "PatchProxyProductPatchlineStatus": {
         "type": "object",
         "properties": {
+          "launchable": {
+            "type": "boolean"
+          },
           "state": {
             "$ref": "#/components/schemas/PatchProxyState"
           },
@@ -45675,6 +47300,20 @@
           },
           "progress": {
             "$ref": "#/components/schemas/PatchProxyProductPatchlineProgress"
+          },
+          "error": {
+            "$ref": "#/components/schemas/PatchProxyProductPatchlineStatusError"
+          }
+        }
+      },
+      "PatchProxyProductPatchlineStatusError": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/PatchProxyErrorCode"
+          },
+          "message": {
+            "type": "string"
           }
         }
       },
@@ -46341,6 +47980,38 @@
           }
         }
       },
+      "PayMobileExternalProduct": {
+        "type": "object",
+        "properties": {
+          "amountInCents": {
+            "type": "number",
+            "format": "int32"
+          },
+          "currencyCode": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "formattedPrice": {
+            "type": "string"
+          },
+          "productId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "virtualAmount": {
+            "type": "number",
+            "format": "int32"
+          },
+          "virtualBonusAmount": {
+            "type": "number",
+            "format": "int32"
+          }
+        }
+      },
       "PayMobileInitializePurchaseResponse": {
         "type": "object",
         "properties": {
@@ -46379,6 +48050,9 @@
           "productId": {
             "type": "string"
           },
+          "riotSku": {
+            "type": "string"
+          },
           "virtualAmount": {
             "type": "number",
             "format": "int32"
@@ -46401,6 +48075,9 @@
           },
           "description": {
             "type": "string"
+          },
+          "externalProduct": {
+            "$ref": "#/components/schemas/PayMobileExternalProduct"
           },
           "formattedPrice": {
             "type": "string"
@@ -46550,6 +48227,41 @@
             "format": "int64"
           },
           "transactionId": {
+            "type": "string"
+          }
+        }
+      },
+      "PayMobileRegionalPricePoint": {
+        "type": "object",
+        "properties": {
+          "externalSku": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "realAmountCents": {
+            "type": "number",
+            "format": "int64"
+          },
+          "realCurrencyCode": {
+            "type": "string"
+          },
+          "riotSku": {
+            "type": "string"
+          },
+          "virtualAmount": {
+            "type": "number",
+            "format": "int32"
+          },
+          "virtualBonusAmount": {
+            "type": "number",
+            "format": "int32"
+          },
+          "virtualCurrencyCode": {
+            "type": "string"
+          },
+          "virtualCurrencyName": {
             "type": "string"
           }
         }
@@ -48406,6 +50118,66 @@
           }
         }
       },
+      "PlatformUiAESProvider": {
+        "type": "string",
+        "enum": [
+          "playstation",
+          "xbox",
+          "discord"
+        ]
+      },
+      "PlatformUiAESProviderConfig": {
+        "type": "object",
+        "properties": {
+          "clientId": {
+            "type": "string"
+          },
+          "productMetadata": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlatformUiAESProviderProductMetadata"
+            }
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "PlatformUiAESProviderProductMetadata": {
+        "type": "object",
+        "properties": {
+          "product": {
+            "type": "string"
+          },
+          "productClientId": {
+            "type": "string"
+          }
+        }
+      },
+      "PlatformUiAESStatus": {
+        "type": "string",
+        "enum": [
+          "None",
+          "Disabled",
+          "Pending",
+          "Missing",
+          "Available"
+        ]
+      },
+      "PlatformUiAESStatusResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/PlatformUiAESStatus"
+          }
+        }
+      },
       "PlatformUiAccessToken": {
         "type": "object",
         "properties": {
@@ -48708,7 +50480,8 @@
         "type": "string",
         "enum": [
           "SignIn",
-          "CreateAccount"
+          "CreateAccount",
+          "GuestAccount"
         ]
       },
       "PlatformUiAuthenticateMultifactorInput": {
@@ -49296,25 +51069,51 @@
           }
         }
       },
-      "PlatformUiDeviceId": {
+      "PlatformUiDiscordAuthorizationError": {
+        "type": "string",
+        "enum": [
+          "unknown"
+        ]
+      },
+      "PlatformUiDiscordAuthorizationParameters": {
         "type": "object",
         "properties": {
-          "collectorServerName": {
+          "discordClientId": {
             "type": "string"
           },
-          "frameUrl": {
-            "type": "string"
-          },
-          "installId": {
-            "type": "string"
-          },
-          "merchantId": {
-            "type": "string"
-          },
-          "sessionId": {
-            "type": "string"
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
+      },
+      "PlatformUiDiscordAuthorizationResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "error": {
+            "$ref": "#/components/schemas/PlatformUiDiscordAuthorizationError"
+          },
+          "redirectUri": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/PlatformUiDiscordAuthorizationResponseType"
+          }
+        }
+      },
+      "PlatformUiDiscordAuthorizationResponseType": {
+        "type": "string",
+        "enum": [
+          "none",
+          "cancelled",
+          "error",
+          "code"
+        ]
       },
       "PlatformUiDynamicTagHeuristics": {
         "type": "object",
@@ -49362,18 +51161,23 @@
           }
         }
       },
-      "PlatformUiEntitlementsToken": {
+      "PlatformUiEntitlementsTokenResource": {
         "type": "object",
         "properties": {
+          "accessToken": {
+            "type": "string"
+          },
           "entitlements": {
             "type": "array",
             "items": {
               "type": "string"
             }
           },
-          "expiry": {
-            "type": "number",
-            "format": "int64"
+          "issuer": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
           },
           "token": {
             "type": "string"
@@ -50192,7 +51996,8 @@
           "xbox",
           "playstation",
           "okta",
-          "qrcode"
+          "qrcode",
+          "keypair"
         ]
       },
       "PlatformUiLoginToken": {
@@ -50323,6 +52128,7 @@
           "LoLRegionSelection",
           "RiotIDPrompt",
           "LoginQueue",
+          "AccountLinking",
           "Error"
         ]
       },
@@ -50332,6 +52138,7 @@
           "FRE",
           "VNGEditProfile",
           "RiotID",
+          "AccountLinking",
           "AccountDeletion"
         ]
       },
@@ -50912,6 +52719,12 @@
               "type": "string"
             }
           },
+          "rso_claims": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "rso_client_id": {
             "type": "string"
           },
@@ -50975,6 +52788,17 @@
           }
         }
       },
+      "PlatformUiPlatformUIAccountLinkingStatus": {
+        "type": "object",
+        "properties": {
+          "available": {
+            "type": "boolean"
+          },
+          "visible": {
+            "type": "boolean"
+          }
+        }
+      },
       "PlatformUiPlatformUIError": {
         "type": "object",
         "properties": {
@@ -50982,6 +52806,32 @@
             "$ref": "#/components/schemas/PlatformUierrorState"
           },
           "recoverable": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PlatformUiPlatformUILinkDiscordError": {
+        "type": "string",
+        "enum": [
+          "account_already_linked",
+          "rate_limited",
+          "disabled",
+          "unknown"
+        ]
+      },
+      "PlatformUiPlatformUILinkDiscordStatus": {
+        "type": "object",
+        "properties": {
+          "available": {
+            "type": "boolean"
+          },
+          "error": {
+            "$ref": "#/components/schemas/PlatformUiPlatformUILinkDiscordError"
+          },
+          "linked": {
+            "type": "boolean"
+          },
+          "visible": {
             "type": "boolean"
           }
         }
@@ -51105,10 +52955,31 @@
           "actionRequired": {
             "type": "boolean"
           },
+          "availableAccountCreationStrategies": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "availableAuthIntents": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "availableLoginStrategies": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "config": {
             "$ref": "#/components/schemas/PlatformUiInitiateLoginSessionRequest"
           },
           "errorCode": {
+            "type": "string"
+          },
+          "errorDescription": {
             "type": "string"
           },
           "gameSessionId": {
@@ -51129,6 +53000,18 @@
           "persistence": {
             "$ref": "#/components/schemas/PlatformUiPersistence"
           },
+          "providers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "puuid": {
+            "type": "string"
+          },
+          "riotID": {
+            "$ref": "#/components/schemas/PlatformUiGameNameAndTagLine"
+          },
           "suggestedActions": {
             "type": "array",
             "items": {
@@ -51140,6 +53023,9 @@
             "additionalProperties": {
               "$ref": "#/components/schemas/AnyType"
             }
+          },
+          "userInfoRaw": {
+            "type": "string"
           }
         }
       },
@@ -51154,6 +53040,7 @@
           "PendingPersistenceInitialization",
           "RestoreAuthorization",
           "PendingCreateAuthorization",
+          "PendingAuthIntentData",
           "PendingAuthIntent",
           "PendingLoginStrategyData",
           "PendingLoginStrategy",
@@ -51164,6 +53051,7 @@
           "PendingProviderCredentials",
           "PlatformAgeRestricted",
           "PendingAuthentication",
+          "KeyPairError",
           "PendingKRIdVerification",
           "PendingSignup",
           "SignupAgeRestricted",
@@ -51189,6 +53077,8 @@
           "PendingAccountEntitlementData",
           "MissingAccountEntitlement",
           "PendingUserInfoData",
+          "PendingPersistentFlagsData",
+          "PendingRecoverableAccount",
           "PendingAffinityData",
           "PendingLoginQueueData",
           "PendingLoginQueueBypass",
@@ -51499,12 +53389,6 @@
           "currentPlatformId": {
             "type": "string"
           },
-          "entitlementsToken": {
-            "$ref": "#/components/schemas/PlatformUiTokenContext"
-          },
-          "hasGasToken": {
-            "type": "boolean"
-          },
           "hasRefreshToken": {
             "type": "boolean"
           },
@@ -51696,6 +53580,34 @@
             "type": "string"
           },
           "state": {
+            "type": "string"
+          }
+        }
+      },
+      "PlatformUiRiotIdentityLoginRequest": {
+        "type": "object",
+        "properties": {
+          "campaign": {
+            "type": "string"
+          },
+          "captcha": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          }
+        }
+      },
+      "PlatformUiRiotIdentityLoginResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
             "type": "string"
           }
         }
@@ -52028,6 +53940,9 @@
           "cltkeyLength": {
             "type": "string"
           },
+          "ext_str": {
+            "type": "string"
+          },
           "gameSignatureLength": {
             "type": "string"
           },
@@ -52044,12 +53959,6 @@
         "properties": {
           "clientId": {
             "type": "string"
-          },
-          "entitlements": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
           },
           "expiry": {
             "type": "number",
@@ -52521,6 +54430,9 @@
       "PlayerAccountAccessToken": {
         "type": "object",
         "properties": {
+          "clientId": {
+            "type": "string"
+          },
           "expiry": {
             "type": "number",
             "format": "int64"
@@ -53076,26 +54988,6 @@
           }
         }
       },
-      "PlayerAccountDeviceId": {
-        "type": "object",
-        "properties": {
-          "collectorServerName": {
-            "type": "string"
-          },
-          "frameUrl": {
-            "type": "string"
-          },
-          "installId": {
-            "type": "string"
-          },
-          "merchantId": {
-            "type": "string"
-          },
-          "sessionId": {
-            "type": "string"
-          }
-        }
-      },
       "PlayerAccountEligibilityResponse": {
         "type": "object",
         "properties": {
@@ -53114,24 +55006,6 @@
           },
           "isTagLineCustomizable": {
             "type": "boolean"
-          }
-        }
-      },
-      "PlayerAccountEntitlementsToken": {
-        "type": "object",
-        "properties": {
-          "entitlements": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "expiry": {
-            "type": "number",
-            "format": "int64"
-          },
-          "token": {
-            "type": "string"
           }
         }
       },
@@ -53261,9 +55135,15 @@
       "PlayerAccountIdToken": {
         "type": "object",
         "properties": {
+          "clientId": {
+            "type": "string"
+          },
           "expiry": {
             "type": "number",
             "format": "int64"
+          },
+          "nonce": {
+            "type": "string"
           },
           "token": {
             "type": "string"
@@ -54175,12 +56055,6 @@
           "currentPlatformId": {
             "type": "string"
           },
-          "entitlementsToken": {
-            "$ref": "#/components/schemas/PlayerAccountTokenContext"
-          },
-          "hasGasToken": {
-            "type": "boolean"
-          },
           "hasRefreshToken": {
             "type": "boolean"
           },
@@ -54555,6 +56429,9 @@
           "cltkeyLength": {
             "type": "string"
           },
+          "ext_str": {
+            "type": "string"
+          },
           "gameSignatureLength": {
             "type": "string"
           },
@@ -54571,12 +56448,6 @@
         "properties": {
           "clientId": {
             "type": "string"
-          },
-          "entitlements": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
           },
           "expiry": {
             "type": "number",
@@ -55246,6 +57117,9 @@
       "PlayerBehaviorTokenAccessToken": {
         "type": "object",
         "properties": {
+          "clientId": {
+            "type": "string"
+          },
           "expiry": {
             "type": "number",
             "format": "int64"
@@ -55980,6 +57854,10 @@
           "conversationContext": {
             "$ref": "#/components/schemas/PlayerReportingUnsignedConversationContext"
           },
+          "incidentTimestampMillis": {
+            "type": "number",
+            "format": "int64"
+          },
           "location": {
             "type": "string"
           },
@@ -56121,7 +57999,8 @@
         "type": "string",
         "enum": [
           "SignIn",
-          "CreateAccount"
+          "CreateAccount",
+          "GuestAccount"
         ]
       },
       "PlayerSessionLifecycleAuthMethodConfig": {
@@ -56219,6 +58098,9 @@
         "properties": {
           "auth": {
             "$ref": "#/components/schemas/PlayerSessionLifecycleAuthResponseDetails"
+          },
+          "captcha": {
+            "$ref": "#/components/schemas/PlayerSessionLifecycleV1Captcha"
           },
           "cluster": {
             "type": "string"
@@ -56506,24 +58388,6 @@
           }
         }
       },
-      "PlayerSessionLifecycleEntitlementsToken": {
-        "type": "object",
-        "properties": {
-          "entitlements": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "expiry": {
-            "type": "number",
-            "format": "int64"
-          },
-          "token": {
-            "type": "string"
-          }
-        }
-      },
       "PlayerSessionLifecycleEntitlementsTokenResourceV2": {
         "type": "object",
         "properties": {
@@ -56532,6 +58396,38 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "PlayerSessionLifecycleExternalProduct": {
+        "type": "object",
+        "properties": {
+          "amountInCents": {
+            "type": "number",
+            "format": "int32"
+          },
+          "currencyCode": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "formattedPrice": {
+            "type": "string"
+          },
+          "productId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "virtualAmount": {
+            "type": "number",
+            "format": "int32"
+          },
+          "virtualBonusAmount": {
+            "type": "number",
+            "format": "int32"
           }
         }
       },
@@ -56931,14 +58827,6 @@
           }
         }
       },
-      "PlayerSessionLifecycleHomeBaseCountry": {
-        "type": "object",
-        "properties": {
-          "home_base_country": {
-            "type": "string"
-          }
-        }
-      },
       "PlayerSessionLifecycleIdToken": {
         "type": "object",
         "properties": {
@@ -57017,6 +58905,83 @@
           }
         }
       },
+      "PlayerSessionLifecycleKeyPairAttestationStatusType": {
+        "type": "string",
+        "enum": [
+          "PendingInitialCheck",
+          "InitialCheckFailed",
+          "PendingConfig",
+          "PendingAttestation",
+          "LocalVerificationFailed",
+          "ServerVerificationFailed",
+          "DisabledByConfig",
+          "DisabledByRollout",
+          "Success"
+        ]
+      },
+      "PlayerSessionLifecycleKeyPairAuthorizationError": {
+        "type": "string",
+        "enum": [
+          "missing_credentials",
+          "unsupported",
+          "unknown"
+        ]
+      },
+      "PlayerSessionLifecycleKeyPairAuthorizationParameters": {
+        "type": "object",
+        "properties": {
+          "locale": {
+            "type": "string"
+          }
+        }
+      },
+      "PlayerSessionLifecycleKeyPairAuthorizationResponse": {
+        "type": "object",
+        "properties": {
+          "assertion": {
+            "type": "string"
+          },
+          "attestation": {
+            "type": "string"
+          },
+          "error": {
+            "$ref": "#/components/schemas/PlayerSessionLifecycleKeyPairAuthorizationError"
+          },
+          "type": {
+            "$ref": "#/components/schemas/PlayerSessionLifecycleKeyPairAuthorizationResponseType"
+          }
+        }
+      },
+      "PlayerSessionLifecycleKeyPairAuthorizationResponseType": {
+        "type": "string",
+        "enum": [
+          "none",
+          "error",
+          "keypair"
+        ]
+      },
+      "PlayerSessionLifecycleKeyPairStatus": {
+        "type": "object",
+        "properties": {
+          "attestationStatus": {
+            "$ref": "#/components/schemas/PlayerSessionLifecycleKeyPairAttestationStatusType"
+          },
+          "publicKey": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PlayerSessionLifecycleKeyPairStatusType"
+          }
+        }
+      },
+      "PlayerSessionLifecycleKeyPairStatusType": {
+        "type": "string",
+        "enum": [
+          "initializing",
+          "keypair_supported",
+          "keypair_unsupported"
+        ]
+      },
       "PlayerSessionLifecycleLaunchRestrictions": {
         "type": "object",
         "properties": {
@@ -57089,7 +59054,8 @@
           "xbox",
           "playstation",
           "okta",
-          "qrcode"
+          "qrcode",
+          "keypair"
         ]
       },
       "PlayerSessionLifecycleLoginToken": {
@@ -57114,6 +59080,23 @@
             }
           }
         }
+      },
+      "PlayerSessionLifecycleMobileStoreStatus": {
+        "type": "string",
+        "enum": [
+          "Success",
+          "Initialized",
+          "FailedToInitialize",
+          "GenericError",
+          "PermissionDenied",
+          "PurchaseCancelled",
+          "PurchaseInProgress",
+          "PurchaseFailed",
+          "PurchaseNotConsumed",
+          "PurchaseConsumed",
+          "ProductNotAvailable",
+          "Error"
+        ]
       },
       "PlayerSessionLifecycleMultifactorDetails": {
         "type": "object",
@@ -57436,6 +59419,13 @@
           }
         }
       },
+      "PlayerSessionLifecyclePlatformType": {
+        "type": "string",
+        "enum": [
+          "HomebaseCountry",
+          "LolShard"
+        ]
+      },
       "PlayerSessionLifecyclePlatformUser": {
         "type": "object",
         "properties": {
@@ -57548,6 +59538,12 @@
               "type": "string"
             }
           },
+          "availableAuthIntents": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "availableLoginStrategies": {
             "type": "array",
             "items": {
@@ -57556,6 +59552,9 @@
           },
           "config": {
             "$ref": "#/components/schemas/PlayerSessionLifecycleInitiateLoginSessionRequest"
+          },
+          "country": {
+            "type": "string"
           },
           "errorCode": {
             "type": "string"
@@ -57621,6 +59620,7 @@
           "PendingPersistenceInitialization",
           "RestoreAuthorization",
           "PendingCreateAuthorization",
+          "PendingAuthIntentData",
           "PendingAuthIntent",
           "PendingLoginStrategyData",
           "PendingLoginStrategy",
@@ -57631,6 +59631,7 @@
           "PendingProviderCredentials",
           "PlatformAgeRestricted",
           "PendingAuthentication",
+          "KeyPairError",
           "PendingKRIdVerification",
           "PendingSignup",
           "SignupAgeRestricted",
@@ -57656,6 +59657,8 @@
           "PendingAccountEntitlementData",
           "MissingAccountEntitlement",
           "PendingUserInfoData",
+          "PendingPersistentFlagsData",
+          "PendingRecoverableAccount",
           "PendingAffinityData",
           "PendingLoginQueueData",
           "PendingLoginQueueBypass",
@@ -57823,6 +59826,9 @@
       "PlayerSessionLifecyclePluginConfigResponse": {
         "type": "object",
         "properties": {
+          "country": {
+            "type": "string"
+          },
           "methods": {
             "type": "array",
             "items": {
@@ -57842,10 +59848,178 @@
           }
         }
       },
+      "PlayerSessionLifecycleProduct": {
+        "type": "object",
+        "properties": {
+          "amountInCents": {
+            "type": "number",
+            "format": "int32"
+          },
+          "currencyCode": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "externalProduct": {
+            "$ref": "#/components/schemas/PlayerSessionLifecycleExternalProduct"
+          },
+          "formattedPrice": {
+            "type": "string"
+          },
+          "productId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "virtualAmount": {
+            "type": "number",
+            "format": "int32"
+          },
+          "virtualBonusAmount": {
+            "type": "number",
+            "format": "int32"
+          }
+        }
+      },
       "PlayerSessionLifecycleProductAffinityInput": {
         "type": "object",
         "properties": {
           "product": {
+            "type": "string"
+          }
+        }
+      },
+      "PlayerSessionLifecycleProductListResult": {
+        "type": "object",
+        "properties": {
+          "products": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/PlayerSessionLifecycleProduct"
+            }
+          },
+          "status": {
+            "$ref": "#/components/schemas/PlayerSessionLifecycleProductListStatus"
+          }
+        }
+      },
+      "PlayerSessionLifecycleProductListStatus": {
+        "type": "string",
+        "enum": [
+          "Success",
+          "NotInitialized",
+          "NoProductsAvailableInRiotCatalog",
+          "NoMatchingProductsInMobileStore",
+          "CatalogUnreachable",
+          "RiotPayCatalogUnreachable",
+          "MobileStoreFailure",
+          "RequestInProgress",
+          "RiotClientNotInitiliazed",
+          "RiotClientNotReady",
+          "InAppPurchaseNotInitiliazed",
+          "EmptyProductList",
+          "ConfigurationNotReady"
+        ]
+      },
+      "PlayerSessionLifecycleProductSession": {
+        "type": "object",
+        "properties": {
+          "patchlineId": {
+            "type": "string"
+          },
+          "phase": {
+            "type": "string"
+          },
+          "productId": {
+            "type": "string"
+          }
+        }
+      },
+      "PlayerSessionLifecyclePurchaseResult": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "productId": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PlayerSessionLifecyclePurchaseStatus"
+          },
+          "virtualAmount": {
+            "type": "number",
+            "format": "int32"
+          },
+          "virtualBonusAmount": {
+            "type": "number",
+            "format": "int32"
+          },
+          "virtualTotalAmount": {
+            "type": "number",
+            "format": "int32"
+          }
+        }
+      },
+      "PlayerSessionLifecyclePurchaseStatus": {
+        "type": "string",
+        "enum": [
+          "Ready",
+          "Initiated",
+          "InitFailed",
+          "Processing",
+          "Fulfilled",
+          "CAPOrderCreated",
+          "Cancelled",
+          "VerificationPending",
+          "FulfillPending",
+          "RetriesFailed",
+          "InvalidPurchaseRequest",
+          "PurchaseVelocityReached",
+          "PurchasePending",
+          "MissingTransaction",
+          "FailedToStartInAppPurchaseNotInitialized",
+          "FailedToStartMissingUserId",
+          "FailedToStartOrderIdEmpty",
+          "FailedToStartRiotPayClientNotReady",
+          "FailedToStartPurchaseInProgress",
+          "FailedToStartProductInvalid",
+          "FailedToStartNewPurchaseDisabled",
+          "FailedToStartRiotPayReturnedError",
+          "FulfillmentRiotPayClientNotReady",
+          "FulfillmentDependenciesError",
+          "FulfillmentFailedToReachRiotPayService",
+          "FulfillmentRiotPayServiceIssue",
+          "FulfillmentRiotPayServiceGatewayIssue",
+          "FulfillmentRiotPayServiceUnintelligibleResponse",
+          "Completed",
+          "PurchaseConsumed",
+          "PurchaseNotConsumed"
+        ]
+      },
+      "PlayerSessionLifecyclePurchaseTransaction": {
+        "type": "object",
+        "properties": {
+          "amountInCents": {
+            "type": "number",
+            "format": "int32"
+          },
+          "currencyCode": {
+            "type": "string"
+          },
+          "productId": {
+            "type": "string"
+          },
+          "purchaseReceipt": {
+            "type": "string"
+          },
+          "purchasedAt": {
+            "type": "number",
+            "format": "int64"
+          },
+          "transactionId": {
             "type": "string"
           }
         }
@@ -57989,6 +60163,34 @@
             "type": "string"
           },
           "login_country": {
+            "type": "string"
+          }
+        }
+      },
+      "PlayerSessionLifecycleRiotIdentityLoginRequest": {
+        "type": "object",
+        "properties": {
+          "campaign": {
+            "type": "string"
+          },
+          "captcha": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          }
+        }
+      },
+      "PlayerSessionLifecycleRiotIdentityLoginResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
             "type": "string"
           }
         }
@@ -58291,6 +60493,14 @@
           }
         }
       },
+      "PlayerSessionLifecycleUpdateLoginTokenRequest": {
+        "type": "object",
+        "properties": {
+          "loginToken": {
+            "type": "string"
+          }
+        }
+      },
       "PlayerSessionLifecycleUpdateType": {
         "type": "string",
         "enum": [
@@ -58349,6 +60559,23 @@
           }
         }
       },
+      "PlayerSessionLifecycleV1AuthenticateKeypairInput": {
+        "type": "object",
+        "properties": {
+          "campaign": {
+            "type": "string"
+          },
+          "keypair": {
+            "$ref": "#/components/schemas/PlayerSessionLifecycleV1KeypairInput"
+          },
+          "language": {
+            "type": "string"
+          },
+          "remember": {
+            "type": "boolean"
+          }
+        }
+      },
       "PlayerSessionLifecycleV1AuthenticateOpenIdConnectInput": {
         "type": "object",
         "properties": {
@@ -58366,6 +60593,24 @@
           }
         }
       },
+      "PlayerSessionLifecycleV1Captcha": {
+        "type": "object",
+        "properties": {
+          "hcaptcha": {
+            "$ref": "#/components/schemas/PlayerSessionLifecycleV1HCaptcha"
+          },
+          "type": {
+            "$ref": "#/components/schemas/PlayerSessionLifecycleV1CaptchaType"
+          }
+        }
+      },
+      "PlayerSessionLifecycleV1CaptchaType": {
+        "type": "string",
+        "enum": [
+          "none",
+          "hcaptcha"
+        ]
+      },
       "PlayerSessionLifecycleV1FacebookInput": {
         "type": "object",
         "properties": {
@@ -58376,6 +60621,25 @@
             "type": "string"
           },
           "id_token": {
+            "type": "string"
+          }
+        }
+      },
+      "PlayerSessionLifecycleV1HCaptcha": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          }
+        }
+      },
+      "PlayerSessionLifecycleV1KeypairInput": {
+        "type": "object",
+        "properties": {
+          "assertion": {
             "type": "string"
           }
         }
@@ -58436,6 +60700,43 @@
           "VerificationFailed",
           "TooManyRequests"
         ]
+      },
+      "PlayerSessionLifecycleV1RiotIdentityAuthCompleteInput": {
+        "type": "object",
+        "properties": {
+          "campaign": {
+            "type": "string"
+          },
+          "captcha": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "remember": {
+            "type": "boolean"
+          },
+          "username": {
+            "type": "string"
+          }
+        }
+      },
+      "PlayerSessionLifecycleV1RiotIdentityAuthStartInput": {
+        "type": "object",
+        "properties": {
+          "language": {
+            "type": "string"
+          },
+          "productId": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          }
+        }
       },
       "PlayerSessionLifecycleV1SendVerificationCodeConfig": {
         "type": "object",
@@ -59304,6 +61605,9 @@
       "PresencesAccessToken": {
         "type": "object",
         "properties": {
+          "clientId": {
+            "type": "string"
+          },
           "expiry": {
             "type": "number",
             "format": "int64"
@@ -59375,6 +61679,15 @@
       "PresencesParty": {
         "type": "object",
         "properties": {
+          "actions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "crossPlay": {
+            "type": "boolean"
+          },
           "currentSize": {
             "type": "number",
             "format": "int64"
@@ -59388,12 +61701,21 @@
           "maxSize": {
             "type": "number",
             "format": "int64"
+          },
+          "platforms": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
       "PresencesPlayer": {
         "type": "object",
         "properties": {
+          "crossPlay": {
+            "type": "boolean"
+          },
           "profileBanner": {
             "type": "string"
           },
@@ -59402,6 +61724,9 @@
           },
           "show": {
             "$ref": "#/components/schemas/PresencesShow"
+          },
+          "state": {
+            "type": "string"
           }
         }
       },
@@ -59473,6 +61798,86 @@
           }
         }
       },
+      "PresencesPresencesStatusMessage": {
+        "type": "object",
+        "properties": {
+          "statusMessage": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        }
+      },
+      "PresencesServiceCreatePresenceRequest": {
+        "type": "object",
+        "properties": {
+          "keepalive": {
+            "type": "number",
+            "format": "int32"
+          },
+          "rms": {
+            "$ref": "#/components/schemas/PresencesServiceRMSConnInfo"
+          },
+          "session": {
+            "$ref": "#/components/schemas/PresencesServicePresenceSession"
+          }
+        }
+      },
+      "PresencesServiceCreatePresenceResponse": {
+        "type": "object",
+        "properties": {
+          "replacedSessionIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "sessionId": {
+            "type": "string"
+          }
+        }
+      },
+      "PresencesServicePresenceSession": {
+        "type": "object",
+        "properties": {
+          "activity": {
+            "$ref": "#/components/schemas/PresencesActivity"
+          },
+          "party": {
+            "$ref": "#/components/schemas/PresencesParty"
+          },
+          "patchline": {
+            "type": "string"
+          },
+          "player": {
+            "$ref": "#/components/schemas/PresencesPlayer"
+          },
+          "product": {
+            "type": "string"
+          },
+          "productData": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AnyType"
+            }
+          },
+          "region": {
+            "type": "string"
+          }
+        }
+      },
+      "PresencesServiceRMSConnInfo": {
+        "type": "object",
+        "properties": {
+          "connectionId": {
+            "type": "string"
+          },
+          "sessionId": {
+            "type": "string"
+          }
+        }
+      },
       "PresencesSession": {
         "type": "object",
         "properties": {
@@ -59481,6 +61886,9 @@
           },
           "party": {
             "$ref": "#/components/schemas/PresencesParty"
+          },
+          "patchline": {
+            "type": "string"
           },
           "platform": {
             "type": "string"
@@ -60008,6 +62416,15 @@
           }
         }
       },
+      "ProductLauncherPatchPhase": {
+        "type": "string",
+        "enum": [
+          "none",
+          "manifest",
+          "update",
+          "repair"
+        ]
+      },
       "ProductLauncherPatchlineResource": {
         "type": "object",
         "properties": {
@@ -60049,11 +62466,76 @@
           }
         }
       },
+      "ProductLauncherProductPatchlineProgress": {
+        "type": "object",
+        "properties": {
+          "overallProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "repairProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "phase": {
+            "$ref": "#/components/schemas/ProductLauncherPatchPhase"
+          },
+          "totalTimeRemainingMs": {
+            "type": "number",
+            "format": "int64"
+          },
+          "currentSpeedMbps": {
+            "type": "number",
+            "format": "int64"
+          },
+          "totalBytesDownloaded": {
+            "type": "number",
+            "format": "int64"
+          },
+          "totalBytesToDownload": {
+            "type": "number",
+            "format": "int64"
+          },
+          "totalBytesWritten": {
+            "type": "number",
+            "format": "int64"
+          },
+          "totalBytesToWrite": {
+            "type": "number",
+            "format": "int64"
+          },
+          "totalBytesDone": {
+            "type": "number",
+            "format": "int64"
+          },
+          "totalBytesToDo": {
+            "type": "number",
+            "format": "int64"
+          }
+        }
+      },
       "ProductLauncherProductPatchlineResource": {
         "type": "object",
         "properties": {
           "patchline": {
             "$ref": "#/components/schemas/ProductLauncherPatchlineResource"
+          }
+        }
+      },
+      "ProductLauncherProductPatchlineStatus": {
+        "type": "object",
+        "properties": {
+          "launchable": {
+            "type": "boolean"
+          },
+          "state": {
+            "$ref": "#/components/schemas/ProductLauncherState"
+          },
+          "previousState": {
+            "$ref": "#/components/schemas/ProductLauncherState"
+          },
+          "progress": {
+            "$ref": "#/components/schemas/ProductLauncherProductPatchlineProgress"
           }
         }
       },
@@ -60108,6 +62590,22 @@
             "format": "int32"
           }
         }
+      },
+      "ProductLauncherState": {
+        "type": "string",
+        "enum": [
+          "Unknown",
+          "NotInstalled",
+          "UpToDate",
+          "OutOfDate",
+          "Updating",
+          "NeedsRepair",
+          "Repairing",
+          "StatusError",
+          "CheckingForUpdate",
+          "DependencyUpdate",
+          "Paused"
+        ]
       },
       "ProductLauncherVngStatusResponse": {
         "type": "object",
@@ -60843,6 +63341,12 @@
               "type": "string"
             }
           },
+          "rso_claims": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "rso_client_id": {
             "type": "string"
           },
@@ -61127,6 +63631,64 @@
           }
         }
       },
+      "ProductPatchlineDependency": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "minVersion": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "hash": {
+            "type": "string"
+          },
+          "args": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "validExitCodes": {
+            "type": "string"
+          },
+          "elevate": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ProductPatchlineDependencyPhase": {
+        "type": "string",
+        "enum": [
+          "Unknown",
+          "NotInstalled",
+          "Imported",
+          "AlreadyInstalled",
+          "Waiting",
+          "Download",
+          "Install",
+          "Failed",
+          "Cancelled",
+          "Succeeded"
+        ]
+      },
+      "ProductPatchlineDependencyState": {
+        "type": "object",
+        "properties": {
+          "dependency": {
+            "$ref": "#/components/schemas/ProductPatchlineDependency"
+          },
+          "phase": {
+            "$ref": "#/components/schemas/ProductPatchlineDependencyPhase"
+          }
+        }
+      },
       "ProductPatchlineInfo": {
         "type": "object",
         "properties": {
@@ -61144,6 +63706,9 @@
       "ProductPatchlineStatus": {
         "type": "object",
         "properties": {
+          "launchable": {
+            "type": "boolean"
+          },
           "state": {
             "$ref": "#/components/schemas/State"
           },
@@ -62519,6 +65084,15 @@
             "type": "string"
           }
         }
+      },
+      "RiotLogLevel": {
+        "type": "string",
+        "enum": [
+          "Okay",
+          "Warning",
+          "Error",
+          "Always"
+        ]
       },
       "RiotLoginAuthenticationMethod": {
         "type": "string",
@@ -65185,6 +67759,9 @@
       "RsoAuthAccessToken": {
         "type": "object",
         "properties": {
+          "clientId": {
+            "type": "string"
+          },
           "expiry": {
             "type": "number",
             "format": "int64"
@@ -65540,44 +68117,6 @@
           }
         }
       },
-      "RsoAuthDeviceId": {
-        "type": "object",
-        "properties": {
-          "collectorServerName": {
-            "type": "string"
-          },
-          "frameUrl": {
-            "type": "string"
-          },
-          "installId": {
-            "type": "string"
-          },
-          "merchantId": {
-            "type": "string"
-          },
-          "sessionId": {
-            "type": "string"
-          }
-        }
-      },
-      "RsoAuthEntitlementsToken": {
-        "type": "object",
-        "properties": {
-          "entitlements": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "expiry": {
-            "type": "number",
-            "format": "int64"
-          },
-          "token": {
-            "type": "string"
-          }
-        }
-      },
       "RsoAuthGameCenterAuthCredentials": {
         "type": "object",
         "properties": {
@@ -65668,9 +68207,15 @@
       "RsoAuthIdToken": {
         "type": "object",
         "properties": {
+          "clientId": {
+            "type": "string"
+          },
           "expiry": {
             "type": "number",
             "format": "int64"
+          },
+          "nonce": {
+            "type": "string"
           },
           "token": {
             "type": "string"
@@ -66010,12 +68555,6 @@
           "currentPlatformId": {
             "type": "string"
           },
-          "entitlementsToken": {
-            "$ref": "#/components/schemas/RsoAuthTokenContext"
-          },
-          "hasGasToken": {
-            "type": "boolean"
-          },
           "hasRefreshToken": {
             "type": "boolean"
           },
@@ -66283,6 +68822,9 @@
           "cltkeyLength": {
             "type": "string"
           },
+          "ext_str": {
+            "type": "string"
+          },
           "gameSignatureLength": {
             "type": "string"
           },
@@ -66299,12 +68841,6 @@
         "properties": {
           "clientId": {
             "type": "string"
-          },
-          "entitlements": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
           },
           "expiry": {
             "type": "number",
@@ -69318,9 +71854,72 @@
           "On"
         ]
       },
+      "SocialAESProvider": {
+        "type": "string",
+        "enum": [
+          "playstation",
+          "xbox",
+          "discord"
+        ]
+      },
+      "SocialAESProviderConfig": {
+        "type": "object",
+        "properties": {
+          "clientId": {
+            "type": "string"
+          },
+          "productMetadata": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SocialAESProviderProductMetadata"
+            }
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "SocialAESProviderProductMetadata": {
+        "type": "object",
+        "properties": {
+          "product": {
+            "type": "string"
+          },
+          "productClientId": {
+            "type": "string"
+          }
+        }
+      },
+      "SocialAESStatus": {
+        "type": "string",
+        "enum": [
+          "None",
+          "Disabled",
+          "Pending",
+          "Missing",
+          "Available"
+        ]
+      },
+      "SocialAESStatusResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/SocialAESStatus"
+          }
+        }
+      },
       "SocialAccessToken": {
         "type": "object",
         "properties": {
+          "clientId": {
+            "type": "string"
+          },
           "expiry": {
             "type": "number",
             "format": "int64"
@@ -69949,6 +72548,9 @@
           "relationshipOnConsole": {
             "$ref": "#/components/schemas/SocialUserRelationship"
           },
+          "relationshipOnDiscord": {
+            "$ref": "#/components/schemas/SocialUserRelationship"
+          },
           "relationshipOnRiot": {
             "$ref": "#/components/schemas/SocialUserRelationship"
           }
@@ -70077,6 +72679,26 @@
           }
         }
       },
+      "SocialCrossPlayPermissions": {
+        "type": "object",
+        "properties": {
+          "hasPartyCrossPlayEnabled": {
+            "type": "boolean"
+          },
+          "hasPlayerCrossPlayEnabled": {
+            "type": "boolean"
+          },
+          "isInParty": {
+            "type": "boolean"
+          },
+          "partyMemberPlatforms": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SocialOnlinePlatform"
+            }
+          }
+        }
+      },
       "SocialDeviceChatSettings": {
         "type": "object",
         "properties": {
@@ -70085,25 +72707,89 @@
           }
         }
       },
-      "SocialDeviceId": {
+      "SocialDiscordInfoV4": {
         "type": "object",
         "properties": {
-          "collectorServerName": {
+          "displayName": {
             "type": "string"
           },
-          "frameUrl": {
-            "type": "string"
+          "isPlayingSameTitle": {
+            "type": "boolean"
           },
-          "installId": {
-            "type": "string"
+          "onlineStatus": {
+            "$ref": "#/components/schemas/SocialDiscordStatusV4"
           },
-          "merchantId": {
-            "type": "string"
-          },
-          "sessionId": {
+          "relationship": {
+            "$ref": "#/components/schemas/SocialUserRelationship"
+          }
+        }
+      },
+      "SocialDiscordRegisterLaunchCommandsRequestV1": {
+        "type": "object",
+        "properties": {
+          "launchCommand": {
             "type": "string"
           }
         }
+      },
+      "SocialDiscordRegisteredApplicationV1": {
+        "type": "object",
+        "properties": {
+          "applicationId": {
+            "type": "number",
+            "format": "int64"
+          },
+          "product": {
+            "type": "string"
+          }
+        }
+      },
+      "SocialDiscordRegisteredApplicationsV1": {
+        "type": "object",
+        "properties": {
+          "apps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SocialDiscordRegisteredApplicationV1"
+            }
+          }
+        }
+      },
+      "SocialDiscordRelationship": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string"
+          },
+          "puuid": {
+            "type": "string"
+          },
+          "relationship": {
+            "$ref": "#/components/schemas/SocialUserRelationship"
+          },
+          "userId": {
+            "type": "number",
+            "format": "int64"
+          }
+        }
+      },
+      "SocialDiscordRelationshipList": {
+        "type": "object",
+        "properties": {
+          "relationships": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SocialDiscordRelationship"
+            }
+          }
+        }
+      },
+      "SocialDiscordStatusV4": {
+        "type": "string",
+        "enum": [
+          "online",
+          "offline"
+        ]
       },
       "SocialEligibilityResponse": {
         "type": "object",
@@ -70123,24 +72809,6 @@
           },
           "isTagLineCustomizable": {
             "type": "boolean"
-          }
-        }
-      },
-      "SocialEntitlementsToken": {
-        "type": "object",
-        "properties": {
-          "entitlements": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "expiry": {
-            "type": "number",
-            "format": "int64"
-          },
-          "token": {
-            "type": "string"
           }
         }
       },
@@ -70545,6 +73213,15 @@
           "activity": {
             "$ref": "#/components/schemas/SocialPresenceActivityV1"
           },
+          "crossPlay": {
+            "type": "boolean"
+          },
+          "crossPlayPermissions": {
+            "$ref": "#/components/schemas/SocialCrossPlayPermissions"
+          },
+          "discordInfo": {
+            "$ref": "#/components/schemas/SocialDiscordInfoV4"
+          },
           "displayGroup": {
             "type": "string"
           },
@@ -70619,6 +73296,9 @@
           },
           "show": {
             "$ref": "#/components/schemas/SocialPresenceShowV1"
+          },
+          "state": {
+            "type": "string"
           },
           "statusMessage": {
             "type": "string"
@@ -70762,9 +73442,15 @@
       "SocialIdToken": {
         "type": "object",
         "properties": {
+          "clientId": {
+            "type": "string"
+          },
           "expiry": {
             "type": "number",
             "format": "int64"
+          },
+          "nonce": {
+            "type": "string"
           },
           "token": {
             "type": "string"
@@ -71406,6 +74092,15 @@
       "SocialParty": {
         "type": "object",
         "properties": {
+          "actions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "crossPlay": {
+            "type": "boolean"
+          },
           "currentSize": {
             "type": "number",
             "format": "int64"
@@ -71419,6 +74114,12 @@
           "maxSize": {
             "type": "number",
             "format": "int64"
+          },
+          "platforms": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -71499,6 +74200,9 @@
       "SocialPlayer": {
         "type": "object",
         "properties": {
+          "crossPlay": {
+            "type": "boolean"
+          },
           "profileBanner": {
             "type": "string"
           },
@@ -71507,6 +74211,9 @@
           },
           "show": {
             "$ref": "#/components/schemas/SocialShow"
+          },
+          "state": {
+            "type": "string"
           }
         }
       },
@@ -71632,6 +74339,15 @@
       "SocialPresencePartyV1": {
         "type": "object",
         "properties": {
+          "actions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "crossPlay": {
+            "type": "boolean"
+          },
           "currentSize": {
             "type": "number",
             "format": "int64"
@@ -71645,12 +74361,21 @@
           "maxSize": {
             "type": "number",
             "format": "int64"
+          },
+          "platforms": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
       "SocialPresencePlayerV1": {
         "type": "object",
         "properties": {
+          "crossPlay": {
+            "type": "boolean"
+          },
           "profileBanner": {
             "type": "string"
           },
@@ -71659,6 +74384,44 @@
           },
           "show": {
             "$ref": "#/components/schemas/SocialPresenceShowV1"
+          },
+          "state": {
+            "type": "string"
+          }
+        }
+      },
+      "SocialPresenceSessionV1": {
+        "type": "object",
+        "properties": {
+          "activity": {
+            "$ref": "#/components/schemas/SocialPresenceActivityV1"
+          },
+          "crossPlayPermissions": {
+            "$ref": "#/components/schemas/SocialCrossPlayPermissions"
+          },
+          "party": {
+            "$ref": "#/components/schemas/SocialPresencePartyV1"
+          },
+          "patchline": {
+            "type": "string"
+          },
+          "platform": {
+            "type": "string"
+          },
+          "player": {
+            "$ref": "#/components/schemas/SocialPresencePlayerV1"
+          },
+          "product": {
+            "type": "string"
+          },
+          "productData": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AnyType"
+            }
+          },
+          "region": {
+            "type": "string"
           }
         }
       },
@@ -71700,6 +74463,9 @@
         "properties": {
           "activity": {
             "$ref": "#/components/schemas/SocialPresenceActivityV1"
+          },
+          "crossPlayPermissions": {
+            "$ref": "#/components/schemas/SocialCrossPlayPermissions"
           },
           "party": {
             "$ref": "#/components/schemas/SocialPresencePartyV1"
@@ -71771,6 +74537,17 @@
           "open",
           "closed"
         ]
+      },
+      "SocialPresencesStatusMessage": {
+        "type": "object",
+        "properties": {
+          "statusMessage": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        }
       },
       "SocialProductContext": {
         "type": "object",
@@ -72013,12 +74790,6 @@
           "currentPlatformId": {
             "type": "string"
           },
-          "entitlementsToken": {
-            "$ref": "#/components/schemas/SocialTokenContext"
-          },
-          "hasGasToken": {
-            "type": "boolean"
-          },
           "hasRefreshToken": {
             "type": "boolean"
           },
@@ -72249,6 +75020,9 @@
           "party": {
             "$ref": "#/components/schemas/SocialParty"
           },
+          "patchline": {
+            "type": "string"
+          },
           "platform": {
             "type": "string"
           },
@@ -72454,6 +75228,9 @@
           "cltkeyLength": {
             "type": "string"
           },
+          "ext_str": {
+            "type": "string"
+          },
           "gameSignatureLength": {
             "type": "string"
           },
@@ -72470,12 +75247,6 @@
         "properties": {
           "clientId": {
             "type": "string"
-          },
-          "entitlements": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
           },
           "expiry": {
             "type": "number",
@@ -72990,9 +75761,6 @@
       "SystemTrayProductPatchlineProgress": {
         "type": "object",
         "properties": {
-          "launchable": {
-            "type": "boolean"
-          },
           "overallProgress": {
             "type": "number",
             "format": "double"
@@ -73058,6 +75826,9 @@
       "SystemTrayProductPatchlineStatus": {
         "type": "object",
         "properties": {
+          "launchable": {
+            "type": "boolean"
+          },
           "state": {
             "$ref": "#/components/schemas/SystemTrayState"
           },
@@ -73131,6 +75902,9 @@
       "TencentLauncherAccessToken": {
         "type": "object",
         "properties": {
+          "clientId": {
+            "type": "string"
+          },
           "expiry": {
             "type": "number",
             "format": "int64"
@@ -73486,44 +76260,6 @@
           }
         }
       },
-      "TencentLauncherDeviceId": {
-        "type": "object",
-        "properties": {
-          "collectorServerName": {
-            "type": "string"
-          },
-          "frameUrl": {
-            "type": "string"
-          },
-          "installId": {
-            "type": "string"
-          },
-          "merchantId": {
-            "type": "string"
-          },
-          "sessionId": {
-            "type": "string"
-          }
-        }
-      },
-      "TencentLauncherEntitlementsToken": {
-        "type": "object",
-        "properties": {
-          "entitlements": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "expiry": {
-            "type": "number",
-            "format": "int64"
-          },
-          "token": {
-            "type": "string"
-          }
-        }
-      },
       "TencentLauncherGameCenterAuthCredentials": {
         "type": "object",
         "properties": {
@@ -73614,9 +76350,15 @@
       "TencentLauncherIdToken": {
         "type": "object",
         "properties": {
+          "clientId": {
+            "type": "string"
+          },
           "expiry": {
             "type": "number",
             "format": "int64"
+          },
+          "nonce": {
+            "type": "string"
           },
           "token": {
             "type": "string"
@@ -73988,12 +76730,6 @@
           "currentPlatformId": {
             "type": "string"
           },
-          "entitlementsToken": {
-            "$ref": "#/components/schemas/TencentLauncherTokenContext"
-          },
-          "hasGasToken": {
-            "type": "boolean"
-          },
           "hasRefreshToken": {
             "type": "boolean"
           },
@@ -74290,6 +77026,9 @@
           "cltkeyLength": {
             "type": "string"
           },
+          "ext_str": {
+            "type": "string"
+          },
           "gameSignatureLength": {
             "type": "string"
           },
@@ -74306,12 +77045,6 @@
         "properties": {
           "clientId": {
             "type": "string"
-          },
-          "entitlements": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
           },
           "expiry": {
             "type": "number",
@@ -74462,6 +77195,59 @@
           "Cancelled",
           "Succeeded"
         ]
+      },
+      "TracingPluginCallerId_MockCallerId": {
+        "type": "object",
+        "properties": {
+          "patchlineId": {
+            "type": "string"
+          },
+          "productId": {
+            "type": "string"
+          }
+        }
+      },
+      "TracingPluginCallerId_ProductSession": {
+        "type": "object",
+        "properties": {
+          "patchlineFullName": {
+            "type": "string"
+          },
+          "patchlineId": {
+            "type": "string"
+          },
+          "productId": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        }
+      },
+      "TracingV1TraceContext": {
+        "type": "object",
+        "properties": {
+          "traceStateComponents": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "traceStateHeader": {
+            "$ref": "#/components/schemas/TracingV1TraceHeader"
+          }
+        }
+      },
+      "TracingV1TraceHeader": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          }
+        }
       },
       "UpToDateStatus": {
         "type": "string",
@@ -74771,6 +77557,9 @@
       "VngAccessToken": {
         "type": "object",
         "properties": {
+          "clientId": {
+            "type": "string"
+          },
           "expiry": {
             "type": "number",
             "format": "int64"

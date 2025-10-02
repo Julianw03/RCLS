@@ -1,6 +1,6 @@
 package com.julianw03.rcls.model;
 
-import com.julianw03.rcls.service.base.riotclient.api.RiotClientError;
+import com.julianw03.rcls.service.riotclient.api.RiotClientError;
 
 public class RiotClientException extends RuntimeException {
     private final RiotClientError error;

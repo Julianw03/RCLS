@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "com.julianw03"
-version = "0.0.1"
+version = "0.0.2"
 
 java {
     toolchain {
@@ -31,6 +31,7 @@ val feignVersion = "11.6"
 dependencies {
     implementation(project(":rcls-riot-api-client"))
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9")
+    implementation("org.openapitools:jackson-databind-nullable:0.2.7")
 
     implementation("org.msgpack:jackson-dataformat-msgpack:0.9.9")
     implementation("io.github.openfeign:feign-core:${feignVersion}")
@@ -43,7 +44,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-quartz")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-websocket")
-    implementation("org.bouncycastle:bcprov-jdk18on:1.80")
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
     testImplementation("org.springframework.security:spring-security-test")

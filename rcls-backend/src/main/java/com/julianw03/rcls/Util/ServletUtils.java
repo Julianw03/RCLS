@@ -1,14 +1,12 @@
 package com.julianw03.rcls.Util;
 
 import com.julianw03.rcls.model.APIException;
-import com.julianw03.rcls.service.base.riotclient.api.InternalApiResponse;
+import com.julianw03.rcls.service.riotclient.api.InternalApiResponse;
 import org.springframework.http.HttpStatus;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 public class ServletUtils {
 

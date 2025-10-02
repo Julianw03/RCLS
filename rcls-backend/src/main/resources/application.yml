@@ -5,6 +5,11 @@ spring:
   profiles:
     default: "prod"
 
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+
 management:
   endpoints:
     web:
@@ -21,7 +26,7 @@ server:
     key-store-password: "changeit"
     key-store-type: "PKCS12"
     key-alias: "tomcat"
-  port: 8080
+  port: 443
 
 springdoc:
   swagger-ui:
@@ -33,6 +38,8 @@ custom:
     proxy:
       target:
         url: "hcaptcha.com"
+      overrides:
+        user-agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) riot-client-ux/116.0.0 Chrome/108.0.5359.215 Electron/22.3.27 Safari/537.36"
     riotclient-service:
       connection-init:
         rest-connect-attempts: 20
@@ -48,11 +55,12 @@ custom:
             game-executables:
               league-of-legends: "LeagueClient.app/Contents/MacOS/LeagueClient"
               legends-of-runeterra:
-              valorant: ""
-              two-xko: ""
+              valorant:
+              two-xko:
             riot-client: "Riot Client.app/Contents/MacOs/Riot Client"
             riot-client-services: "Riot Client.app/Contents/MacOS/RiotClientServices"
           program-files-path: "/Users/Shared"
+          config-base-path: "~/Library/Application Support"
           riot-games-folder-name: "Riot Games"
           riot-client-installs-file: "RiotClientInstalls.json"
           riot-client-lock-file-location: "/Users/Shared/Riot Games/Metadata/lockfile"
@@ -60,17 +68,21 @@ custom:
           executables:
             game-executables:
               league_of_legends: "LeagueClient.exe"
-              legends_of_runeterra: "LOR.exe"
+              legends_of_runeterra: "LoR.exe"
               valorant: "VALORANT-Win64-Shipping.exe"
-              two-xko: ""
+              two-xko: "Lion-Win64-Shipping.exe"
             riot_client: "Riot Client.exe"
             riot_client_services: "RiotClientServices.exe"
           program-files-path: "${ALLUSERSPROFILE}"
+          config-base-path: "${LOCALAPPDATA}"
           riot-games-folder-name: "Riot Games"
           riot-client-installs-file: "RiotClientInstalls.json"
           riot-client-lock-file-location: "${LOCALAPPDATA}/Riot Games/Riot Client/Config/lockfile"
+      shared-entries:
+        application-folder-name: "RCLS"
+        plugin-folder-names:
+          user_background_module: "UserBackground"
     operating-system-provider:
       os-override:
-    publisher-service:
-      disabled-sources:
-        - proxy_service
+    publishing:
+      publishing-format: msgpack

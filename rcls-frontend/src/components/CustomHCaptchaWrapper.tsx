@@ -35,6 +35,13 @@ const CustomHCaptchaWrapper = (
         }
     }
 
+    const resetHCaptcha = () => {
+        if (captchaRef.current) {
+            captchaRef.current.resetCaptcha();
+            console.log("Reset HCaptcha");
+        }
+    }
+
 
     return (
         <>
@@ -53,7 +60,8 @@ const CustomHCaptchaWrapper = (
                 }}
                 onChalExpired={() => console.log("Challenge Expired")}
             />
-            <button role={"button"} onClick={() => triggerCaptcha()}></button>
+            <button role={"button"} onClick={() => triggerCaptcha()}>Login</button>
+            <button role={"button"} onClick={() => resetHCaptcha()}>Reset</button>
         </>
     )
 }

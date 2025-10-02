@@ -1,9 +1,8 @@
 package com.julianw03.rcls.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.julianw03.rcls.service.base.riotclient.api.RiotClientError;
+import com.julianw03.rcls.service.riotclient.api.RiotClientError;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Builder;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
