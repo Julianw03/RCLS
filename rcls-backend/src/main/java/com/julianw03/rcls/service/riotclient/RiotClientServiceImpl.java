@@ -511,7 +511,7 @@ public class RiotClientServiceImpl extends RiotClientService {
                                     });
                                     eventBus.publish(
                                             Channel.RCU_CONNECTION_STATE,
-                                            new RCUConnectionEvent(true)
+                                            new RCUConnectionEvent("RCU",true)
                                     );
                                     WebSocket.Listener.super.onOpen(webSocket);
                                 }
@@ -581,7 +581,7 @@ public class RiotClientServiceImpl extends RiotClientService {
                                     futureExecutorService.submit(() -> {
                                         eventBus.publish(
                                                 Channel.RCU_CONNECTION_STATE,
-                                                new RCUConnectionEvent(false)
+                                                new RCUConnectionEvent("RCU",false)
                                         );
                                     });
                                     return WebSocket.Listener.super.onClose(

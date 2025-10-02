@@ -14,6 +14,7 @@
     "@hcaptcha/loader": "^2.0.0",
     "@hcaptcha/react-hcaptcha": "^1.12.0",
     "@reduxjs/toolkit": "^2.7.0",
+    "@tanstack/react-query": "^5.90.2",
     "@types/axios": "^0.9.36",
     "@types/node": "^22.14.1",
     "@ygoe/msgpack": "^1.0.3",
@@ -21,6 +22,7 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-redux": "^9.2.0",
+    "react-toastify": "^11.0.5",
     "redaxios": "^0.5.1",
     "vite-plugin-node-polyfills": "^0.23.0"
   },

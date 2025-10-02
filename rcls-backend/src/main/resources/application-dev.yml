@@ -9,6 +9,6 @@ custom:
   configurations:
     riotclient-service:
       connection-strategy:
-        strategy: process_takeover
+        strategy: lockfile
     publishing:
-      publishing-format: raw_json
+      publishing-format: msgpack

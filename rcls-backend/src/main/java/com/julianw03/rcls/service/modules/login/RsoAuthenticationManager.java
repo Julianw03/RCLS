@@ -6,13 +6,12 @@ import com.julianw03.rcls.eventBus.model.MultiChannelBus;
 import com.julianw03.rcls.generated.api.CoreSdkApi;
 import com.julianw03.rcls.generated.model.*;
 import com.julianw03.rcls.model.RCUWebsocketMessage;
-import com.julianw03.rcls.model.data.ObjectDataManager;
-import com.julianw03.rcls.service.riotclient.RiotClientService;
+import com.julianw03.rcls.model.data.PublishingObjectDataManager;
 import com.julianw03.rcls.service.modules.login.model.AuthenticationStateDTO;
 import com.julianw03.rcls.service.modules.login.model.HCaptchaDTO;
 import com.julianw03.rcls.service.modules.login.model.LoginStatusDTO;
 import com.julianw03.rcls.service.modules.login.model.MultifactorInfoDTO;
-import lombok.extern.slf4j.Slf4j;
+import com.julianw03.rcls.service.riotclient.RiotClientService;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -21,7 +20,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Component
-public class RsoAuthenticationManager extends ObjectDataManager<RsoAuthenticatorV1AuthenticationResponse, AuthenticationStateDTO> {
+public class RsoAuthenticationManager extends PublishingObjectDataManager<RsoAuthenticatorV1AuthenticationResponse, AuthenticationStateDTO> {
     private static final Pattern RSO_AUTHENTICATOR_V1_AUTHENTICATION_PATTERN = Pattern.compile("^/rso-authenticator/v1/authentication$");
 
     public RsoAuthenticationManager(

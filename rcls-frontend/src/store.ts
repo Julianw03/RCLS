@@ -1,38 +1,22 @@
-import {configureStore, createAction, createReducer, EnhancedStore} from "@reduxjs/toolkit";
+import {configureStore, EnhancedStore} from "@reduxjs/toolkit";
+import LoginStateReducer, {LoginState} from "@/store/LoginStateReducer.ts";
+import WSConnectionStateReducer, {BackendConnectionState} from "@/store/WSConnectionStateReducer.ts";
+import SimpleSessionsReducer, {SimpleSessionState} from "@/store/SimpleSessionsReducer.ts";
+import RcuConnectionStateReducer, {RCUConnectionState} from "@/store/RCUConnectionStateReducer.ts";
 
 export interface AppState {
-    backendConnectionState: BackendConnectionState;
+    wsConnectionState: BackendConnectionState;
+    loginState: LoginState;
+    simpleSessionState: SimpleSessionState;
+    rcuConnectionState: RCUConnectionState;
 }
-
-export enum BackendConnectionState {
-    DISCONNECTED = "DISCONNECTED",
-    CONNECTING = "CONNECTING",
-    CONNECTED = "CONNECTED",
-    ERROR = "ERROR"
-}
-
-export const ACTION_SET_BACKEND_CONNECTION_STATE = createAction<BackendConnectionState>("backendConnectionState/set");
-export const ACTION_RESET_BACKEND_CONNECTION_STATE = createAction("backendConnectionState/reset");
-
-const BackendConnectionStateReducer = createReducer<BackendConnectionState>(
-    BackendConnectionState.DISCONNECTED,
-    builder => {
-        builder
-            .addCase(
-                ACTION_SET_BACKEND_CONNECTION_STATE,
-                (_, action) => action.payload
-            )
-            .addCase(
-                ACTION_RESET_BACKEND_CONNECTION_STATE,
-                () => BackendConnectionState.DISCONNECTED
-            )
-    }
-)
-
 
 const appReducer = () => {
     return {
-        backendConnectionState: BackendConnectionStateReducer
+        wsConnectionState: WSConnectionStateReducer,
+        loginState: LoginStateReducer,
+        simpleSessionState: SimpleSessionsReducer,
+        rcuConnectionState: RcuConnectionStateReducer
     }
 }
 

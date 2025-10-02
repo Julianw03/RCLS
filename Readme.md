@@ -48,12 +48,27 @@ Running via Docker is not supported, as the project needs access to local Proces
    The build output will be located in the `RCLS-Build-Out` volume. You may change the volume to a mount of your
    preference.
 
+### Testing out the API
+
+Once the application is running, you can access the Swagger UI at:
+```bash
+    https://127.0.0.1:8080/swagger-ui/index.html#/
+```
+
+For the login process, you will need to pass an hcaptcha Token. I recommend using the provided Frontend for that, as it (mostly) handles that for you.
+Currently, the frontend is pretty basic and does NOT provide any feedback, as it was kinda hacked together.
+**Please do not use 'localhost' to access the frontend as that is blocked by hcaptcha. Use the explicit IP address '127.0.0.1' instead.**
+
+
+Any other API endpoint should be accessible via the Swagger UI.
+For uploading files, I recommend using a tool like Postman or Insomnia.
+
 #### Planned Features / ToDo's
 
 - [ ] Create a pipeline that periodically checks if there are new versions of the Riot Client and updating the generated
   OpenAPI specification.
 - [ ] Better Frontend
-- [ ] Communication of Backend and Frontend via Websockets
+- [x] Communication of Backend and Frontend via Websockets -> Basic implementation done
 
 #### Licenses and Dependencies
 

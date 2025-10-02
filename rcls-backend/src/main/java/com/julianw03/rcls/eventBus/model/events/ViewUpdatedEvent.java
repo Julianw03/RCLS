@@ -1,9 +1,17 @@
 package com.julianw03.rcls.eventBus.model.events;
 
-public record ViewUpdatedEvent<T>(
-        String source,
-        ViewUpdatedPayload<T> payload
-) implements SimpleEvent<ViewUpdatedPayload<T>> {
+public class ViewUpdatedEvent<T> extends SimpleEvent<ViewUpdatedPayload<T>> {
+
+    public ViewUpdatedEvent(
+            String source,
+            ViewUpdatedPayload<T> payload
+    ) {
+        super(
+                source,
+                payload
+        );
+    }
+
     @Override
     public String getSource() {
         return source;

@@ -22,7 +22,8 @@ import java.util.concurrent.atomic.AtomicReference;
 public class WebsocketPublisher extends TextWebSocketHandler {
     private       AtomicReference<WebSocketSession> sessionRef = new AtomicReference<>(null);
     private final ObjectMapper                      mapper;
-    private       Disposable                        subscription;
+    private       Disposable                        dataManagerSubscription;
+    private       Disposable                        rcConnectionStatusSubscription;
     private final WebsocketConfig                   websocketConfig;
 
     public WebsocketPublisher(
@@ -33,14 +34,23 @@ public class WebsocketPublisher extends TextWebSocketHandler {
         this.mapper = websocketConfig.getPublishingFormat()
                                      .getMapperFactory()
                                      .get();
-        subscription = eventBus.getFlux(Channel.DATA_MANAGER)
-                               .concatMap(this::sendMessage)
-                               .onErrorContinue((err, obj) -> log.error(
-                                       "Failed to send message: {}",
-                                       obj,
-                                       err
-                               ))
-                               .subscribe();
+        dataManagerSubscription = eventBus.getFlux(Channel.DATA_MANAGER)
+                                          .concatMap(this::sendMessage)
+                                          .onErrorContinue((err, obj) -> log.error(
+                                                  "Failed to send message: {}",
+                                                  obj,
+                                                  err
+                                          ))
+                                          .subscribe();
+
+        rcConnectionStatusSubscription = eventBus.getFlux(Channel.RCU_CONNECTION_STATE)
+                                                 .concatMap(this::sendMessage)
+                                                 .onErrorContinue((err, obj) -> log.error(
+                                                         "Failed to send message: {}",
+                                                         obj,
+                                                         err
+                                                 ))
+                                                 .subscribe();
 
     }
 
@@ -86,7 +96,10 @@ public class WebsocketPublisher extends TextWebSocketHandler {
 
     @PreDestroy
     public void destroy() {
-        Optional.ofNullable(subscription)
+        Optional.ofNullable(dataManagerSubscription)
+                .ifPresent(Disposable::dispose);
+
+        Optional.ofNullable(rcConnectionStatusSubscription)
                 .ifPresent(Disposable::dispose);
     }
 }
