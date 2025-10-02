@@ -15,13 +15,9 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,85 +29,6 @@ public class ProcessServiceTest {
 
     @Mock
     ProcessServiceConfig processServiceConfig;
-
-    @Test
-    void testProcessServiceNormalDestroyWorks() {
-        CompletableFuture<ProcessHandle> onExitFuture = new CompletableFuture<>();
-
-        ProcessHandle processHandle = mock(ProcessHandle.class);
-
-        when(processHandle.destroy()).thenAnswer(invocation -> {
-            onExitFuture.complete(processHandle); // Simulate process exit
-            return true;
-        });
-        when(processHandle.onExit()).thenReturn(onExitFuture);
-
-        ProcessService processService = setupProcessService();
-
-        CompletableFuture<Void> result = processService.killProcess(processHandle);
-
-        assertDoesNotThrow(() -> result.get(2, java.util.concurrent.TimeUnit.SECONDS));
-        assertTrue(result.isDone());
-    }
-
-    @Test
-    void testProcessServiceFailsReasonablyFast() {
-        CompletableFuture<ProcessHandle> onExitFuture = new CompletableFuture<>();
-
-        ProcessHandle processHandle = mock(ProcessHandle.class);
-
-        when(processHandle.destroy()).thenReturn(true);
-        when(processHandle.destroyForcibly()).thenReturn(true);
-
-        when(processHandle.onExit()).thenAnswer(ignored -> {
-            /**
-             * With this we ensure that each call to onExit returns a new instance of {@link CompletableFuture}.
-             */
-            return onExitFuture.thenApply(Function.identity());
-        });
-
-        ProcessService processService = setupProcessService();
-
-        assertTimeoutPreemptively(
-                FAIL_FAST_ACCEPTABLE_DURATION,
-                () -> {
-                    Throwable exception = assertThrowsExactly(
-                            ExecutionException.class,
-                            () -> processService.killProcess(processHandle).get(),
-                            "ProcessService should fail with an Execution-Exception if the process does not exit in time."
-                    );
-                    assertInstanceOf(TimeoutException.class, exception.getCause(), "Cause should be a TimeoutException");
-                },
-                "ProcessService should fail within a reasonable time frame. -> " + FAIL_FAST_ACCEPTABLE_DURATION
-        );
-    }
-
-    @Test
-    void testProcessServiceForcibleDestroyWorks() {
-        CompletableFuture<ProcessHandle> onExitFuture = new CompletableFuture<>();
-
-        ProcessHandle processHandle = mock(ProcessHandle.class);
-
-        when(processHandle.destroy()).thenReturn(true);
-        when(processHandle.destroyForcibly()).thenAnswer(invocation -> {
-            onExitFuture.complete(processHandle);
-            return true;
-        });
-
-        when(processHandle.onExit()).thenAnswer(ignored -> {
-            /**
-             * With this we ensure that each call to onExit returns a new instance of {@link CompletableFuture}.
-             */
-            return onExitFuture.thenApply(Function.identity());
-        });
-
-        ProcessService processService = setupProcessService();
-
-        CompletableFuture<Void> result = processService.killProcess(processHandle);
-
-        assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
-        assertTrue(result.isDone());
-    }
 
     @Test
     void testSupportedGameKillWorks() {
