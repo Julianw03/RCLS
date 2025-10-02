@@ -17,11 +17,18 @@ Riot Games, and all associated properties are trademarks or registered trademark
 
 You have the following options:
 
-1. **Provided jar**: You can run the provided released jar file with the command:
+1. **Provided jar**:
+   For this you will need to have Java 21 or higher installed. You can check your Java version with:
+   ```bash
+    java -version
+   ```
+   
+   
+   You can run the provided released jar file with the command:
    ```bash
    java -jar RCLS.jar
    ```
-   For this you will need to have Java 21 or higher installed. You may also provide your own config overrides.
+   You may also provide your own config overrides.
    This might be useful when certain timeout parameters are set too strict for your environment or you want to manually
    tweak some parameters. For more information on the available configuration options, refer to the `application.yml`
    file in the Backend.
@@ -50,18 +57,13 @@ Running via Docker is not supported, as the project needs access to local Proces
 
 ### Testing out the API
 
-Once the application is running, you can access the Swagger UI at:
-```bash
-    https://127.0.0.1:8080/swagger-ui/index.html#/
-```
-
-For the login process, you will need to pass an hcaptcha Token. I recommend using the provided Frontend for that, as it (mostly) handles that for you.
-Currently, the frontend is pretty basic and does NOT provide any feedback, as it was kinda hacked together.
 **Please do not use 'localhost' to access the frontend as that is blocked by hcaptcha. Use the explicit IP address '127.0.0.1' instead.**
 
+Once the application is running, you can access the [Swagger UI](https://127.0.0.1/swagger-ui/index.html#/) or the 
+minimalistic [Frontend](https://127.0.0.1/) via your browser.
 
-Any other API endpoint should be accessible via the Swagger UI.
-For uploading files, I recommend using a tool like Postman or Insomnia.
+The frontend is very basic and hacked together. It is mainly there to demonstrate some of the basic capabilities of the
+backend. Most of the features are accessible via the Swagger UI.
 
 #### Planned Features / ToDo's
 
