@@ -1,6 +1,7 @@
 package com.julianw03.rcls.service.base.cache;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.julianw03.rcls.eventBus.model.MultiChannelBus;
 import com.julianw03.rcls.model.RCUWebsocketMessage;
 import com.julianw03.rcls.model.data.ObjectDataManager;
 import com.julianw03.rcls.service.riotclient.RiotClientService;
@@ -24,6 +25,9 @@ public class ObjectDataManagerTest {
     @Mock
     RiotClientService riotClientService;
 
+    @Mock
+    MultiChannelBus eventBus;
+
     private ObjectDataManager<Integer, Integer> objectDataManager;
     private Pattern                             examplePattern = Pattern.compile("^/example/v1/data$");
 
@@ -31,7 +35,7 @@ public class ObjectDataManagerTest {
 
     @BeforeEach
     void setUp() {
-        objectDataManager = new ObjectDataManager<>(riotClientService) {
+        objectDataManager = new ObjectDataManager<>(riotClientService, eventBus) {
             @Override
             protected Integer mapView(Integer state) {
                 return Optional.ofNullable(state)
