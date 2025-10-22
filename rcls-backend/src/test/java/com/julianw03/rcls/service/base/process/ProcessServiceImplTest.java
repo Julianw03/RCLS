@@ -6,6 +6,7 @@ import com.julianw03.rcls.model.SupportedGame;
 import com.julianw03.rcls.providers.paths.PathProvider;
 import com.julianw03.rcls.service.process.NoSuchProcessException;
 import com.julianw03.rcls.service.process.ProcessService;
+import com.julianw03.rcls.service.process.ProcessServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -15,14 +16,13 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class ProcessServiceTest {
+public class ProcessServiceImplTest {
     private static final Duration FAIL_FAST_ACCEPTABLE_DURATION = Duration.of(5, ChronoUnit.SECONDS);
 
     @Mock
@@ -65,7 +65,7 @@ public class ProcessServiceTest {
 
         ProcessService processService = setupProcessService(mockGameProcessHandle);
 
-        assertDoesNotThrow(() -> processService.killGameProcess(game).get());
+        assertDoesNotThrow(() -> processService.killGameProcess(game));
     }
 
     @Test
@@ -83,8 +83,7 @@ public class ProcessServiceTest {
 
         when(pathProvider.get()).thenReturn(mockEntries);
 
-        ExecutionException exception = assertThrowsExactly(ExecutionException.class, () -> processService.killGameProcess(null).get());
-        assertInstanceOf(UnsupportedOperationException.class, exception.getCause());
+        assertThrowsExactly( UnsupportedOperationException.class, () -> processService.killGameProcess(null));
     }
 
     @Test
@@ -106,17 +105,16 @@ public class ProcessServiceTest {
 
         when(pathProvider.get()).thenReturn(mockEntries);
 
-        ExecutionException exception = assertThrowsExactly(ExecutionException.class, () -> processService.killGameProcess(SupportedGame.LEAGUE_OF_LEGENDS).get());
-        assertInstanceOf(NoSuchProcessException.class, exception.getCause(), "Exception should be caused by NoSuchProcessException");
+        assertThrowsExactly(NoSuchProcessException.class, () -> processService.killGameProcess(SupportedGame.LEAGUE_OF_LEGENDS));
     }
 
 
-    private ProcessService setupProcessService(ProcessHandle... processHandles) {
+    private ProcessServiceImpl setupProcessService(ProcessHandle... processHandles) {
         Stream<ProcessHandle> processHandleStream = Arrays.stream(processHandles);
 
         assertFalse(processHandleStream.anyMatch(Objects::isNull), "ProcessHandles should not be null");
 
-        return new ProcessService(
+        return new ProcessServiceImpl(
                 pathProvider,
                 () -> Arrays.stream(processHandles),
                 processServiceConfig

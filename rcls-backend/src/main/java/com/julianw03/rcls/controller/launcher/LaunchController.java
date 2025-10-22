@@ -2,6 +2,8 @@ package com.julianw03.rcls.controller.launcher;
 
 import com.julianw03.rcls.model.APIException;
 import com.julianw03.rcls.model.SupportedGame;
+import com.julianw03.rcls.service.FailFastException;
+import com.julianw03.rcls.service.process.NoSuchProcessException;
 import com.julianw03.rcls.service.rest.launch.LaunchV1Service;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -9,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.bind.annotation.*;
@@ -47,12 +50,8 @@ public class LaunchController {
                     description = "Successfully launched the Riot Client UX"
             )
     })
-    public ResponseEntity<Void> launchRiotClientUx() {
-        try {
-            launchV1ServiceImpl.launchRiotClientUx();
-        } catch (ExecutionException e) {
-            throw new APIException(e);
-        }
+    public ResponseEntity<Void> launchRiotClientUx() throws ExecutionException {
+        launchV1ServiceImpl.launchRiotClientUx();
 
         return ResponseEntity
                 .noContent()
@@ -97,16 +96,8 @@ public class LaunchController {
                     description = "Successfully launched the game with the specified game ID"
             )
     })
-    public ResponseEntity<Void> launchGame(@PathVariable String gameId, @RequestParam(required = false) SupportedGame.ResolveStrategy lookupStrategy) {
-        try {
-            launchV1ServiceImpl.launchGameWithPatchline(gameId, "live", lookupStrategy);
-        } catch (ExecutionException e) {
-            throw new APIException(e);
-        } catch (IllegalArgumentException e) {
-            throw APIException.builder(HttpStatus.BAD_REQUEST)
-                    .details(e.getMessage())
-                    .build();
-        }
+    public ResponseEntity<Void> launchGame(@PathVariable String gameId, @RequestParam(required = false) SupportedGame.ResolveStrategy lookupStrategy) throws FailFastException, ExecutionException {
+        launchV1ServiceImpl.launchGameWithPatchline(gameId, "live", lookupStrategy);
         return ResponseEntity
                 .noContent()
                 .build();
@@ -119,16 +110,8 @@ public class LaunchController {
                     description = "Successfully launched the game with the specified game ID and patchline ID"
             )
     })
-    public ResponseEntity<Void> launchGameWithPatchline(@PathVariable String gameId, @PathVariable String patchlineId, @RequestParam(required = false) SupportedGame.ResolveStrategy lookupStrategy) {
-        try {
-            launchV1ServiceImpl.launchGameWithPatchline(gameId, patchlineId, lookupStrategy);
-        } catch (ExecutionException e) {
-            throw new APIException(e);
-        } catch (IllegalArgumentException e) {
-            throw APIException.builder(HttpStatus.BAD_REQUEST)
-                    .details(e.getMessage())
-                    .build();
-        }
+    public ResponseEntity<Void> launchGameWithPatchline(@PathVariable String gameId, @PathVariable String patchlineId, @RequestParam(required = false) SupportedGame.ResolveStrategy lookupStrategy) throws FailFastException, ExecutionException {
+        launchV1ServiceImpl.launchGameWithPatchline(gameId, patchlineId, lookupStrategy);
 
         return ResponseEntity
                 .noContent()
@@ -160,15 +143,23 @@ public class LaunchController {
                     description = "Successfully killed the game with the specified game ID"
             )
     })
-    public ResponseEntity<Void> killGame(@PathVariable String gameId, @RequestParam(required = false) SupportedGame.ResolveStrategy lookupStrategy) {
-        try {
-            launchV1ServiceImpl.killGame(gameId, lookupStrategy);
-        } catch (ExecutionException e) {
-            throw new APIException(e);
-        }
+    public ResponseEntity<Void> killGame(@PathVariable String gameId, @RequestParam(required = false) SupportedGame.ResolveStrategy lookupStrategy) throws NoSuchProcessException, FailFastException, ExecutionException {
+        launchV1ServiceImpl.killGame(gameId, lookupStrategy);
 
         return ResponseEntity
                 .noContent()
                 .build();
+    }
+
+    @ExceptionHandler({ExecutionException.class})
+    public ResponseEntity<ProblemDetail> handleExecutionException(ExecutionException ex) {
+        log.error("Execution exception occurred", ex);
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "An internal error occurred while processing the request."
+        );
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(problemDetail);
     }
 }

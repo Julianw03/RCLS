@@ -2,7 +2,7 @@ package com.julianw03.rcls.service.base.riotclient.connection;
 
 import com.julianw03.rcls.model.RiotClientConnectionParameters;
 import com.julianw03.rcls.model.SupportedGame;
-import com.julianw03.rcls.service.process.ProcessService;
+import com.julianw03.rcls.service.process.ProcessServiceImpl;
 import com.julianw03.rcls.service.riotclient.connection.ProcessTakeoverConnectionStrategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,7 +22,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class ProcessTakeoverStrategyTest {
     @Mock
-    private ProcessService processService;
+    private ProcessServiceImpl processService;
 
     private ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
 
@@ -35,15 +35,15 @@ class ProcessTakeoverStrategyTest {
 
     @Test
     void connect_should_work() {
-        when(processService.killGameProcess(any())).thenReturn(CompletableFuture.completedFuture(null));
-        when(processService.killRiotClientProcess()).thenReturn(CompletableFuture.completedFuture(null));
-        when(processService.killRiotClientServices()).thenReturn(CompletableFuture.completedFuture(null));
+        when(processService.killGameProcessAsync(any())).thenReturn(CompletableFuture.completedFuture(null));
+        when(processService.killRiotClientProcessAsync()).thenReturn(CompletableFuture.completedFuture(null));
+        when(processService.killRiotClientServicesAsync()).thenReturn(CompletableFuture.completedFuture(null));
 
-        when(processService.startRiotClientServices(any())).thenReturn(CompletableFuture.completedFuture(null));
+        when(processService.startRiotClientServicesAsync(any())).thenReturn(CompletableFuture.completedFuture(null));
         RiotClientConnectionParameters connectionParameters = assertDoesNotThrow(processTakeoverConnectionStrategy::connect);
 
         ArgumentCaptor<SupportedGame> captor = ArgumentCaptor.forClass(SupportedGame.class);
-        verify(processService, times(SupportedGame.values().length)).killGameProcess(captor.capture());
+        verify(processService, times(SupportedGame.values().length)).killGameProcessAsync(captor.capture());
 
         List<SupportedGame> captured = captor.getAllValues();
         // Casting to set is necessary as sets don't care about the order of the elments for equality
@@ -56,13 +56,13 @@ class ProcessTakeoverStrategyTest {
 
     @Test
     void unsupportedGamesShouldNotAffectSuccess() {
-        when(processService.killGameProcess(any())).thenReturn(CompletableFuture.runAsync(() -> {
+        when(processService.killGameProcessAsync(any())).thenReturn(CompletableFuture.runAsync(() -> {
             throw new UnsupportedOperationException();
         }, executorService));
-        when(processService.killRiotClientProcess()).thenReturn(CompletableFuture.completedFuture(null));
-        when(processService.killRiotClientServices()).thenReturn(CompletableFuture.completedFuture(null));
+        when(processService.killRiotClientProcessAsync()).thenReturn(CompletableFuture.completedFuture(null));
+        when(processService.killRiotClientServicesAsync()).thenReturn(CompletableFuture.completedFuture(null));
 
-        when(processService.startRiotClientServices(any())).thenReturn(CompletableFuture.completedFuture(null));
+        when(processService.startRiotClientServicesAsync(any())).thenReturn(CompletableFuture.completedFuture(null));
         RiotClientConnectionParameters connectionParameters = assertDoesNotThrow(processTakeoverConnectionStrategy::connect);
         assertNotNull(connectionParameters);
         assertNotNull(connectionParameters.getAuthSecret());
@@ -71,17 +71,17 @@ class ProcessTakeoverStrategyTest {
 
     @Test
     void throwsWhenClientProcessKillFails() {
-        when(processService.killGameProcess(any())).thenReturn(CompletableFuture.completedFuture(null));
-        when(processService.killRiotClientProcess()).thenReturn(CompletableFuture.failedFuture(new TimeoutException()));
+        when(processService.killGameProcessAsync(any())).thenReturn(CompletableFuture.completedFuture(null));
+        when(processService.killRiotClientProcessAsync()).thenReturn(CompletableFuture.failedFuture(new TimeoutException()));
 
         assertThrowsExactly(ExecutionException.class, processTakeoverConnectionStrategy::connect);
     }
 
     @Test
     void throwsWhenRiotClientServiceKillFails() {
-        when(processService.killGameProcess(any())).thenReturn(CompletableFuture.completedFuture(null));
-        when(processService.killRiotClientProcess()).thenReturn(CompletableFuture.completedFuture(null));
-        when(processService.killRiotClientServices()).thenReturn(CompletableFuture.failedFuture(new TimeoutException()));
+        when(processService.killGameProcessAsync(any())).thenReturn(CompletableFuture.completedFuture(null));
+        when(processService.killRiotClientProcessAsync()).thenReturn(CompletableFuture.completedFuture(null));
+        when(processService.killRiotClientServicesAsync()).thenReturn(CompletableFuture.failedFuture(new TimeoutException()));
 
         assertThrowsExactly(ExecutionException.class, processTakeoverConnectionStrategy::connect);
     }

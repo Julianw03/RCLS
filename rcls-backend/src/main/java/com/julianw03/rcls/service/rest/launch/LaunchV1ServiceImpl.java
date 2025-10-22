@@ -5,12 +5,14 @@ import com.julianw03.rcls.generated.api.PluginProductLauncherApi;
 import com.julianw03.rcls.generated.api.PluginRiotClientLifecycleApi;
 import com.julianw03.rcls.model.APIException;
 import com.julianw03.rcls.model.SupportedGame;
+import com.julianw03.rcls.service.FailFastException;
 import com.julianw03.rcls.service.modules.login.RsoAuthenticationManager;
+import com.julianw03.rcls.service.modules.login.model.AuthenticationStateDTO;
+import com.julianw03.rcls.service.modules.login.model.LoginStatusDTO;
+import com.julianw03.rcls.service.process.NoSuchProcessException;
 import com.julianw03.rcls.service.process.ProcessService;
 import com.julianw03.rcls.service.riotclient.RiotClientService;
 import com.julianw03.rcls.service.riotclient.api.InternalApiResponse;
-import com.julianw03.rcls.service.modules.login.model.AuthenticationStateDTO;
-import com.julianw03.rcls.service.modules.login.model.LoginStatusDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
@@ -19,13 +21,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class LaunchV1ServiceImpl implements LaunchV1Service {
 
-    private final RiotClientService riotClientService;
-    private final ProcessService processService;
+    private final RiotClientService        riotClientService;
+    private final ProcessService           processService;
     private final RsoAuthenticationManager authenticationManager;
 
     @Autowired
@@ -134,7 +135,7 @@ public class LaunchV1ServiceImpl implements LaunchV1Service {
     public void killGame(
             String gameId,
             SupportedGame.ResolveStrategy lookupStrategy
-    ) throws ExecutionException {
+    ) throws FailFastException, IllegalArgumentException, NoSuchProcessException {
         SupportedGame.ResolveStrategy resolveStrategy = Optional.ofNullable(lookupStrategy)
                                                                 .orElseGet(SupportedGame.ResolveStrategy::getDefault);
         SupportedGame game = resolveStrategy.resolve(gameId)
@@ -142,15 +143,6 @@ public class LaunchV1ServiceImpl implements LaunchV1Service {
                                                                                             gameId +
                                                                                             " not found"));
 
-        try {
-            processService.killGameProcess(game)
-                          .orTimeout(
-                                  5,
-                                  TimeUnit.SECONDS
-                          )
-                          .join();
-        } catch (Exception e) {
-            throw new ExecutionException(e);
-        }
+        processService.killGameProcess(game);
     }
 }

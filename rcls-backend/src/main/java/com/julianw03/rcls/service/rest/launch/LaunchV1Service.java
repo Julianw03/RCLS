@@ -1,6 +1,8 @@
 package com.julianw03.rcls.service.rest.launch;
 
 import com.julianw03.rcls.model.SupportedGame;
+import com.julianw03.rcls.service.FailFastException;
+import com.julianw03.rcls.service.process.NoSuchProcessException;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -12,6 +14,6 @@ public interface LaunchV1Service {
     List<String> getOperatingSystemSupportedGames(SupportedGame.ResolveStrategy resolveStrategy);
     List<String> getAllSupportedGames(SupportedGame.ResolveStrategy resolveStrategy);
 
-    void launchGameWithPatchline(String gameId, String patchlineId, SupportedGame.ResolveStrategy lookupStrategy) throws ExecutionException, IllegalArgumentException;
-    void killGame(String gameId, SupportedGame.ResolveStrategy lookupStrategy) throws ExecutionException, IllegalArgumentException;
+    void launchGameWithPatchline(String gameId, String patchlineId, SupportedGame.ResolveStrategy lookupStrategy) throws ExecutionException, IllegalArgumentException, FailFastException;
+    void killGame(String gameId, SupportedGame.ResolveStrategy lookupStrategy) throws ExecutionException, IllegalArgumentException, NoSuchProcessException, FailFastException;
 }
