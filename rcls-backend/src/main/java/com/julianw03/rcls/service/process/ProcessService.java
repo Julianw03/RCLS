@@ -202,11 +202,16 @@ public class ProcessService extends BaseService {
     public CompletableFuture<Void> killGameProcess(SupportedGame game) {
         return getExecutableName(mappings -> mappings.getGameExecutables().get(game))
                 .thenCompose(executableIdentifier -> {
-                    CompletableFuture<?>[] futures = processHandleSupplier.get()
+                     List<CompletableFuture<Void>> futures = processHandleSupplier.get()
                             .filter(processHandle -> processHandle.info().command().map(command -> command.endsWith(executableIdentifier)).orElse(false))
                             .map(this::killProcess)
-                            .toArray(CompletableFuture[]::new);
-                    return CompletableFuture.allOf(futures);
+                            .toList();
+
+                    if (futures.isEmpty()) {
+                        throw new NoSuchProcessException("No running process found for game: " + game);
+                    }
+
+                    return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
                 });
     }
 

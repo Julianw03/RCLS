@@ -4,6 +4,7 @@ import com.julianw03.rcls.config.mappings.PathProviderConfig;
 import com.julianw03.rcls.config.mappings.ProcessServiceConfig;
 import com.julianw03.rcls.model.SupportedGame;
 import com.julianw03.rcls.providers.paths.PathProvider;
+import com.julianw03.rcls.service.process.NoSuchProcessException;
 import com.julianw03.rcls.service.process.ProcessService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -84,6 +85,29 @@ public class ProcessServiceTest {
 
         ExecutionException exception = assertThrowsExactly(ExecutionException.class, () -> processService.killGameProcess(null).get());
         assertInstanceOf(UnsupportedOperationException.class, exception.getCause());
+    }
+
+    @Test
+    void testNoGameProcessRunningDoesThrow() {
+        ProcessService processService = setupProcessService();
+        final Map<SupportedGame, String> executableNames = Arrays.stream(SupportedGame.values())
+                                                                 .collect(
+                                                                         HashMap::new,
+                                                                         (acc, current) -> acc.put(current, current.getDisplayName()),
+                                                                         Map::putAll
+                                                                 );
+
+
+        PathProviderConfig.PathEntries mockEntries = new PathProviderConfig.PathEntries();
+        PathProviderConfig.PathEntries.Executables mockExecutables = new PathProviderConfig.PathEntries.Executables();
+        mockExecutables.setGameExecutables(executableNames);
+
+        mockEntries.setExecutables(mockExecutables);
+
+        when(pathProvider.get()).thenReturn(mockEntries);
+
+        ExecutionException exception = assertThrowsExactly(ExecutionException.class, () -> processService.killGameProcess(SupportedGame.LEAGUE_OF_LEGENDS).get());
+        assertInstanceOf(NoSuchProcessException.class, exception.getCause(), "Exception should be caused by NoSuchProcessException");
     }
 
 
