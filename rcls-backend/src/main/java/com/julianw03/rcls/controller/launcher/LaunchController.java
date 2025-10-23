@@ -151,15 +151,37 @@ public class LaunchController {
                 .build();
     }
 
-    @ExceptionHandler({ExecutionException.class})
-    public ResponseEntity<ProblemDetail> handleExecutionException(ExecutionException ex) {
-        log.error("Execution exception occurred", ex);
+    @ExceptionHandler({IllegalArgumentException.class})
+    public ResponseEntity<ProblemDetail> handleIllegalArgumentException(IllegalArgumentException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "An internal error occurred while processing the request."
+                HttpStatus.BAD_REQUEST,
+                ex.getMessage()
         );
         return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .status(HttpStatus.BAD_REQUEST)
+                .body(problemDetail);
+    }
+
+    @ExceptionHandler({FailFastException.class})
+    public ResponseEntity<ProblemDetail> handleFailFastException(FailFastException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.GATEWAY_TIMEOUT,
+                ex.getMessage()
+        );
+        return ResponseEntity
+                .status(HttpStatus.GATEWAY_TIMEOUT)
+                .body(problemDetail);
+    }
+
+    @ExceptionHandler({NoSuchProcessException.class})
+    public ResponseEntity<ProblemDetail> handleExecutionException(NoSuchProcessException ex) {
+        log.error("Execution exception occurred", ex);
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND,
+                ex.getMessage()
+        );
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
                 .body(problemDetail);
     }
 }
