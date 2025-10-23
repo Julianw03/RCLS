@@ -14,12 +14,20 @@ enum LookupStrategy {
 const killGame = async (gameId: string, lookupStrategy: LookupStrategy = LookupStrategy.DISPLAY_NAME) => {
     await fetch(resolve(`/api/riotclient/launcher/v1/game/${gameId}?lookupStrategy=${lookupStrategy}` as LocalLink), {
         method: "DELETE"
+    }).then(resp => {
+        if (!resp.ok) {
+            throw new Error(`Failed to kill game ${gameId}: ${resp.statusText}`);
+        }
     });
 }
 
 const launchGame = async (gameId: string, lookupStrategy: LookupStrategy = LookupStrategy.DISPLAY_NAME) => {
     await fetch(resolve(`/api/riotclient/launcher/v1/game/${gameId}?lookupStrategy=${lookupStrategy}` as LocalLink), {
         method: "POST"
+    }).then(resp => {
+        if (!resp.ok) {
+            throw new Error(`Failed to launch game ${gameId}: ${resp.statusText}`);
+        }
     });
 }
 

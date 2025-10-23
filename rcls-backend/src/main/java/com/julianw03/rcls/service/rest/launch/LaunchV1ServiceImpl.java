@@ -141,7 +141,7 @@ public class LaunchV1ServiceImpl implements LaunchV1Service {
         SupportedGame game = resolveStrategy.resolve(gameId)
                                             .orElseThrow(() -> new IllegalArgumentException("Game with ID " +
                                                                                             gameId +
-                                                                                            " not found"));
+                                                                                            " does not exist or is currently not supported by this Application"));
 
         processService.killGameProcess(game);
     }
