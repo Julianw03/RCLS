@@ -1,8 +1,8 @@
 package com.julianw03.rcls.controller.connector;
 
 import com.julianw03.rcls.model.APIException;
-import com.julianw03.rcls.service.rest.connector.ConnectorV1Service;
-import com.julianw03.rcls.service.rest.connector.RiotClientConnectionParametersDTO;
+import com.julianw03.rcls.service.modules.rclient.connector.ConnectorV1Service;
+import com.julianw03.rcls.service.modules.rclient.connector.RiotClientConnectionParametersDTO;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;

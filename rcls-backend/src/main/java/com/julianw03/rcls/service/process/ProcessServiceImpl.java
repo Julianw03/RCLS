@@ -6,11 +6,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.julianw03.rcls.Util.FutureUtils;
 import com.julianw03.rcls.config.mappings.PathProviderConfig;
 import com.julianw03.rcls.config.mappings.ProcessServiceConfig;
+import com.julianw03.rcls.model.FailFastException;
 import com.julianw03.rcls.model.RiotClientConnectionParameters;
 import com.julianw03.rcls.model.SupportedGame;
 import com.julianw03.rcls.providers.paths.PathProvider;
 import com.julianw03.rcls.service.BaseService;
-import com.julianw03.rcls.service.FailFastException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;

@@ -1,6 +1,6 @@
 package com.julianw03.rcls.controller;
 
-import com.julianw03.rcls.interceptors.serviceReady.ServiceNotReadyException;
+import com.julianw03.rcls.controller.serviceReady.ServiceNotReadyException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;

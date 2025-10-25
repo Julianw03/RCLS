@@ -1,10 +1,10 @@
 package com.julianw03.rcls.controller.launcher;
 
 import com.julianw03.rcls.model.APIException;
+import com.julianw03.rcls.model.FailFastException;
 import com.julianw03.rcls.model.SupportedGame;
-import com.julianw03.rcls.service.FailFastException;
+import com.julianw03.rcls.service.modules.rclient.launch.LaunchV1Service;
 import com.julianw03.rcls.service.process.NoSuchProcessException;
-import com.julianw03.rcls.service.rest.launch.LaunchV1Service;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;

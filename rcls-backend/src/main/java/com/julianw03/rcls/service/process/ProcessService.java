@@ -1,8 +1,8 @@
 package com.julianw03.rcls.service.process;
 
+import com.julianw03.rcls.model.FailFastException;
 import com.julianw03.rcls.model.RiotClientConnectionParameters;
 import com.julianw03.rcls.model.SupportedGame;
-import com.julianw03.rcls.service.FailFastException;
 
 import java.util.List;
 

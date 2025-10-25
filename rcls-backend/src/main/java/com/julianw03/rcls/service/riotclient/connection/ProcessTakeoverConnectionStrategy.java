@@ -1,9 +1,9 @@
 package com.julianw03.rcls.service.riotclient.connection;
 
 import com.julianw03.rcls.Util.Utils;
+import com.julianw03.rcls.model.FailFastException;
 import com.julianw03.rcls.model.RiotClientConnectionParameters;
 import com.julianw03.rcls.model.SupportedGame;
-import com.julianw03.rcls.service.FailFastException;
 import com.julianw03.rcls.service.process.NoSuchProcessException;
 import com.julianw03.rcls.service.process.ProcessService;
 import lombok.extern.slf4j.Slf4j;
