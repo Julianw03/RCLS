@@ -118,10 +118,6 @@ public class RiotClientServiceImpl extends RiotClientService {
 
     @Override
     public boolean isConnectionEstablished() {
-        log.debug(
-                "Checking connection state: {}",
-                connectionStateRef.get()
-        );
         return connectionStateRef.get() == ConnectionState.CONNECTED;
     }
 
