@@ -1,4 +1,4 @@
-package com.julianw03.rcls.controller.serviceReady;
+package com.julianw03.rcls.controller.interceptors.serviceReady;
 
 import com.julianw03.rcls.service.riotclient.RiotClientService;
 import jakarta.servlet.http.HttpServletRequest;

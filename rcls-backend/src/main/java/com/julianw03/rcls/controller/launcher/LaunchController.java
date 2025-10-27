@@ -1,7 +1,7 @@
 package com.julianw03.rcls.controller.launcher;
 
-import com.julianw03.rcls.model.APIException;
-import com.julianw03.rcls.model.FailFastException;
+import com.julianw03.rcls.controller.FailFastException;
+import com.julianw03.rcls.controller.errors.ApiProblem;
 import com.julianw03.rcls.model.SupportedGame;
 import com.julianw03.rcls.service.modules.rclient.launch.LaunchV1Service;
 import com.julianw03.rcls.service.process.NoSuchProcessException;
@@ -10,8 +10,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.bind.annotation.*;
@@ -28,7 +26,7 @@ import java.util.concurrent.ExecutionException;
                 description = "Used when the user has not yet connected to the Riot Client",
                 content = @Content(
                         mediaType = "application/json",
-                        schema = @Schema(implementation = APIException.class)
+                        schema = @Schema(implementation = ApiProblem.class)
                 )
         )
 })
@@ -125,12 +123,8 @@ public class LaunchController {
                     description = "Successfully hidden the Riot Client UX"
             )
     })
-    public ResponseEntity<Void> hideRiotClientUx() {
-        try {
-            launchV1ServiceImpl.hideRiotClientUx();
-        } catch (ExecutionException e) {
-            throw new APIException(e);
-        }
+    public ResponseEntity<Void> hideRiotClientUx() throws ExecutionException {
+        launchV1ServiceImpl.hideRiotClientUx();
         return ResponseEntity
                 .noContent()
                 .build();
@@ -149,39 +143,5 @@ public class LaunchController {
         return ResponseEntity
                 .noContent()
                 .build();
-    }
-
-    @ExceptionHandler({IllegalArgumentException.class})
-    public ResponseEntity<ProblemDetail> handleIllegalArgumentException(IllegalArgumentException ex) {
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
-                HttpStatus.BAD_REQUEST,
-                ex.getMessage()
-        );
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(problemDetail);
-    }
-
-    @ExceptionHandler({FailFastException.class})
-    public ResponseEntity<ProblemDetail> handleFailFastException(FailFastException ex) {
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
-                HttpStatus.GATEWAY_TIMEOUT,
-                ex.getMessage()
-        );
-        return ResponseEntity
-                .status(HttpStatus.GATEWAY_TIMEOUT)
-                .body(problemDetail);
-    }
-
-    @ExceptionHandler({NoSuchProcessException.class})
-    public ResponseEntity<ProblemDetail> handleExecutionException(NoSuchProcessException ex) {
-        log.error("Execution exception occurred", ex);
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
-                HttpStatus.NOT_FOUND,
-                ex.getMessage()
-        );
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(problemDetail);
     }
 }

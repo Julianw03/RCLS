@@ -2,9 +2,9 @@ package com.julianw03.rcls.service.modules.rclient.login;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.julianw03.rcls.Util.ServletUtils;
+import com.julianw03.rcls.controller.InvalidCredentialsException;
 import com.julianw03.rcls.generated.api.CoreSdkApi;
 import com.julianw03.rcls.generated.model.*;
-import com.julianw03.rcls.model.APIException;
 import com.julianw03.rcls.model.data.ObjectDataManagerFacade;
 import com.julianw03.rcls.service.modules.rclient.login.model.*;
 import com.julianw03.rcls.service.riotclient.RiotClientService;
@@ -100,7 +100,7 @@ public class LoginV1ServiceImpl implements LoginV1Service {
     public void resetHCaptcha() throws ExecutionException, IllegalStateException {
         CoreSdkApi coreSdkApiClient = riotClientService.getApi(CoreSdkApi.class)
                 .orElseThrow(
-                        () -> new APIException("Failed to get CoreSdkApi client")
+                        () -> new IllegalStateException("Failed to get CoreSdkApi client")
                 );
 
         final RsoAuthAuthorizationResponse grantsResponse;
@@ -109,7 +109,7 @@ public class LoginV1ServiceImpl implements LoginV1Service {
                     AUTH_GRANT_REQUEST
             );
         } catch (Exception e) {
-            throw new APIException(
+            throw new ExecutionException(
                     "Failed to get RSO Auth V2 Authorization response",
                     e
             );
@@ -125,7 +125,7 @@ public class LoginV1ServiceImpl implements LoginV1Service {
         try {
             coreSdkApiClient.rsoAuthenticatorV1AuthenticationDelete();
         } catch (Exception e) {
-            throw new APIException(
+            throw new ExecutionException(
                     "Failed to delete RSO Authenticator V1 Authentication",
                     e
             );
@@ -135,7 +135,7 @@ public class LoginV1ServiceImpl implements LoginV1Service {
     public HCaptchaDTO getHCaptcha() throws ExecutionException, IllegalStateException {
         CoreSdkApi coreSdkApiClient = riotClientService.getApi(CoreSdkApi.class)
                 .orElseThrow(
-                        () -> new APIException("Failed to get CoreSdkApi client")
+                        () -> new IllegalStateException("Failed to get CoreSdkApi client")
                 );
 
         AuthenticationStateDTO internalAuthState = rsoAuthenticationManager
@@ -154,7 +154,7 @@ public class LoginV1ServiceImpl implements LoginV1Service {
                     IDENTITY_START_INPUT
             );
         } catch (Exception e) {
-            throw new APIException(
+            throw new ExecutionException(
                     "Failed to get RSO Authenticator V1 Authentication response",
                     e
             );
@@ -195,7 +195,7 @@ public class LoginV1ServiceImpl implements LoginV1Service {
 
         CoreSdkApi coreSdkApiClient = riotClientService.getApi(CoreSdkApi.class)
                 .orElseThrow(
-                        () -> new APIException("Failed to get CoreSdkApi client")
+                        () -> new IllegalStateException("Failed to get CoreSdkApi client")
                 );
 
         final RsoAuthenticatorV1AuthenticationResponse authenticationResponse;
@@ -218,7 +218,7 @@ public class LoginV1ServiceImpl implements LoginV1Service {
         final String error = authenticationResponse.getError();
         if (error != null && !error.isBlank()) {
             if ("auth_failure".equalsIgnoreCase(error)) {
-                throw new ExecutionException(new IllegalArgumentException(error));
+                throw new InvalidCredentialsException();
             }
             throw new ExecutionException(
                     "Request returned a non-empty error: " + error,
@@ -254,7 +254,7 @@ public class LoginV1ServiceImpl implements LoginV1Service {
 
         CoreSdkApi coreSdkApiClient = riotClientService.getApi(CoreSdkApi.class)
                 .orElseThrow(
-                        () -> new APIException("Failed to get CoreSdkApi client")
+                        () -> new IllegalStateException("Failed to get CoreSdkApi client")
                 );
 
         final RsoAuthSessionResponse authSessionResponse;
@@ -305,9 +305,18 @@ public class LoginV1ServiceImpl implements LoginV1Service {
                 MultifactorInputDTO::getRememberDevice
         );
 
+        AuthenticationStateDTO currentState = rsoAuthenticationManager
+                .getView();
+
+        ServletUtils.assertEqual(
+                "ExpectAuthState",
+                LoginStatusDTO.MULTIFACTOR_REQUIRED,
+                currentState.getLoginStatus()
+        );
+
         CoreSdkApi coreSdkApiClient = riotClientService.getApi(CoreSdkApi.class)
                 .orElseThrow(
-                        () -> new APIException("Failed to get CoreSdkApi client")
+                        () -> new IllegalStateException("Failed to get CoreSdkApi client")
                 );
 
         final RsoAuthenticatorV1AuthenticationResponse authenticationResponse;
@@ -333,7 +342,7 @@ public class LoginV1ServiceImpl implements LoginV1Service {
     public void logout() throws ExecutionException {
         CoreSdkApi coreSdkApiClient = riotClientService.getApi(CoreSdkApi.class)
                 .orElseThrow(
-                        () -> new APIException("Failed to get CoreSdkApi client")
+                        () -> new IllegalStateException("Failed to get CoreSdkApi client")
                 );
 
         final RsoAuthAuthorizationResponse grantsResponse;

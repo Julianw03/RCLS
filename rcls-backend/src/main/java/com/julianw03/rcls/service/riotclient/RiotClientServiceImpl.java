@@ -12,7 +12,6 @@ import com.julianw03.rcls.eventBus.model.MultiChannelBus;
 import com.julianw03.rcls.eventBus.model.events.RCUConnectionEvent;
 import com.julianw03.rcls.eventBus.model.events.RCUMessageEvent;
 import com.julianw03.rcls.generated.ApiClient;
-import com.julianw03.rcls.model.APIException;
 import com.julianw03.rcls.model.RCUWebsocketMessage;
 import com.julianw03.rcls.model.RiotClientConnectionParameters;
 import com.julianw03.rcls.service.riotclient.api.InternalApiResponse;
@@ -199,7 +198,7 @@ public class RiotClientServiceImpl extends RiotClientService {
                     e
             );
             this.connectionStateRef.set(ConnectionState.DISCONNECTED);
-            throw new APIException("Failed to establish Websocket Connection in given timeout");
+            throw new ExecutionException("Failed to establish Websocket Connection in given timeout", e);
         }
 
         expectAndSetState(

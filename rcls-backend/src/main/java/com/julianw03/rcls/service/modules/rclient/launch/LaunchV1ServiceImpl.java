@@ -1,10 +1,9 @@
 package com.julianw03.rcls.service.modules.rclient.launch;
 
 import com.julianw03.rcls.Util.ServletUtils;
+import com.julianw03.rcls.controller.FailFastException;
 import com.julianw03.rcls.generated.api.PluginProductLauncherApi;
 import com.julianw03.rcls.generated.api.PluginRiotClientLifecycleApi;
-import com.julianw03.rcls.model.APIException;
-import com.julianw03.rcls.model.FailFastException;
 import com.julianw03.rcls.model.SupportedGame;
 import com.julianw03.rcls.service.modules.rclient.login.RsoAuthenticationManager;
 import com.julianw03.rcls.service.modules.rclient.login.model.AuthenticationStateDTO;
@@ -63,14 +62,10 @@ public class LaunchV1ServiceImpl implements LaunchV1Service {
     public void hideRiotClientUx() throws ExecutionException {
         PluginRiotClientLifecycleApi riotClientLifecycleApi = riotClientService.getApi(PluginRiotClientLifecycleApi.class)
                                                                                .orElseThrow(
-                                                                                       () -> new APIException("Failed to get riotClientLifecycleApi client")
+                                                                                       () -> new IllegalStateException("Failed to get riotClientLifecycleApi client")
                                                                                );
 
-        try {
-            riotClientLifecycleApi.riotClientLifecycleV1HidePost();
-        } catch (Exception e) {
-            throw new ExecutionException(e);
-        }
+        riotClientLifecycleApi.riotClientLifecycleV1HidePost();
     }
 
     public List<String> getOperatingSystemSupportedGames(SupportedGame.ResolveStrategy resolveStrategy) {
@@ -116,7 +111,7 @@ public class LaunchV1ServiceImpl implements LaunchV1Service {
 
         PluginProductLauncherApi productLauncherApi = riotClientService.getApi(PluginProductLauncherApi.class)
                                                                        .orElseThrow(
-                                                                               () -> new APIException("Failed to get CoreSdkApi client")
+                                                                               () -> new IllegalStateException("Failed to get CoreSdkApi client")
                                                                        );
 
 

@@ -1,6 +1,7 @@
 package com.julianw03.rcls.controller.login;
 
-import com.julianw03.rcls.model.APIException;
+import com.julianw03.rcls.controller.errors.ApiProblem;
+import com.julianw03.rcls.controller.errors.MultifactorRequiredProblem;
 import com.julianw03.rcls.service.modules.rclient.login.LoginV1Service;
 import com.julianw03.rcls.service.modules.rclient.login.model.*;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -9,6 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +27,7 @@ import java.util.concurrent.ExecutionException;
                 description = "Used when the user has not yet connected to the Riot Client",
                 content = @Content(
                         mediaType = "application/json",
-                        schema = @Schema(implementation = APIException.class)
+                        schema = @Schema(implementation = ApiProblem.class)
                 )
         ),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -33,7 +35,7 @@ import java.util.concurrent.ExecutionException;
                 description = "Generic processing error",
                 content = @Content(
                         mediaType = "application/json",
-                        schema = @Schema(implementation = APIException.class)
+                        schema = @Schema(implementation = ApiProblem.class)
                 )
         )
 })
@@ -61,13 +63,8 @@ public class LoginController {
                     )
             )
     })
-    public ResponseEntity<LoginStatusDTO> getLoginStatus() {
-        final LoginStatusDTO loginStatusDTO;
-        try {
-            loginStatusDTO = loginV1Service.getLoginStatus();
-        } catch (ExecutionException e) {
-            throw new APIException(e);
-        }
+    public ResponseEntity<LoginStatusDTO> getLoginStatus() throws ExecutionException {
+        final LoginStatusDTO loginStatusDTO = loginV1Service.getLoginStatus();
         return ResponseEntity
                 .ok()
                 .body(loginStatusDTO);
@@ -85,7 +82,7 @@ public class LoginController {
                             content = @io.swagger.v3.oas.annotations.media.Content(
                                     mediaType = MimeTypeUtils.APPLICATION_JSON_VALUE,
                                     schema = @io.swagger.v3.oas.annotations.media.Schema(
-                                            implementation = APIException.class
+                                            implementation = ApiProblem.class
                                     )
                             )
                     ),
@@ -94,16 +91,8 @@ public class LoginController {
     @PostMapping(
             value = "/reset"
     )
-    public ResponseEntity<Void> resetLoginProcess() {
-        try {
-            loginV1Service.resetHCaptcha();
-        } catch (ExecutionException e) {
-            throw new APIException(e);
-        } catch (IllegalStateException e) {
-            throw APIException.builder(HttpStatus.CONFLICT)
-                    .details(e.getMessage())
-                    .build();
-        }
+    public ResponseEntity<Void> resetLoginProcess() throws ExecutionException, IllegalStateException {
+        loginV1Service.resetHCaptcha();
 
         return ResponseEntity
                 .status(HttpStatus.NO_CONTENT)
@@ -125,7 +114,7 @@ public class LoginController {
                             description = "Conflict, probably due to already being logged in or an ongoing login process",
                             content = @Content(
                                     mediaType = MimeTypeUtils.APPLICATION_JSON_VALUE,
-                                    schema = @Schema(implementation = APIException.class)
+                                    schema = @Schema(implementation = ApiProblem.class)
                             )
                     )
             }
@@ -134,17 +123,8 @@ public class LoginController {
             value = "/captcha",
             produces = MimeTypeUtils.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<HCaptchaDTO> getCaptcha() {
-        final HCaptchaDTO hCaptchaDTO;
-        try {
-            hCaptchaDTO = loginV1Service.getHCaptcha();
-        } catch (ExecutionException e) {
-            throw new APIException(e);
-        } catch (IllegalStateException e) {
-            throw APIException.builder(HttpStatus.CONFLICT)
-                    .details(e.getMessage())
-                    .build();
-        }
+    public ResponseEntity<HCaptchaDTO> getCaptcha() throws ExecutionException, IllegalStateException {
+        final HCaptchaDTO hCaptchaDTO = loginV1Service.getHCaptcha();
         return ResponseEntity
                 .ok()
                 .body(hCaptchaDTO);
@@ -157,35 +137,35 @@ public class LoginController {
                             description = "Successfully logged in"
                     ),
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                            responseCode = "400",
-                            description = "Bad request, possibly due to invalid input",
-                            content = @io.swagger.v3.oas.annotations.media.Content(
-                                    mediaType = MimeTypeUtils.APPLICATION_JSON_VALUE,
-                                    schema = @io.swagger.v3.oas.annotations.media.Schema(
-                                            implementation = APIException.class
-                                    )
-                            )
-                    ),
-                    @io.swagger.v3.oas.annotations.responses.ApiResponse(
                             responseCode = "409",
                             description = "Conflict, probably due to already being logged in or an ongoing login process",
                             content = @io.swagger.v3.oas.annotations.media.Content(
                                     mediaType = MimeTypeUtils.APPLICATION_JSON_VALUE,
                                     schema = @io.swagger.v3.oas.annotations.media.Schema(
-                                            implementation = APIException.class
+                                            implementation = ApiProblem.class
+                                    )
+                            )
+                    ),
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                            responseCode = "403",
+                            description = "Multifactor authentication required",
+                            content = @io.swagger.v3.oas.annotations.media.Content(
+                                    mediaType = MimeTypeUtils.APPLICATION_JSON_VALUE,
+                                    schema = @io.swagger.v3.oas.annotations.media.Schema(
+                                            implementation = MultifactorRequiredProblem.class
                                     )
                             )
                     ),
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(
                             responseCode = "401",
-                            description = "Multifactor authentication required",
+                            description = "Unauthorized, invalid credentials provided",
                             content = @io.swagger.v3.oas.annotations.media.Content(
                                     mediaType = MimeTypeUtils.APPLICATION_JSON_VALUE,
                                     schema = @io.swagger.v3.oas.annotations.media.Schema(
-                                            implementation = MultifactorInfoDTO.class
+                                            implementation = ApiProblem.class
                                     )
                             )
-                    )
+                    ),
             }
     )
     @PostMapping(
@@ -193,25 +173,8 @@ public class LoginController {
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE,
             produces = MimeTypeUtils.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<?> performLogin(@RequestBody LoginInputDTO body) {
-        final LoginStatusDTO loginStatusDTO;
-        try {
-            loginStatusDTO = loginV1Service.login(body);
-        } catch (ExecutionException e) {
-            throw new APIException(e);
-        } catch (MultifactorRequiredException e) {
-            return ResponseEntity
-                    .status(HttpStatus.UNAUTHORIZED)
-                    .body(e.getMultifactorInfo());
-        } catch (IllegalStateException e) {
-            throw APIException.builder(HttpStatus.CONFLICT)
-                    .details(e.getMessage())
-                    .build();
-        } catch (IllegalArgumentException e) {
-            throw APIException.builder(HttpStatus.BAD_REQUEST)
-                    .details(e.getMessage())
-                    .build();
-        }
+    public ResponseEntity<LoginStatusDTO> performLogin(@RequestBody LoginInputDTO body) throws ExecutionException, MultifactorRequiredException, IllegalStateException, IllegalArgumentException{
+        final LoginStatusDTO loginStatusDTO = loginV1Service.login(body);
 
         return ResponseEntity
                 .status(HttpStatus.NO_CONTENT)
@@ -225,12 +188,12 @@ public class LoginController {
                             description = "Successfully resolved multifactor authentication"
                     ),
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                            responseCode = "400",
-                            description = "Bad request, possibly due to invalid input",
+                            responseCode = "401",
+                            description = "Bad request, invalid multifactor code provided",
                             content = @io.swagger.v3.oas.annotations.media.Content(
                                     mediaType = MimeTypeUtils.APPLICATION_JSON_VALUE,
                                     schema = @io.swagger.v3.oas.annotations.media.Schema(
-                                            implementation = APIException.class
+                                            implementation = ApiProblem.class
                                     )
                             )
                     ),
@@ -240,7 +203,7 @@ public class LoginController {
                             content = @io.swagger.v3.oas.annotations.media.Content(
                                     mediaType = MimeTypeUtils.APPLICATION_JSON_VALUE,
                                     schema = @io.swagger.v3.oas.annotations.media.Schema(
-                                            implementation = APIException.class
+                                            implementation =  ApiProblem.class
                                     )
                             )
                     )
@@ -250,22 +213,8 @@ public class LoginController {
             value = "/multifactor",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<LoginStatusDTO> resolveMultifactor(@RequestBody MultifactorInputDTO multifactorInput) {
-        final LoginStatusDTO loginStatusDTO;
-        try {
-            loginStatusDTO = loginV1Service.loginWithMultifactor(multifactorInput);
-        } catch (ExecutionException e) {
-            throw new APIException(e);
-        } catch (IllegalStateException e) {
-            throw APIException.builder(HttpStatus.CONFLICT)
-                    .details(e.getMessage())
-                    .build();
-        } catch (IllegalArgumentException e) {
-            throw APIException.builder(HttpStatus.BAD_REQUEST)
-                    .details(e.getMessage())
-                    .build();
-        }
-
+    public ResponseEntity<LoginStatusDTO> resolveMultifactor(@RequestBody MultifactorInputDTO multifactorInput) throws ExecutionException, IllegalStateException, IllegalArgumentException {
+        final LoginStatusDTO loginStatusDTO = loginV1Service.loginWithMultifactor(multifactorInput);
         return ResponseEntity
                 .ok(loginStatusDTO);
     }
@@ -282,26 +231,47 @@ public class LoginController {
                             content = @io.swagger.v3.oas.annotations.media.Content(
                                     mediaType = MimeTypeUtils.APPLICATION_JSON_VALUE,
                                     schema = @io.swagger.v3.oas.annotations.media.Schema(
-                                            implementation = APIException.class
+                                            implementation = ApiProblem.class
                                     )
                             )
                     )
             }
     )
     @PostMapping("/logout")
-    private ResponseEntity<Void> logout() {
-        try {
-            loginV1Service.logout();
-        } catch (ExecutionException e) {
-            throw new APIException(e);
-        } catch (IllegalStateException e) {
-            throw APIException.builder(HttpStatus.CONFLICT)
-                    .details(e.getMessage())
-                    .build();
-        }
+    private ResponseEntity<Void> logout() throws ExecutionException, IllegalStateException {
+        loginV1Service.logout();
 
         return ResponseEntity
                 .noContent()
                 .build();
     }
+
+    @ExceptionHandler({IllegalArgumentException.class})
+    public ResponseEntity<ApiProblem> handleIllegalArgumentException(IllegalArgumentException e) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiProblem.fromProblemDetail(pd));
+    }
+
+    @ExceptionHandler({IllegalStateException.class})
+    public ResponseEntity<ApiProblem> handleIllegalStateException(IllegalStateException e) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(ApiProblem.fromProblemDetail(pd));
+    }
+
+    @ExceptionHandler({MultifactorRequiredException.class})
+    public ResponseEntity<MultifactorRequiredProblem> handleMultifactorRequiredException(MultifactorRequiredException e) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, e.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(MultifactorRequiredProblem.create(pd, e));
+    }
+
+
 }

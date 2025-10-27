@@ -1,6 +1,6 @@
 package com.julianw03.rcls.controller.connector;
 
-import com.julianw03.rcls.model.APIException;
+import com.julianw03.rcls.controller.errors.ApiProblem;
 import com.julianw03.rcls.service.modules.rclient.connector.ConnectorV1Service;
 import com.julianw03.rcls.service.modules.rclient.connector.RiotClientConnectionParametersDTO;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -42,7 +42,7 @@ public class ConnectorController {
                     description = "Conflict: An attempt to connect to the Riot Client has already been made and is in progress or the connection has already been established.",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = APIException.class)
+                            schema = @Schema(implementation = ApiProblem.class)
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -50,22 +50,17 @@ public class ConnectorController {
                     description = "Internal Server Error: Unable to connect to the Riot Client due to an unexpected error.",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = APIException.class)
+                            schema = @Schema(implementation = ApiProblem.class)
                     )
             )
     })
     @PostMapping(value = "/connect", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
-    public ResponseEntity<RiotClientConnectionParametersDTO> getConnectToRiotClientService() {
-        final RiotClientConnectionParametersDTO parametersDTO;
-        try {
-            parametersDTO = connectorV1Service.connect();
-        } catch (ExecutionException e) {
-            throw new APIException(e);
-        } catch (IllegalStateException e) {
-            throw new APIException("Unable to connect to the Riot Client", HttpStatus.CONFLICT, "An attempt to connect to the Riot Client has already been made and is in progress or the connection has already been established.");
-        }
-
-        return new ResponseEntity<>(parametersDTO, HttpStatus.OK);
+    public ResponseEntity<RiotClientConnectionParametersDTO> getConnectToRiotClientService() throws IllegalStateException, ExecutionException {
+        final RiotClientConnectionParametersDTO parametersDTO = connectorV1Service.connect();
+        return new ResponseEntity<>(
+                parametersDTO,
+                HttpStatus.OK
+        );
     }
 
     @ApiResponses(value = {
@@ -78,20 +73,17 @@ public class ConnectorController {
                     description = "Not Found: Unable to retrieve connection parameters, possibly because the Riot Client is not connected.",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = APIException.class)
+                            schema = @Schema(implementation = ApiProblem.class)
                     )
             )
     })
     @GetMapping(value = "/parameters", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
-    public ResponseEntity<RiotClientConnectionParametersDTO> getCurrentParameters() {
-        final RiotClientConnectionParametersDTO parametersDTO;
-        try {
-            parametersDTO = connectorV1Service.getConnectionParameters();
-        } catch (IllegalStateException e) {
-            throw new APIException("Unable to retrieve connection parameters", HttpStatus.NOT_FOUND, e.getMessage());
-        }
-
-        return new ResponseEntity<>(parametersDTO, HttpStatus.OK);
+    public ResponseEntity<RiotClientConnectionParametersDTO> getCurrentParameters() throws IllegalStateException {
+        final RiotClientConnectionParametersDTO parametersDTO = connectorV1Service.getConnectionParameters();
+        return new ResponseEntity<>(
+                parametersDTO,
+                HttpStatus.OK
+        );
     }
 
     @ApiResponses(value = {
@@ -104,7 +96,7 @@ public class ConnectorController {
                     description = "Conflict: Unable to disconnect from the Riot Client because it is not connected or the disconnection process is already in progress.",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = APIException.class)
+                            schema = @Schema(implementation = ApiProblem.class)
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -112,19 +104,14 @@ public class ConnectorController {
                     description = "Internal Server Error: Failed to disconnect from the Riot Client due to an unexpected error.",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = APIException.class)
+                            schema = @Schema(implementation = ApiProblem.class)
                     )
             )
     })
     @PostMapping(value = "/disconnect")
-    public ResponseEntity<Void> disconnectFromRiotClientService() {
-        try {
-            connectorV1Service.disconnect();
-        } catch (IllegalStateException e) {
-            throw new APIException("Unable to disconnect from the Riot Client", HttpStatus.CONFLICT, "The Riot Client is not connected or the disconnection process is already in progress.");
-        } catch (ExecutionException e) {
-            throw new APIException("Failed to disconnect from Riot Client", HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
-        }
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<Void> disconnectFromRiotClientService() throws IllegalStateException, ExecutionException {
+        connectorV1Service.disconnect();
+        return ResponseEntity.noContent()
+                             .build();
     }
 }

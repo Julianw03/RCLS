@@ -1,4 +1,4 @@
-package com.julianw03.rcls.controller.serviceReady;
+package com.julianw03.rcls.controller.interceptors.serviceReady;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.ErrorResponseException;

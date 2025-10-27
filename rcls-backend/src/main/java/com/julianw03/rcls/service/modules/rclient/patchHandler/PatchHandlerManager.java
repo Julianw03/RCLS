@@ -119,12 +119,12 @@ public class PatchHandlerManager extends PublishingMapDataManager<String, Map<St
                     productId,
                     patchlineId
             );
+            log.debug("Fetched initial patch proxy data for productId: {}, patchlineId: {}", productId, patchlineId);
         } catch (Exception e) {
-            log.error(
+            log.warn(
                     "Failed to fetch initial patch proxy data for productId: {}, patchlineId: {}",
                     productId,
-                    patchlineId,
-                    e
+                    patchlineId
             );
         }
 

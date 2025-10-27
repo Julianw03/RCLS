@@ -1,6 +1,6 @@
 package com.julianw03.rcls.service.modules.rclient.launch;
 
-import com.julianw03.rcls.model.FailFastException;
+import com.julianw03.rcls.controller.FailFastException;
 import com.julianw03.rcls.model.SupportedGame;
 import com.julianw03.rcls.service.process.NoSuchProcessException;
 
