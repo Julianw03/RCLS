@@ -5,6 +5,7 @@ plugins {
     id("org.springframework.boot") version "3.4.3"
     id("io.spring.dependency-management") version "1.1.7"
     id("org.openapi.generator") version "7.4.0"
+    id("org.springdoc.openapi-gradle-plugin") version "1.9.0"
 }
 
 group = "com.julianw03"
@@ -64,6 +65,15 @@ openApiGenerate {
     invokerPackage.set("com.julianw03.rcls.generated")
     generateModelTests.set(false)
     generateApiTests.set(false)
+}
+
+openApi {
+    outputDir.set(layout.buildDirectory.dir("generated"))
+    outputFileName.set("openapi.yaml")
+    apiDocsUrl.set("http://127.0.0.1:8080/v3/api-docs")
+    customBootRun {
+        args.set(listOf("--spring.profiles.active=test"))
+    }
 }
 
 tasks.withType<Test> {
