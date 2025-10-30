@@ -48,7 +48,10 @@ public class ProcessTakeoverConnectionStrategy implements RiotClientConnectionSt
             killGameFutures[i] = CompletableFuture.runAsync(() -> {
                                                       try {
                                                           processService.killGameProcess(game);
-                                                      } catch (NoSuchProcessException | FailFastException e) {
+                                                      } catch (NoSuchProcessException ex) {
+                                                          log.debug("No running process found for game {}", game);
+                                                      }
+                                                      catch (FailFastException e) {
                                                           throw new RuntimeException(e);
                                                       }
                                                   })
