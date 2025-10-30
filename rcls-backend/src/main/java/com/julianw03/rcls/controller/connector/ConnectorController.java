@@ -1,5 +1,6 @@
 package com.julianw03.rcls.controller.connector;
 
+import com.julianw03.rcls.controller.FailFastException;
 import com.julianw03.rcls.controller.errors.ApiProblem;
 import com.julianw03.rcls.service.modules.rclient.connector.ConnectorV1Service;
 import com.julianw03.rcls.service.modules.rclient.connector.RiotClientConnectionParametersDTO;
@@ -55,7 +56,7 @@ public class ConnectorController {
             )
     })
     @PostMapping(value = "/connect", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
-    public ResponseEntity<RiotClientConnectionParametersDTO> getConnectToRiotClientService() throws IllegalStateException, ExecutionException {
+    public ResponseEntity<RiotClientConnectionParametersDTO> getConnectToRiotClientService() throws IllegalStateException, ExecutionException, FailFastException {
         final RiotClientConnectionParametersDTO parametersDTO = connectorV1Service.connect();
         return new ResponseEntity<>(
                 parametersDTO,

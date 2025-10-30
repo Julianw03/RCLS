@@ -14,6 +14,13 @@ public class FailFastException extends ErrorResponseException {
     }
 
     public FailFastException(
+            String message,
+            Throwable cause
+    ) {
+        this(ProblemDetail.forStatusAndDetail(HttpStatus.GATEWAY_TIMEOUT, message), cause);
+    }
+
+    public FailFastException(
             ProblemDetail body,
             Throwable cause
     ) {

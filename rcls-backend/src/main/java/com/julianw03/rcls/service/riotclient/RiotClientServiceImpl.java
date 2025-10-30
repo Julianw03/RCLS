@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.node.NullNode;
 import com.julianw03.rcls.Util.ServletUtils;
 import com.julianw03.rcls.Util.Utils;
 import com.julianw03.rcls.config.mappings.RiotClientServiceConfig;
+import com.julianw03.rcls.controller.FailFastException;
 import com.julianw03.rcls.eventBus.model.Channel;
 import com.julianw03.rcls.eventBus.model.MultiChannelBus;
 import com.julianw03.rcls.eventBus.model.events.RCUConnectionEvent;
@@ -121,7 +122,7 @@ public class RiotClientServiceImpl extends RiotClientService {
     }
 
     @Override
-    public void connect() throws IllegalStateException, UnsupportedOperationException, ExecutionException {
+    public void connect() throws IllegalStateException, UnsupportedOperationException, ExecutionException, FailFastException {
         if (!this.connectionStateRef.compareAndSet(
                 ConnectionState.DISCONNECTED,
                 ConnectionState.WAITING_FOR_PROCESS
@@ -174,7 +175,7 @@ public class RiotClientServiceImpl extends RiotClientService {
                     e
             );
             this.connectionStateRef.set(ConnectionState.DISCONNECTED);
-            throw new ExecutionException(
+            throw new FailFastException(
                     "Failed to establish REST connection in given timeout",
                     e
             );

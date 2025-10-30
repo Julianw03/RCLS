@@ -25,7 +25,7 @@ public record ApiProblem(
     public static ApiProblem fromErrorResponseException(ErrorResponseException ex) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(
                 ex.getStatusCode(),
-                ex.getMessage()
+                ex.getBody().getDetail()
         );
         return fromProblemDetail(pd);
     }

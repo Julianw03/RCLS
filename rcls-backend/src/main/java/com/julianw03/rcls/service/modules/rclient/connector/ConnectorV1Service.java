@@ -1,5 +1,7 @@
 package com.julianw03.rcls.service.modules.rclient.connector;
 
+import com.julianw03.rcls.controller.FailFastException;
+
 import java.util.concurrent.ExecutionException;
 
 public interface ConnectorV1Service {
@@ -9,7 +11,7 @@ public interface ConnectorV1Service {
      * @throws IllegalStateException When the connection is already established or is in the process of being established.
      * @throws ExecutionException    When an error occurs during the connection process.
      */
-    RiotClientConnectionParametersDTO connect() throws IllegalStateException, ExecutionException;
+    RiotClientConnectionParametersDTO connect() throws IllegalStateException, ExecutionException, FailFastException;
 
     /**
      * Retrieves the current connection parameters of the Riot Client.
