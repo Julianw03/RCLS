@@ -7,12 +7,12 @@ import com.fasterxml.jackson.databind.node.NullNode;
 import com.julianw03.rcls.Util.ServletUtils;
 import com.julianw03.rcls.Util.Utils;
 import com.julianw03.rcls.config.mappings.RiotClientServiceConfig;
+import com.julianw03.rcls.controller.FailFastException;
 import com.julianw03.rcls.eventBus.model.Channel;
 import com.julianw03.rcls.eventBus.model.MultiChannelBus;
 import com.julianw03.rcls.eventBus.model.events.RCUConnectionEvent;
 import com.julianw03.rcls.eventBus.model.events.RCUMessageEvent;
 import com.julianw03.rcls.generated.ApiClient;
-import com.julianw03.rcls.model.APIException;
 import com.julianw03.rcls.model.RCUWebsocketMessage;
 import com.julianw03.rcls.model.RiotClientConnectionParameters;
 import com.julianw03.rcls.service.riotclient.api.InternalApiResponse;
@@ -118,15 +118,11 @@ public class RiotClientServiceImpl extends RiotClientService {
 
     @Override
     public boolean isConnectionEstablished() {
-        log.debug(
-                "Checking connection state: {}",
-                connectionStateRef.get()
-        );
         return connectionStateRef.get() == ConnectionState.CONNECTED;
     }
 
     @Override
-    public void connect() throws IllegalStateException, UnsupportedOperationException, ExecutionException {
+    public void connect() throws IllegalStateException, UnsupportedOperationException, ExecutionException, FailFastException {
         if (!this.connectionStateRef.compareAndSet(
                 ConnectionState.DISCONNECTED,
                 ConnectionState.WAITING_FOR_PROCESS
@@ -179,7 +175,7 @@ public class RiotClientServiceImpl extends RiotClientService {
                     e
             );
             this.connectionStateRef.set(ConnectionState.DISCONNECTED);
-            throw new ExecutionException(
+            throw new FailFastException(
                     "Failed to establish REST connection in given timeout",
                     e
             );
@@ -203,7 +199,7 @@ public class RiotClientServiceImpl extends RiotClientService {
                     e
             );
             this.connectionStateRef.set(ConnectionState.DISCONNECTED);
-            throw new APIException("Failed to establish Websocket Connection in given timeout");
+            throw new ExecutionException("Failed to establish Websocket Connection in given timeout", e);
         }
 
         expectAndSetState(

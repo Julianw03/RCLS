@@ -1,8 +1,6 @@
 package com.julianw03.rcls.Util;
 
-import com.julianw03.rcls.model.APIException;
 import com.julianw03.rcls.service.riotclient.api.InternalApiResponse;
-import org.springframework.http.HttpStatus;
 
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -60,23 +58,23 @@ public class ServletUtils {
     public static void expectInternalApiSuccess(
             InternalApiResponse response,
             Consumer<InternalApiResponse.Success> onSuccess
-    ) throws APIException {
+    ) throws IllegalStateException {
         if (response == null || onSuccess == null) {
             throw new IllegalArgumentException("Response and onSuccess cannot be null");
         }
 
         switch (response) {
             case InternalApiResponse.ApiError error -> {
-                throw new APIException(error.getError());
+                throw new IllegalStateException(error.getError());
             }
             case InternalApiResponse.InternalException exception -> {
-                throw new APIException(exception.getException());
+                throw new IllegalStateException(exception.getException());
             }
             case InternalApiResponse.Success success -> {
                 onSuccess.accept(success);
             }
             default -> {
-                throw new APIException("Unexpected Error Occurred");
+                throw new IllegalStateException("Unexpected Error Occurred");
             }
         }
     }
@@ -84,23 +82,23 @@ public class ServletUtils {
     public static <T> T expectInternalApiSuccess(
             InternalApiResponse response,
             Function<InternalApiResponse.Success, T> onSuccess
-    ) throws APIException {
+    ) throws IllegalStateException {
         if (response == null || onSuccess == null) {
             throw new IllegalArgumentException("Response and onSuccess cannot be null");
         }
 
         switch (response) {
             case InternalApiResponse.ApiError error -> {
-                throw new APIException(error.getError());
+                throw new IllegalStateException(error.getError());
             }
             case InternalApiResponse.InternalException exception -> {
-                throw new APIException(exception.getException());
+                throw new IllegalStateException(exception.getException());
             }
             case InternalApiResponse.Success success -> {
                 return onSuccess.apply(success);
             }
             default -> {
-                throw new APIException("Unexpected Error Occurred");
+                throw new IllegalStateException("Unexpected Error Occurred");
             }
         }
     }
@@ -121,14 +119,14 @@ public class ServletUtils {
     public static void assertSuccessStatus(
             String scope,
             Integer statusCode
-    ) throws APIException {
+    ) throws IllegalStateException {
         if (!isSuccessResponseCode(statusCode)) {
             final String message = String.format("[%s]: Expected success response (2xx) but got status code %d",
                     scope,
                     statusCode
             );
 
-            throw new APIException("Processing failed", HttpStatus.INTERNAL_SERVER_ERROR, message);
+            throw new IllegalStateException("Processing failed");
         }
     }
 

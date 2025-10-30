@@ -11,4 +11,4 @@ custom:
       connection-strategy:
         strategy: lockfile
     publishing:
-      publishing-format: msgpack
+      publishing-format: raw_json

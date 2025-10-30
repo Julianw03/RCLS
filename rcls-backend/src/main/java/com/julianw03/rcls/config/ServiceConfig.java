@@ -8,6 +8,7 @@ import com.julianw03.rcls.eventBus.model.MultiChannelBus;
 import com.julianw03.rcls.providers.os.OperatingSystemProvider;
 import com.julianw03.rcls.providers.paths.PathProvider;
 import com.julianw03.rcls.service.process.ProcessService;
+import com.julianw03.rcls.service.process.ProcessServiceImpl;
 import com.julianw03.rcls.service.riotclient.RiotClientService;
 import com.julianw03.rcls.service.riotclient.RiotClientServiceImpl;
 import com.julianw03.rcls.service.riotclient.connection.ConnectionStrategy;
@@ -65,7 +66,7 @@ public class ServiceConfig {
             @Autowired ProcessServiceConfig processServiceConfig,
             @Autowired PathProvider pathProvider
     ) {
-        return new ProcessService(
+        return new ProcessServiceImpl(
                 pathProvider,
                 ProcessHandle::allProcesses,
                 processServiceConfig
