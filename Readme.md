@@ -39,21 +39,26 @@ You have the following options:
     java -jar RCLS.jar --spring.config.import=file:/path/to/config.yml
    ```
 
-Running via Docker is not supported, as the project needs access to local Process and Network information.
-
 ### Building the Project
 
-1. **Docker**: If you wish to build the project yourself via docker or make changes to the code and test them, you can
-   use the provided Dockerfile.
-   ```bash
-   docker build -t rcls-builder .
-   ```
-   After that you can run the image with:
-   ```bash
-   docker run --volume RCLS-Build-Out:/app/volume rcls-builder
-   ```
-   The build output will be located in the `RCLS-Build-Out` volume. You may change the volume to a mount of your
-   preference.
+This project uses [Dagger](https://dagger.io/) for its build process. You may want to follow its 
+[installation guide](https://docs.dagger.io/getting-started/installation) first.
+
+You can then call
+```bash
+  dagger functions
+```
+
+That will give you an overview over the functions that you can call.
+
+If you simply want a *RCLS.jar* you can simply run
+```bash
+  dagger call package-app --source=. --version=DEV_SNAPSHOT export --path=./RCLS-DEV_SNAPSHOT.jar
+```
+at the root of the project.
+
+That should produce the RCLS-DEV_SNAPSHOT.jar at the root of the project as well.
+You may change the path to where you want to have the jar-File
 
 ### Testing out the API
 
