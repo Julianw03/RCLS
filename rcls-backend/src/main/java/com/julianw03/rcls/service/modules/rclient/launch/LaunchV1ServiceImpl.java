@@ -1,13 +1,13 @@
 package com.julianw03.rcls.service.modules.rclient.launch;
 
-import com.julianw03.rcls.Util.ServletUtils;
 import com.julianw03.rcls.controller.FailFastException;
 import com.julianw03.rcls.generated.api.PluginProductLauncherApi;
 import com.julianw03.rcls.generated.api.PluginRiotClientLifecycleApi;
 import com.julianw03.rcls.model.SupportedGame;
 import com.julianw03.rcls.service.modules.rclient.login.RsoAuthenticationManager;
-import com.julianw03.rcls.service.modules.rclient.login.model.AuthenticationStateDTO;
-import com.julianw03.rcls.service.modules.rclient.login.model.LoginStatusDTO;
+import com.julianw03.rcls.service.modules.rclient.login.model.auth.AuthenticationState;
+import com.julianw03.rcls.service.modules.rclient.login.model.auth.LoggedInState;
+import com.julianw03.rcls.service.modules.rclient.login.model.auth.UnknownState;
 import com.julianw03.rcls.service.process.NoSuchProcessException;
 import com.julianw03.rcls.service.process.ProcessService;
 import com.julianw03.rcls.service.riotclient.RiotClientService;
@@ -91,12 +91,11 @@ public class LaunchV1ServiceImpl implements LaunchV1Service {
             String patchlineId,
             SupportedGame.ResolveStrategy lookupStrategy
     ) throws ExecutionException {
-        AuthenticationStateDTO rsoAuthState = authenticationManager.getView();
-        ServletUtils.assertEqual(
-                "VerifyLoggedIn",
-                LoginStatusDTO.LOGGED_IN,
-                rsoAuthState.getLoginStatus()
-        );
+        AuthenticationState rsoAuthState = authenticationManager.getView();
+
+        if (!(rsoAuthState instanceof LoggedInState)) {
+            throw new IllegalStateException("Expected Login Status to be " + rsoAuthState.getDiscriminator() + " but got " + Optional.ofNullable(rsoAuthState).orElse(new UnknownState()).getDiscriminator());
+        }
 
         SupportedGame.ResolveStrategy resolveStrategy = Optional.ofNullable(lookupStrategy)
                                                                 .orElseGet(SupportedGame.ResolveStrategy::getDefault);

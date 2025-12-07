@@ -31,9 +31,13 @@ public class WebsocketPublisher extends TextWebSocketHandler {
             WebsocketConfig websocketConfig
     ) {
         this.websocketConfig = websocketConfig;
+//        SimpleModule mapAsEntryModule = new SimpleModule();
+//        mapAsEntryModule.addSerializer((Class<MapEntries<?, ?>>)(Class<?>)MapEntries.class, new MapAsEntryListSerializer());
         this.mapper = websocketConfig.getPublishingFormat()
                                      .getMapperFactory()
                                      .get();
+//        mapper.registerModule(mapAsEntryModule);
+
         dataManagerSubscription = eventBus.getFlux(Channel.DATA_MANAGER)
                                           .concatMap(this::sendMessage)
                                           .onErrorContinue((err, obj) -> log.error(

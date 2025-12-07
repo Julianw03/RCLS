@@ -1,4 +1,4 @@
-package com.julianw03.rcls.service.base.riotclient.connection;
+package com.julianw03.rcls.unit.services.riotclient.connection;
 
 import com.julianw03.rcls.controller.FailFastException;
 import com.julianw03.rcls.model.RiotClientConnectionParameters;
@@ -88,6 +88,44 @@ class ProcessTakeoverStrategyTest {
                        .killRiotClientProcess();
             doNothing().when(processService)
                        .killRiotClientServices();
+
+            doNothing().when(processService)
+                       .startRiotClientServices(any());
+            RiotClientConnectionParameters connectionParameters = assertDoesNotThrow(processTakeoverConnectionStrategy::connect);
+            assertNotNull(connectionParameters);
+            assertNotNull(connectionParameters.getAuthSecret());
+            assertNotNull(connectionParameters.getPort());
+        });
+    }
+
+    @Test
+    void noRunningRiotClientShouldNotAffectSuccess() {
+        assertDoesNotThrow(() -> {
+            doNothing().when(processService)
+                       .killGameProcess(any());
+            doThrow(new NoSuchProcessException("No Process")).when(processService)
+                                                .killRiotClientProcess();
+            doNothing().when(processService)
+                       .killRiotClientServices();
+
+            doNothing().when(processService)
+                       .startRiotClientServices(any());
+            RiotClientConnectionParameters connectionParameters = assertDoesNotThrow(processTakeoverConnectionStrategy::connect);
+            assertNotNull(connectionParameters);
+            assertNotNull(connectionParameters.getAuthSecret());
+            assertNotNull(connectionParameters.getPort());
+        });
+    }
+
+    @Test
+    void noRunningRiotClientServicesShouldNotAffectSuccess() {
+        assertDoesNotThrow(() -> {
+            doNothing().when(processService)
+                       .killGameProcess(any());
+            doNothing().when(processService)
+                       .killRiotClientProcess();
+            doThrow(new NoSuchProcessException("No Process")).when(processService)
+                                                .killRiotClientServices();
 
             doNothing().when(processService)
                        .startRiotClientServices(any());

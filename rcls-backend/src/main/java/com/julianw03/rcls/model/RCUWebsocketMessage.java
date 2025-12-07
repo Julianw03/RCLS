@@ -25,7 +25,11 @@ public class RCUWebsocketMessage {
         }
     }
 
-    protected RCUWebsocketMessage(MessageType type, String uri, JsonNode data) {
+    public RCUWebsocketMessage(
+            MessageType type,
+            String uri,
+            JsonNode data
+    ) {
         this.type = type;
         this.uri = uri;
         this.data = data;

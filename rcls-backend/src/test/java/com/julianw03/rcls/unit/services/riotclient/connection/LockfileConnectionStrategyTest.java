@@ -1,10 +1,11 @@
-package com.julianw03.rcls.service.base.riotclient.connection;
+package com.julianw03.rcls.unit.services.riotclient.connection;
 
 import com.julianw03.rcls.config.mappings.PathProviderConfig;
 import com.julianw03.rcls.model.RiotClientConnectionParameters;
 import com.julianw03.rcls.providers.paths.PathProvider;
 import com.julianw03.rcls.service.riotclient.connection.LockfileConnectionStrategy;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
@@ -14,7 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class LockfileConnectionStrategyTest {

@@ -2,6 +2,7 @@ package com.julianw03.rcls.model.data;
 
 import com.julianw03.rcls.eventBus.model.MultiChannelBus;
 import com.julianw03.rcls.service.riotclient.RiotClientService;
+import org.jetbrains.annotations.Contract;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,6 +29,7 @@ public abstract class MapDataManager<K, V, E> extends DataManager<Map<K, V>> imp
         );
     }
 
+    @Contract(pure = true)
     protected E getViewForValue(V value) {
         return mapValueView(value);
     }
@@ -36,8 +38,9 @@ public abstract class MapDataManager<K, V, E> extends DataManager<Map<K, V>> imp
         return mapValueView(get(key));
     }
 
+    @Contract(pure = true)
     protected Map<K, E> mapView(Map<K, V> map) {
-        return this.map.entrySet()
+        return map.entrySet()
                        .stream()
                        .map(entry -> {
                            K key = entry.getKey();
@@ -58,12 +61,13 @@ public abstract class MapDataManager<K, V, E> extends DataManager<Map<K, V>> imp
         return mapView(this.map);
     }
 
+    @Contract(pure = true)
     protected abstract E mapValueView(V value);
 
     @Override
-    public void setState(Map<K, V> state) {
+    public void setState(Map<K, V> newState) {
         if (Objects.equals(
-                state,
+                newState,
                 map
         )) {
             log.debug("New state is equal to the current state, skipping update");
@@ -71,10 +75,10 @@ public abstract class MapDataManager<K, V, E> extends DataManager<Map<K, V>> imp
         }
 
         log.debug("Updating internal map state");
-        final Map<K, V> prevMap = Collections.unmodifiableMap(map);
+        final Map<K, V> prevMap = Map.copyOf(map);
 
         this.map.clear();
-        this.map.putAll(state);
+        this.map.putAll(newState);
 
         this.onStateUpdated(
                 prevMap,
@@ -174,7 +178,7 @@ public abstract class MapDataManager<K, V, E> extends DataManager<Map<K, V>> imp
             return;
         }
 
-        Map<K, V> prevMap = Collections.unmodifiableMap(m);
+        Map<K, V> prevMap = Map.copyOf(this.map);
         this.map.putAll(m);
 
         onStateUpdated(

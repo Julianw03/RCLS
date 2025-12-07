@@ -1,10 +1,10 @@
 package com.julianw03.rcls.eventBus.model.events;
 
-import lombok.Data;
+import lombok.Getter;
 
 import java.util.Optional;
 
-@Data
+@Getter
 public abstract class SimpleEvent<T> {
 
     protected String source;
@@ -20,7 +20,7 @@ public abstract class SimpleEvent<T> {
         this.payloadType = getPayloadType(payload);
     }
 
-    protected static <T> String getPayloadType(T payload) {
+    protected String getPayloadType(T payload) {
         return Optional.ofNullable(payload)
                        .map(Object::getClass)
                        .map(Class::getSimpleName)

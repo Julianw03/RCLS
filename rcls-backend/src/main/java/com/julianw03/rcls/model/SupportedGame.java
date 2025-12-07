@@ -3,6 +3,7 @@ package com.julianw03.rcls.model;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -24,28 +25,19 @@ public enum SupportedGame {
 
     public enum ResolveStrategy {
         RCLS_INTERNAL_NAME(
-                (internalName) -> {
-                    for (SupportedGame game : SupportedGame.values()) {
-                        if (game.name().equalsIgnoreCase(internalName)) return Optional.of(game);
-                    }
-                    return Optional.empty();
-                },
+                (internalName) -> Arrays.stream(SupportedGame.values())
+                                    .filter(game -> game.name().equalsIgnoreCase(internalName))
+                                    .findFirst(),
                 SupportedGame::name),
         RIOT_INTERNAL_NAME(
-                (riotName) -> {
-                    for (SupportedGame game : SupportedGame.values()) {
-                        if (game.getRiotInternalName().equals(riotName)) return Optional.of(game);
-                    }
-                    return Optional.empty();
-                },
+                (riotName) -> Arrays.stream(SupportedGame.values())
+                                .filter(game -> game.getRiotInternalName().equalsIgnoreCase(riotName))
+                                .findFirst(),
                 SupportedGame::getRiotInternalName),
         DISPLAY_NAME(
-                (displayName) -> {
-                    for (SupportedGame game : SupportedGame.values()) {
-                        if (game.getDisplayName().equalsIgnoreCase(displayName)) return Optional.of(game);
-                    }
-                    return Optional.empty();
-                },
+                (displayName) -> Arrays.stream(SupportedGame.values())
+                                   .filter(game -> game.getDisplayName().equalsIgnoreCase(displayName))
+                                   .findFirst(),
                 SupportedGame::getDisplayName),
         ;
 

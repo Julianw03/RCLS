@@ -2,8 +2,8 @@ package com.julianw03.rcls.controller.interceptors.loggedIn;
 
 import com.julianw03.rcls.model.data.ObjectDataManager;
 import com.julianw03.rcls.service.modules.rclient.login.RsoAuthenticationManager;
-import com.julianw03.rcls.service.modules.rclient.login.model.AuthenticationStateDTO;
 import com.julianw03.rcls.service.modules.rclient.login.model.LoginStatusDTO;
+import com.julianw03.rcls.service.modules.rclient.login.model.auth.AuthenticationState;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +25,7 @@ public class UserLoggedInInterceptor implements HandlerInterceptor {
     ) throws UserNotLoggedInException {
         Optional.ofNullable(rsoAuthenticationManager)
                 .map(ObjectDataManager::getView)
-                .map(AuthenticationStateDTO::getLoginStatus)
+                .map(AuthenticationState::getDiscriminator)
                 .ifPresent(loginStatus -> {
                     if (!LoginStatusDTO.LOGGED_IN.equals(loginStatus)) {
                         throw new UserNotLoggedInException();

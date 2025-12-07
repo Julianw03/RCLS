@@ -11,6 +11,7 @@ import com.julianw03.rcls.service.modules.rclient.login.model.AuthenticationStat
 import com.julianw03.rcls.service.modules.rclient.login.model.HCaptchaDTO;
 import com.julianw03.rcls.service.modules.rclient.login.model.LoginStatusDTO;
 import com.julianw03.rcls.service.modules.rclient.login.model.MultifactorInfoDTO;
+import com.julianw03.rcls.service.modules.rclient.login.model.auth.*;
 import com.julianw03.rcls.service.riotclient.RiotClientService;
 import org.springframework.stereotype.Component;
 
@@ -20,7 +21,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Component
-public class RsoAuthenticationManager extends PublishingObjectDataManager<RsoAuthenticatorV1AuthenticationResponse, AuthenticationStateDTO> {
+public class RsoAuthenticationManager extends PublishingObjectDataManager<RsoAuthenticatorV1AuthenticationResponse, AuthenticationState, AuthenticationStateDTO> {
     private static final Pattern RSO_AUTHENTICATOR_V1_AUTHENTICATION_PATTERN = Pattern.compile("^/rso-authenticator/v1/authentication$");
 
     public RsoAuthenticationManager(
@@ -35,36 +36,6 @@ public class RsoAuthenticationManager extends PublishingObjectDataManager<RsoAut
                 DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
                 false
         );
-    }
-
-
-    @Override
-    protected AuthenticationStateDTO mapView(RsoAuthenticatorV1AuthenticationResponse state) {
-        if (state == null) {
-            return AuthenticationStateDTO.builder()
-                                         .loginStatus(LoginStatusDTO.UNKNOWN)
-                                         .build();
-        }
-
-        final HCaptchaDTO hCaptchaDTO = Optional.ofNullable(state.getCaptcha())
-                                                .map(RsoAuthenticatorV1Captcha::getHcaptcha)
-                                                .map(RsoAuthenticationManager::hCaptchaFromInternal)
-                                                .orElse(null);
-
-        final MultifactorInfoDTO multifactorInfoDTO = Optional.ofNullable(state.getMultifactor())
-                                                              .map(RsoAuthenticationManager::multifactorInfoFromInternal)
-                                                              .orElse(null);
-
-        final LoginStatusDTO status = Optional.ofNullable(state.getType())
-                                              .map(RsoAuthenticationManager::loginStatusFromInternal)
-                                              .orElse(LoginStatusDTO.UNKNOWN);
-
-        return AuthenticationStateDTO.builder()
-                                     .loginStatus(status)
-                                     .multifactorInfo(multifactorInfoDTO)
-                                     .hcaptchaStatus(hCaptchaDTO)
-                                     .countryCode(state.getCountry())
-                                     .build();
     }
 
     private static MultifactorInfoDTO multifactorInfoFromInternal(RsoAuthenticatorV1MultifactorResponseDetails multifactor) {
@@ -110,6 +81,52 @@ public class RsoAuthenticationManager extends PublishingObjectDataManager<RsoAut
             }
             default -> {
                 return LoginStatusDTO.UNKNOWN;
+            }
+        }
+    }
+
+    @Override
+    protected AuthenticationStateDTO mapPublishingView(RsoAuthenticatorV1AuthenticationResponse state) {
+        return AuthenticationStateDTO.map(mapView(state));
+    }
+
+    @Override
+    protected AuthenticationState mapView(RsoAuthenticatorV1AuthenticationResponse state) {
+        if (state == null) {
+            return new UnknownState();
+        }
+
+        final HCaptchaDTO hCaptchaDTO = Optional.ofNullable(state.getCaptcha())
+                                                .map(RsoAuthenticatorV1Captcha::getHcaptcha)
+                                                .map(RsoAuthenticationManager::hCaptchaFromInternal)
+                                                .orElse(null);
+
+        final MultifactorInfoDTO multifactorInfoDTO = Optional.ofNullable(state.getMultifactor())
+                                                              .map(RsoAuthenticationManager::multifactorInfoFromInternal)
+                                                              .orElse(null);
+
+        final LoginStatusDTO status = Optional.ofNullable(state.getType())
+                                              .map(RsoAuthenticationManager::loginStatusFromInternal)
+                                              .orElse(LoginStatusDTO.UNKNOWN);
+
+        switch (status) {
+            case LOGGED_IN -> {
+                return new LoggedInState();
+            }
+            case MULTIFACTOR_REQUIRED -> {
+                if (multifactorInfoDTO == null) {
+                    return new UnknownState();
+                }
+                return new MultifactorRequiredState(multifactorInfoDTO);
+            }
+            case ERROR -> {
+                return new ErrorState();
+            }
+            case LOGGED_OUT -> {
+                return new LoggedOutState(hCaptchaDTO);
+            }
+            default -> {
+                return new UnknownState();
             }
         }
     }

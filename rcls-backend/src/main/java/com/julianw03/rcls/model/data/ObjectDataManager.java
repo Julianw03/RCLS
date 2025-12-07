@@ -2,6 +2,7 @@ package com.julianw03.rcls.model.data;
 
 import com.julianw03.rcls.eventBus.model.MultiChannelBus;
 import com.julianw03.rcls.service.riotclient.RiotClientService;
+import org.jetbrains.annotations.Contract;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
@@ -27,6 +28,7 @@ public abstract class ObjectDataManager<T, V> extends DataManager<T> implements 
         return mapView(this.getState());
     }
 
+    @Contract(pure = true)
     protected abstract V mapView(T state);
 
     @Override

@@ -1,20 +1,35 @@
 package com.julianw03.rcls.service.modules.rclient.login.model;
 
-import com.fasterxml.jackson.annotation.JsonSetter;
-import com.fasterxml.jackson.annotation.Nulls;
+import com.julianw03.rcls.model.services.ServiceDTO;
+import com.julianw03.rcls.service.modules.rclient.login.model.auth.AuthenticationState;
+import com.julianw03.rcls.service.modules.rclient.login.model.auth.LoggedOutState;
+import com.julianw03.rcls.service.modules.rclient.login.model.auth.MultifactorRequiredState;
 import lombok.Builder;
-import lombok.Data;
+import org.jetbrains.annotations.Contract;
 
-@Data
 @Builder
-public class AuthenticationStateDTO {
-    @JsonSetter(nulls = Nulls.SKIP)
-    @Builder.Default
-    private LoginStatusDTO     loginStatus     = LoginStatusDTO.UNKNOWN;
-    @JsonSetter(nulls = Nulls.SET)
-    private HCaptchaDTO        hcaptchaStatus;
-    @JsonSetter(nulls = Nulls.SET)
-    private MultifactorInfoDTO multifactorInfo;
-    @JsonSetter(nulls = Nulls.SET)
-    private String             countryCode;
+public record AuthenticationStateDTO(
+        LoginStatusDTO loginStatus,
+        HCaptchaDTO hCaptcha,
+        MultifactorInfoDTO mutifactorInfo,
+        String countryCode
+) implements ServiceDTO<AuthenticationState> {
+
+    @Contract(pure = true)
+    public static AuthenticationStateDTO map(AuthenticationState state) {
+        final AuthenticationStateDTOBuilder builder = new AuthenticationStateDTOBuilder();
+        builder.loginStatus(state.getDiscriminator());
+        switch (state) {
+            case MultifactorRequiredState mfaState -> {
+                builder.mutifactorInfo(mfaState.multifactorInfo());
+            }
+            case LoggedOutState loggedOutState -> {
+                builder.hCaptcha(loggedOutState.hCaptcha());
+            }
+            default -> {
+
+            }
+        }
+        return builder.build();
+    }
 }

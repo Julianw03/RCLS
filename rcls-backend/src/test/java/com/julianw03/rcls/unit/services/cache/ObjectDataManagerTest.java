@@ -1,7 +1,9 @@
-package com.julianw03.rcls.service.base.cache;
+package com.julianw03.rcls.unit.services.cache;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.julianw03.rcls.eventBus.model.MultiChannelBus;
+import com.julianw03.rcls.eventBus.model.events.RCUMessageEvent;
 import com.julianw03.rcls.model.RCUWebsocketMessage;
 import com.julianw03.rcls.model.data.ObjectDataManager;
 import com.julianw03.rcls.service.riotclient.RiotClientService;
@@ -28,14 +30,17 @@ public class ObjectDataManagerTest {
     @Mock
     MultiChannelBus eventBus;
 
-    private ObjectDataManager<Integer, Integer> objectDataManager;
-    private Pattern                             examplePattern = Pattern.compile("^/example/v1/data$");
+    private       ObjectDataManager<Integer, Integer> objectDataManager;
+    private final Pattern                             examplePattern = Pattern.compile("^/example/v1/data$");
 
     private final Function<Integer, Integer> mapper = state -> state + 1;
 
     @BeforeEach
     void setUp() {
-        objectDataManager = new ObjectDataManager<>(riotClientService, eventBus) {
+        objectDataManager = new ObjectDataManager<>(
+                riotClientService,
+                eventBus
+        ) {
             @Override
             protected Integer mapView(Integer state) {
                 return Optional.ofNullable(state)
@@ -59,7 +64,8 @@ public class ObjectDataManagerTest {
                     JsonNode data,
                     Matcher uriMatcher
             ) {
-
+                if (!data.isInt()) throw new IllegalArgumentException("Data should be an integer for testing");
+                setState(data.intValue());
             }
         };
     }
@@ -95,7 +101,27 @@ public class ObjectDataManagerTest {
     }
 
     @Test
-    void test_relevantMessageGetsPassed() {
+    void test_handleUpdateMessage() {
+        final int initialState = 10;
+        objectDataManager.setState(initialState);
+        final int updatedState = 25;
+        JsonNode dataNode = new ObjectMapper().valueToTree(updatedState);
+        objectDataManager.onRCUMessage(new RCUMessageEvent("rcu",
+                new RCUWebsocketMessage(
+                        RCUWebsocketMessage.MessageType.UPDATE,
+                        "/example/v1/data",
+                        dataNode
+                )
+        ));
+        Integer viewState = assertDoesNotThrow(
+                () -> objectDataManager.getView(),
+                "Getting view state should not throw"
+        );
 
+        assertEquals(
+                mapper.apply(updatedState),
+                viewState,
+                "View state should be updated state passed through mapper"
+        );
     }
 }

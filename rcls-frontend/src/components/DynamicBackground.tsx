@@ -28,7 +28,7 @@ const DynamicBackground = () => {
     switch (data) {
         case BackgroundType.VIDEO:
             return (
-                <video className={"media"} autoPlay loop muted>
+                <video className={"media"} autoPlay loop disablePictureInPicture>
                     <source src={LocalLinkResolver.resolve("/api/rcls/media/v1/background" as LocalLink)}/>
                 </video>
             )

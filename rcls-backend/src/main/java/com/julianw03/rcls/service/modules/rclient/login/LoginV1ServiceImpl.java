@@ -7,6 +7,10 @@ import com.julianw03.rcls.generated.api.CoreSdkApi;
 import com.julianw03.rcls.generated.model.*;
 import com.julianw03.rcls.model.data.ObjectDataManagerFacade;
 import com.julianw03.rcls.service.modules.rclient.login.model.*;
+import com.julianw03.rcls.service.modules.rclient.login.model.auth.AuthenticationState;
+import com.julianw03.rcls.service.modules.rclient.login.model.auth.LoggedOutState;
+import com.julianw03.rcls.service.modules.rclient.login.model.auth.MultifactorRequiredState;
+import com.julianw03.rcls.service.modules.rclient.login.model.auth.UnknownState;
 import com.julianw03.rcls.service.riotclient.RiotClientService;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,10 +23,10 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 public class LoginV1ServiceImpl implements LoginV1Service {
-    private final RiotClientService riotClientService;
-    private final ObjectMapper mapper = new ObjectMapper();
-    private final RsoAuthenticationManager rsoAuthenticationManager;
-    private final RsoAuthAuthorizationRequest AUTH_GRANT_REQUEST;
+    private final RiotClientService                            riotClientService;
+    private final ObjectMapper                                 mapper = new ObjectMapper();
+    private final RsoAuthenticationManager                     rsoAuthenticationManager;
+    private final RsoAuthAuthorizationRequest                  AUTH_GRANT_REQUEST;
     private final RsoAuthenticatorV1RiotIdentityAuthStartInput IDENTITY_START_INPUT;
 
     public static sealed class InternalRsoLoginResponse permits InternalRsoLoginResponse.Multifactor, InternalRsoLoginResponse.Success {
@@ -69,19 +73,19 @@ public class LoginV1ServiceImpl implements LoginV1Service {
     }
 
     public LoginStatusDTO getLoginStatus() throws ExecutionException {
-        ObjectDataManagerFacade<AuthenticationStateDTO> dataManager = rsoAuthenticationManager;
-        final AuthenticationStateDTO currentState = dataManager.getView();
+        ObjectDataManagerFacade<AuthenticationState> dataManager = rsoAuthenticationManager;
+        final AuthenticationState currentState = dataManager.getView();
 
-        if (currentState.getLoginStatus() != LoginStatusDTO.UNKNOWN) {
-            return currentState.getLoginStatus();
+        if (currentState.getDiscriminator() != LoginStatusDTO.UNKNOWN) {
+            return currentState.getDiscriminator();
         }
 
         CompletableFuture<Void> setupFuture = dataManager.setupInternalState()
-                .orTimeout(
-                        500,
-                        TimeUnit.MICROSECONDS
-                );
-        final AuthenticationStateDTO internalAuthState;
+                                                         .orTimeout(
+                                                                 500,
+                                                                 TimeUnit.MICROSECONDS
+                                                         );
+        final AuthenticationState internalAuthState;
         try {
             setupFuture.join();
             internalAuthState = dataManager.getView();
@@ -94,14 +98,14 @@ public class LoginV1ServiceImpl implements LoginV1Service {
                     e
             );
         }
-        return internalAuthState.getLoginStatus();
+        return internalAuthState.getDiscriminator();
     }
 
     public void resetHCaptcha() throws ExecutionException, IllegalStateException {
         CoreSdkApi coreSdkApiClient = riotClientService.getApi(CoreSdkApi.class)
-                .orElseThrow(
-                        () -> new IllegalStateException("Failed to get CoreSdkApi client")
-                );
+                                                       .orElseThrow(
+                                                               () -> new IllegalStateException("Failed to get CoreSdkApi client")
+                                                       );
 
         final RsoAuthAuthorizationResponse grantsResponse;
         try {
@@ -134,18 +138,23 @@ public class LoginV1ServiceImpl implements LoginV1Service {
 
     public HCaptchaDTO getHCaptcha() throws ExecutionException, IllegalStateException {
         CoreSdkApi coreSdkApiClient = riotClientService.getApi(CoreSdkApi.class)
-                .orElseThrow(
-                        () -> new IllegalStateException("Failed to get CoreSdkApi client")
-                );
+                                                       .orElseThrow(
+                                                               () -> new IllegalStateException("Failed to get CoreSdkApi client")
+                                                       );
 
-        AuthenticationStateDTO internalAuthState = rsoAuthenticationManager
+        AuthenticationState internalAuthState = rsoAuthenticationManager
                 .getView();
 
-        ServletUtils.assertEqual(
-                "Assert Auth Status",
-                LoginStatusDTO.LOGGED_OUT,
-                internalAuthState.getLoginStatus()
-        );
+
+        if (!(internalAuthState instanceof LoggedOutState loggedOutState)) {
+            throw new IllegalStateException("Expected " +
+                                            LoginStatusDTO.LOGGED_OUT +
+                                            ", but got " +
+                                            Optional.ofNullable(internalAuthState)
+                                                    .orElse(new UnknownState())
+                                                    .getDiscriminator());
+        }
+
 
         final RsoAuthenticatorV1AuthenticationResponse authenticationResponse;
 
@@ -161,14 +170,14 @@ public class LoginV1ServiceImpl implements LoginV1Service {
         }
 
         RsoAuthenticatorV1HCaptcha hcaptcha = Optional.ofNullable(authenticationResponse)
-                .map(RsoAuthenticatorV1AuthenticationResponse::getCaptcha)
-                .map(RsoAuthenticatorV1Captcha::getHcaptcha)
-                .orElseThrow(() -> new ExecutionException(new IllegalStateException()));
+                                                      .map(RsoAuthenticatorV1AuthenticationResponse::getCaptcha)
+                                                      .map(RsoAuthenticatorV1Captcha::getHcaptcha)
+                                                      .orElseThrow(() -> new ExecutionException(new IllegalStateException()));
 
         return HCaptchaDTO.builder()
-                .data(hcaptcha.getData())
-                .key(hcaptcha.getKey())
-                .build();
+                          .data(hcaptcha.getData())
+                          .key(hcaptcha.getKey())
+                          .build();
     }
 
     public LoginStatusDTO login(LoginInputDTO input) throws ExecutionException, IllegalStateException, IllegalArgumentException, MultifactorRequiredException {
@@ -184,19 +193,19 @@ public class LoginV1ServiceImpl implements LoginV1Service {
                 LoginInputDTO::getRemember
         );
 
-        AuthenticationStateDTO currentState = rsoAuthenticationManager
+        AuthenticationState currentState = rsoAuthenticationManager
                 .getView();
 
         ServletUtils.assertEqual(
                 "ExpectAuthState",
                 LoginStatusDTO.LOGGED_OUT,
-                currentState.getLoginStatus()
+                currentState.getDiscriminator()
         );
 
         CoreSdkApi coreSdkApiClient = riotClientService.getApi(CoreSdkApi.class)
-                .orElseThrow(
-                        () -> new IllegalStateException("Failed to get CoreSdkApi client")
-                );
+                                                       .orElseThrow(
+                                                               () -> new IllegalStateException("Failed to get CoreSdkApi client")
+                                                       );
 
         final RsoAuthenticatorV1AuthenticationResponse authenticationResponse;
 
@@ -229,9 +238,9 @@ public class LoginV1ServiceImpl implements LoginV1Service {
         final RsoAuthenticatorV1SuccessResponseDetails successResponse = authenticationResponse.getSuccess();
 
         if (successResponse == null ||
-                successResponse.getLoginToken() == null ||
-                successResponse.getLoginToken()
-                        .isBlank()) {
+            successResponse.getLoginToken() == null ||
+            successResponse.getLoginToken()
+                           .isBlank()) {
             final RsoAuthenticatorV1MultifactorResponseDetails multifactorDetails = authenticationResponse.getMultifactor();
             if (multifactorDetails == null || multifactorDetails.getAuthMethod() == null) {
                 throw new ExecutionException(new IllegalArgumentException("Auth method is null"));
@@ -250,12 +259,12 @@ public class LoginV1ServiceImpl implements LoginV1Service {
 
     private LoginStatusDTO resumeNormalAuthflow(RsoAuthenticatorV1AuthenticationResponse authResponse) throws ExecutionException {
         String loginToken = authResponse.getSuccess()
-                .getLoginToken();
+                                        .getLoginToken();
 
         CoreSdkApi coreSdkApiClient = riotClientService.getApi(CoreSdkApi.class)
-                .orElseThrow(
-                        () -> new IllegalStateException("Failed to get CoreSdkApi client")
-                );
+                                                       .orElseThrow(
+                                                               () -> new IllegalStateException("Failed to get CoreSdkApi client")
+                                                       );
 
         final RsoAuthSessionResponse authSessionResponse;
 
@@ -305,19 +314,23 @@ public class LoginV1ServiceImpl implements LoginV1Service {
                 MultifactorInputDTO::getRememberDevice
         );
 
-        AuthenticationStateDTO currentState = rsoAuthenticationManager
+        AuthenticationState currentState = rsoAuthenticationManager
                 .getView();
 
-        ServletUtils.assertEqual(
-                "ExpectAuthState",
-                LoginStatusDTO.MULTIFACTOR_REQUIRED,
-                currentState.getLoginStatus()
-        );
+
+        if (!(currentState instanceof MultifactorRequiredState)) {
+            throw new IllegalStateException("Expected " +
+                                            LoginStatusDTO.MULTIFACTOR_REQUIRED +
+                                            ", but got " +
+                                            Optional.ofNullable(currentState)
+                                                    .orElse(new UnknownState())
+                                                    .getDiscriminator());
+        }
 
         CoreSdkApi coreSdkApiClient = riotClientService.getApi(CoreSdkApi.class)
-                .orElseThrow(
-                        () -> new IllegalStateException("Failed to get CoreSdkApi client")
-                );
+                                                       .orElseThrow(
+                                                               () -> new IllegalStateException("Failed to get CoreSdkApi client")
+                                                       );
 
         final RsoAuthenticatorV1AuthenticationResponse authenticationResponse;
         try {
@@ -341,9 +354,9 @@ public class LoginV1ServiceImpl implements LoginV1Service {
 
     public void logout() throws ExecutionException {
         CoreSdkApi coreSdkApiClient = riotClientService.getApi(CoreSdkApi.class)
-                .orElseThrow(
-                        () -> new IllegalStateException("Failed to get CoreSdkApi client")
-                );
+                                                       .orElseThrow(
+                                                               () -> new IllegalStateException("Failed to get CoreSdkApi client")
+                                                       );
 
         final RsoAuthAuthorizationResponse grantsResponse;
         try {
