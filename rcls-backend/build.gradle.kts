@@ -1,4 +1,12 @@
+val READ_INVALID_STRING = "unspecified";
+
 val mockitoAgent = configurations.create("mockitoAgent")
+val buildVersion = project.findProperty("version")
+    ?.takeIf { it != READ_INVALID_STRING }
+    ?.toString()
+    ?: System.getenv("VERSION")
+        ?.takeIf { it != READ_INVALID_STRING }
+    ?: "dev-SNAPSHOT"
 
 plugins {
     java
@@ -8,8 +16,8 @@ plugins {
     id("org.springdoc.openapi-gradle-plugin") version "1.9.0"
 }
 
+
 group = "com.julianw03"
-version = "0.0.2"
 
 java {
     toolchain {
@@ -91,7 +99,7 @@ tasks.jar {
 }
 
 tasks.bootJar {
-    this.archiveFileName.set("RCLS-v${version}.${archiveExtension.get()}");
+    this.archiveFileName.set("RCLS-${buildVersion}.${archiveExtension.get()}");
 }
 
 tasks.test {
