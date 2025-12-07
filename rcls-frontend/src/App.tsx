@@ -64,11 +64,6 @@ function App() {
             <div className={"mainDivider"}>
                 <div className={"loginMediaSection"}>
                     <DynamicBackground/>
-                    {/**TODO: Replace with actual Sound when supported*/}
-                    <audio autoPlay={true} controls={false} loop={true}>
-                        <source
-                            src={"https://raw.communitydragon.org/13.15/plugins/rcp-be-lol-game-data/global/default/assets/events/sfm2023marketing/sfx-sfmk-mus.ogg"}/>
-                    </audio>
                 </div>
                 <div className={"loginDataSection"}>
                     <div>Riot Client Login Screens Prototype</div>

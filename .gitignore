@@ -35,6 +35,7 @@
 /rcls-backend/.gradle
 /rcls-backend/gradle
 /rcls-backend/build/
+/rcls-backend/src/main/resources/application-dev.yml
 
 ### IntelliJ IDEA ###
 /rcls-backend/.idea

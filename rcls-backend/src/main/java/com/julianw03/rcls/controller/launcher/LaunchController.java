@@ -105,7 +105,7 @@ public class LaunchController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "204",
-                    description = "Successfully launched the game with the specified game ID and patchline ID"
+                    description = "Successfully launched the game with the specified game ID and patchlineId ID"
             )
     })
     public ResponseEntity<Void> launchGameWithPatchline(@PathVariable String gameId, @PathVariable String patchlineId, @RequestParam(required = false) SupportedGame.ResolveStrategy lookupStrategy) throws FailFastException, ExecutionException {

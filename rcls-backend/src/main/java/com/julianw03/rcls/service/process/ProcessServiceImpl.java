@@ -299,7 +299,7 @@ public class ProcessServiceImpl extends BaseService implements ProcessService {
                                                                                          .map(this::killProcess)
                                                                                          .toList();
                             if (futures.isEmpty()) {
-                                throw new NoSuchProcessException("No running Riot Client Services process found");
+                                CompletableFuture.failedFuture(new NoSuchProcessException("No running Riot Client Services process found"));
                             }
 
                             return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));

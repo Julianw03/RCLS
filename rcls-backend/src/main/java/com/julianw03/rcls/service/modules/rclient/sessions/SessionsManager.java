@@ -5,7 +5,7 @@ import com.julianw03.rcls.eventBus.model.MultiChannelBus;
 import com.julianw03.rcls.generated.api.CoreSdkApi;
 import com.julianw03.rcls.generated.model.ProductSessionSession;
 import com.julianw03.rcls.model.RCUWebsocketMessage;
-import com.julianw03.rcls.model.data.PublishingMapDataManager;
+import com.julianw03.rcls.model.data.MapDataManager;
 import com.julianw03.rcls.service.riotclient.RiotClientService;
 import org.springframework.stereotype.Component;
 
@@ -16,7 +16,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Component
-public class SessionsManager extends PublishingMapDataManager<String, ProductSessionSession, ProductSessionSession> {
+public class SessionsManager extends MapDataManager<String, ProductSessionSession, ProductSessionSession> {
     private static final Pattern lolProductSessionPattern = Pattern.compile("^/product-session/v1/sessions/([\\w-_]{0,50})$");
 
     public SessionsManager(

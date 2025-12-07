@@ -16,6 +16,10 @@ management:
       exposure:
         include: "health"
 
+logging:
+  level:
+    com.julianw03.rcls: INFO
+
 feign:
   httpclient:
     disableSslValidation: true

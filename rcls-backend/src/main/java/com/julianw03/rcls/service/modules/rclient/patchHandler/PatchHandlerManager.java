@@ -4,23 +4,27 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.julianw03.rcls.eventBus.model.MultiChannelBus;
 import com.julianw03.rcls.generated.api.PluginPatchProxyApi;
 import com.julianw03.rcls.generated.api.PluginRnetProductRegistryApi;
-import com.julianw03.rcls.generated.model.PatchProxyPatchingResource;
-import com.julianw03.rcls.generated.model.RnetProductRegistryPatchline;
-import com.julianw03.rcls.generated.model.RnetProductRegistryProductV4;
+import com.julianw03.rcls.generated.model.*;
 import com.julianw03.rcls.model.RCUWebsocketMessage;
+import com.julianw03.rcls.model.SupportedGame;
 import com.julianw03.rcls.model.data.PublishingMapDataManager;
+import com.julianw03.rcls.service.modules.rclient.patchHandler.model.CompositePatchlineKey;
+import com.julianw03.rcls.service.modules.rclient.patchHandler.model.PatchStateDTO;
+import com.julianw03.rcls.service.modules.rclient.patchHandler.model.states.*;
 import com.julianw03.rcls.service.riotclient.RiotClientService;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Component
-public class PatchHandlerManager extends PublishingMapDataManager<String, Map<String, PatchProxyPatchingResource>, Map<String, PatchProxyPatchingResource>> {
+public class PatchHandlerManager extends PublishingMapDataManager<CompositePatchlineKey, PatchProxyPatchingResource, PatchState, PatchStateDTO> {
+
+    private static final Pattern PATCH_PROXY_PATTERN = Pattern.compile("^/patch-proxy/v1/patch-states/products/(\\w+)/patchlines/(\\w+)$");
 
     public PatchHandlerManager(
             RiotClientService riotClientService,
@@ -32,103 +36,193 @@ public class PatchHandlerManager extends PublishingMapDataManager<String, Map<St
         );
     }
 
-    private static final Pattern PATCH_PROXY_PATTERN = Pattern.compile("^/patch-proxy/v1/patch-states/products/(\\w+)/patchlines/(\\w+)$");
+    @Override
+    protected PatchStateDTO mapPublishingValueView(PatchProxyPatchingResource state) {
+        return PatchStateDTO.map(mapValueView(state));
+    }
 
     @Override
-    protected CompletableFuture<Map<String, Map<String, PatchProxyPatchingResource>>> doFetchInitialData() {
-        log.info("Fetching initial data...");
-        return CompletableFuture.supplyAsync(
-                () -> {
-                    PluginRnetProductRegistryApi rnetProductRegistryApi = riotClientService.getApi(PluginRnetProductRegistryApi.class)
-                                                                                           .orElseThrow();
-
-                    List<RnetProductRegistryProductV4> products = rnetProductRegistryApi.rnetProductRegistryV4ProductsGet();
-
-                    final Map<String, Set<String>> productMap = products.stream()
-                                                                        .collect((Collectors.toMap(
-                                                                                RnetProductRegistryProductV4::getId,
-                                                                                product -> product.getPatchlines()
-                                                                                                  .stream()
-                                                                                                  .filter(Objects::nonNull)
-                                                                                                  .filter(patchline -> {
-                                                                                                      final String platform = patchline.getPlatform();
-                                                                                                      return Optional.ofNullable(patchline.getAvailablePlatforms())
-                                                                                                                     .map(availablePlatforms -> availablePlatforms.contains(platform))
-                                                                                                                     .orElse(false);
-                                                                                                  })
-                                                                                                  .map(RnetProductRegistryPatchline::getId)
-                                                                                                  .collect(Collectors.toSet())
-                                                                        )));
-
-                    final Map<String, Map<String, PatchProxyPatchingResource>> patches = new ConcurrentHashMap<>();
-
-                    productMap.keySet().parallelStream().forEach(productId -> {
-                        final Map<String, PatchProxyPatchingResource> productPatches = new HashMap<>();
-                        for (String patchLine : productMap.get(productId)) {
-                            log.debug(
-                                    "Fetching initial data for {} {}",
-                                    productId,
-                                    patchLine
-                            );
-                            final PatchProxyPatchingResource patchProxyPatchingResource = handleInitialSet(
-                                    productId,
-                                    patchLine
-                            );
-
-                            if (patchProxyPatchingResource == null) continue;
-
-                            productPatches.put(
-                                    patchLine,
-                                    patchProxyPatchingResource
-                            );
-                        }
-                        patches.put(
-                                productId,
-                                productPatches
+    protected PatchState mapValueView(PatchProxyPatchingResource value) {
+        if (value == null) return new UnknownState();
+        switch (value.getCombinedPatchState()) {
+            case UP_TO_DATE -> {
+                return new UpToDateState();
+            }
+            case UPDATING -> {
+                PatchProxyPatchStatus status = value.getPatchStatus();
+                final double totalProgressPercent = Optional.ofNullable(status.getProgress()
+                                                                              .getProgress())
+                                                            .orElse(0.0);
+                switch (status.getState()) {
+                    case REPAIRING -> {
+                        return Optional.ofNullable(status.getProgress())
+                                       .map(PatchProxyProgress::getRepair)
+                                       .map(repairState -> new RepairInProgressState.Progress(
+                                               totalProgressPercent,
+                                               repairState.getBytesToRepair(),
+                                               repairState.getFilesToRepair(),
+                                               repairState.getRepairedBytes(),
+                                               repairState.getRepairedFiles()
+                                       ))
+                                       .map(progress -> (PatchState) new RepairInProgressState(progress))
+                                       .orElseGet(() -> {
+                                           log.warn("Repair progress is null despite being in REPAIRING state");
+                                           return RepairInProgressState.ZERO_PROGRESS;
+                                       });
+                    }
+                    case UPDATING -> {
+                        return Optional.ofNullable(status.getProgress())
+                                       .map(PatchProxyProgress::getUpdate)
+                                       .map(updateState -> new UpdateInProgressState.Progress(
+                                               totalProgressPercent,
+                                               updateState.getBytesToDownload(),
+                                               updateState.getBytesToRead(),
+                                               updateState.getBytesToWrite(),
+                                               updateState.getDownloadedBytes(),
+                                               updateState.getReadBytes(),
+                                               updateState.getStage(),
+                                               updateState.getWrittenBytes()
+                                       ))
+                                       .map(progress -> (PatchState) new UpdateInProgressState(progress))
+                                       .orElseGet(() -> {
+                                           log.warn("Update progress is null despite being in UPDATING state");
+                                           return UpdateInProgressState.ZERO_PROGRESS;
+                                       });
+                    }
+                    case null, default -> {
+                        log.warn(
+                                "Unknown updating state {}",
+                                status.getState()
                         );
-                    });
-
-
-                    return patches;
+                        return new UnknownState();
+                    }
                 }
-        );
+            }
+            case NOT_INSTALLED -> {
+                return new NotInstalledState();
+            }
+            case OUT_OF_DATE -> {
+                return new OutOfDateState(
+                        new OutOfDateState.Info(
+                                Optional.ofNullable(value.getUserCancelledPatching())
+                                        .orElse(false)
+                        ));
+            }
+            case AWAITING_HEADERS -> {
+                return new AwaitingPatchDataState();
+            }
+            case null, default -> {
+                log.debug(
+                        "Unsupported State {}",
+                        value.getCombinedPatchState()
+                );
+                return new UnknownState();
+            }
+        }
     }
 
     @Override
-    protected void onStateUpdated(
-            Map<String, Map<String, PatchProxyPatchingResource>> previousState,
-            Map<String, Map<String, PatchProxyPatchingResource>> newState
-    ) {
-        log.info("Updating entire patch proxy state");
-        super.onStateUpdated(
-                previousState,
-                newState
-        );
+    protected CompletableFuture<Map<CompositePatchlineKey, PatchProxyPatchingResource>> doFetchInitialData() {
+        log.info("Fetching initial data...");
+        return CompletableFuture.supplyAsync(this::getProducts)
+                                .orTimeout(
+                                        5,
+                                        TimeUnit.SECONDS
+                                )
+                                .thenApply(products -> {
+                                    final Map<String, Set<String>> productMap = products.stream()
+                                                                                        .collect((Collectors.toMap(
+                                                                                                RnetProductRegistryProductV4::getId,
+                                                                                                product -> product.getPatchlines()
+                                                                                                                  .stream()
+                                                                                                                  .filter(Objects::nonNull)
+                                                                                                                  .filter(patchline -> {
+                                                                                                                      final String platform = patchline.getPlatform();
+                                                                                                                      return Optional.ofNullable(patchline.getAvailablePlatforms())
+                                                                                                                                     .map(availablePlatforms -> availablePlatforms.contains(platform))
+                                                                                                                                     .orElse(false);
+                                                                                                                  })
+                                                                                                                  .map(RnetProductRegistryPatchline::getId)
+                                                                                                                  .collect(Collectors.toSet())
+                                                                                        )));
+
+
+                                    return productMap.entrySet()
+                                                     .parallelStream()
+                                                     .flatMap(entry -> SupportedGame.ResolveStrategy.RIOT_INTERNAL_NAME.resolve(entry.getKey())
+                                                                                                                       .stream()
+                                                                                                                       .flatMap(supportedGame -> entry.getValue()
+                                                                                                                                                      .stream()
+                                                                                                                                                      .map(patchlineId -> byPatchlineIdAndSupportedGame(
+                                                                                                                                                              patchlineId,
+                                                                                                                                                              supportedGame
+                                                                                                                                                      ))
+                                                                                                                                                      .filter(Objects::nonNull)
+                                                                                                                       )
+                                                     )
+                                                     .collect(Collectors.toMap(
+                                                             data -> data.key,
+                                                             data -> data.resource
+                                                     ));
+
+                                });
     }
 
-    private PatchProxyPatchingResource handleInitialSet(
-            String productId,
-            String patchlineId
+    private List<RnetProductRegistryProductV4> getProducts() {
+        PluginRnetProductRegistryApi rnetProductRegistryApi = riotClientService.getApi(PluginRnetProductRegistryApi.class)
+                                                                               .orElseThrow();
+
+        return rnetProductRegistryApi.rnetProductRegistryV4ProductsGet();
+    }
+
+    private Optional<PatchProxyPatchingResource> handleInitialDataFetch(
+            CompositePatchlineKey key
     ) {
         PluginPatchProxyApi patchProxyApi = riotClientService.getApi(PluginPatchProxyApi.class)
                                                              .orElseThrow();
 
+        log.trace(
+                "Fetching initial patch proxy data for key: {}",
+                key
+        );
         PatchProxyPatchingResource patchProxyPatchingResource = null;
         try {
             patchProxyPatchingResource = patchProxyApi.patchProxyV1PatchStatesProductsProductIdPatchlinesPatchlineIdGet(
-                    productId,
-                    patchlineId
+                    key.game()
+                       .getRiotInternalName(),
+                    key.patchlineId()
             );
-            log.debug("Fetched initial patch proxy data for productId: {}, patchlineId: {}", productId, patchlineId);
+            log.debug(
+                    "Fetched initial patch proxy data for key {}",
+                    key
+            );
         } catch (Exception e) {
             log.warn(
-                    "Failed to fetch initial patch proxy data for productId: {}, patchlineId: {}",
-                    productId,
-                    patchlineId
+                    "Failed to fetch initial patch proxy data for key: {}: {}",
+                    key,
+                    e
             );
         }
 
-        return patchProxyPatchingResource;
+        return Optional.ofNullable(patchProxyPatchingResource);
+    }
+
+
+    private CollectablePatchData byPatchlineIdAndSupportedGame(
+            String patchlineId,
+            SupportedGame game
+    ) {
+        CompositePatchlineKey key = new CompositePatchlineKey(
+                game,
+                patchlineId
+        );
+
+        return handleInitialDataFetch(key)
+                .map(resource -> new CollectablePatchData(
+                        key,
+                        resource
+                ))
+                .orElse(null);
     }
 
     @Override
@@ -154,10 +248,24 @@ public class PatchHandlerManager extends PublishingMapDataManager<String, Map<St
         final String productId = uriMatcher.group(1);
         final String patchlineId = uriMatcher.group(2);
 
-        log.info(
-                "Updating patch proxy with productId: {}, patchlineId: {}",
-                productId,
+        Optional<SupportedGame> optGame = SupportedGame.ResolveStrategy.RIOT_INTERNAL_NAME.resolve(productId);
+
+        if (optGame.isEmpty()) {
+            log.warn(
+                    "Unsupported productId received in patch proxy update: {}",
+                    productId
+            );
+            return;
+        }
+
+        final CompositePatchlineKey key = new CompositePatchlineKey(
+                optGame.get(),
                 patchlineId
+        );
+
+        log.debug(
+                "Updating patch proxy with CompositePatchlineKey: {}",
+                key
         );
 
         switch (type) {
@@ -174,23 +282,14 @@ public class PatchHandlerManager extends PublishingMapDataManager<String, Map<St
                     return;
                 }
 
-                if (!this.initialFetchDone.get()) {
-                    log.info("Initial fetch not done yet, skipping update");
-                    return;
-                }
-
                 PatchProxyPatchingResource patchlineResource = resource.get();
-                putPatchline(
-                        productId,
-                        patchlineId,
+                put(
+                        key,
                         patchlineResource
                 );
             }
             case DELETE -> {
-                removePatchline(
-                        productId,
-                        patchlineId
-                );
+                remove(key);
             }
             case null, default -> {
                 log.warn(
@@ -201,57 +300,7 @@ public class PatchHandlerManager extends PublishingMapDataManager<String, Map<St
         }
     }
 
-    synchronized void putPatchline(
-            String productId,
-            String patchlineId,
-            PatchProxyPatchingResource resource
-    ) {
-        Map<String, PatchProxyPatchingResource> patchlines = get(productId);
-        if (patchlines == null) {
-            patchlines = new HashMap<>();
-        } else {
-            patchlines = new HashMap<>(patchlines);
-        }
 
-        patchlines.put(
-                patchlineId,
-                resource
-        );
-
-        put(
-                productId,
-                patchlines
-        );
-    }
-
-    synchronized void removePatchline(
-            String productId,
-            String patchlineId
-    ) {
-        Map<String, PatchProxyPatchingResource> patchlines = get(productId);
-        if (patchlines == null) {
-            log.warn(
-                    "No patchlines found for productId: {}",
-                    productId
-            );
-            return;
-        }
-
-        patchlines = new HashMap<>(patchlines);
-        patchlines.remove(patchlineId);
-
-        if (patchlines.isEmpty()) {
-            remove(productId);
-        } else {
-            put(
-                    productId,
-                    patchlines
-            );
-        }
-    }
-
-    @Override
-    protected Map<String, PatchProxyPatchingResource> mapValueView(Map<String, PatchProxyPatchingResource> value) {
-        return Collections.unmodifiableMap(value);
+    private record CollectablePatchData(CompositePatchlineKey key, PatchProxyPatchingResource resource) {
     }
 }

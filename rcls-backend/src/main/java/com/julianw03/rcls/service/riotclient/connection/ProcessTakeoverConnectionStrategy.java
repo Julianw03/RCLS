@@ -90,6 +90,9 @@ public class ProcessTakeoverConnectionStrategy implements RiotClientConnectionSt
 
         try {
             processService.killRiotClientProcess();
+            log.debug("Successfully killed previous Riot Client instance");
+        } catch (NoSuchProcessException ex) {
+          log.debug("No running Riot Client process found");
         } catch (Exception e) {
             log.error(
                     "Failed to kill current Riot Client instance",
@@ -100,11 +103,14 @@ public class ProcessTakeoverConnectionStrategy implements RiotClientConnectionSt
                     e
             );
         }
-        log.debug("Successfully killed previous Riot Client instance");
+
 
         try {
             processService.killRiotClientServices();
-        } catch (NoSuchProcessException | FailFastException e) {
+            log.debug("Killed previous Riot Client Services instance");
+        } catch (NoSuchProcessException e) {
+            log.debug("No running Riot Client services found");
+        } catch (FailFastException e) {
             log.error(
                     "Failed to kill current Riot Client services instance",
                     e
@@ -114,7 +120,6 @@ public class ProcessTakeoverConnectionStrategy implements RiotClientConnectionSt
                     e
             );
         }
-        log.debug("Killed previous Riot Client Services instance");
 
         try {
             processService.startRiotClientServices(parameters);

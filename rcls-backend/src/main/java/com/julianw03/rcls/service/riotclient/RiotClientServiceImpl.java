@@ -20,8 +20,6 @@ import com.julianw03.rcls.service.riotclient.api.RiotClientError;
 import com.julianw03.rcls.service.riotclient.connection.RiotClientConnectionStrategy;
 import com.julianw03.rcls.service.riotclient.ssl.RiotSSLContext;
 import feign.Client;
-import feign.RequestInterceptor;
-import feign.RequestTemplate;
 import org.openapitools.jackson.nullable.JsonNullableModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -402,30 +400,16 @@ public class RiotClientServiceImpl extends RiotClientService {
                                                                                                      session
                                                                                              )
                                             ))
-                                            .requestInterceptor((request) -> {
-                                                RiotClientConnectionParameters parameters = getConnectionParameters();
-                                                if (parameters == null) return;
-
-                                                request.header(
-                                                        HttpHeaders.AUTHORIZATION,
-                                                        parameters.getAuthHeader()
-                                                );
-                                            })
                                             .encoder(new feign.jackson.JacksonEncoder(mapper))
                                             .decoder(new feign.jackson.JacksonDecoder(mapper))
                             );
             this.apiClient = apiClient;
             this.apiClient.addAuthorization(
                     "basicAuth",
-                    new RequestInterceptor() {
-                        @Override
-                        public void apply(RequestTemplate template) {
-                            template.header(
-                                    HttpHeaders.AUTHORIZATION,
-                                    parameters.getAuthHeader()
-                            );
-                        }
-                    }
+                    template -> template.header(
+                            HttpHeaders.AUTHORIZATION,
+                            parameters.getAuthHeader()
+                    )
             );
         }
         return Optional.of(apiClient);
@@ -594,7 +578,7 @@ public class RiotClientServiceImpl extends RiotClientService {
         return future;
     }
 
-    public CompletableFuture<Void> awaitRestReady(RiotClientConnectionParameters parametersToTest) {
+    private CompletableFuture<Void> awaitRestReady(RiotClientConnectionParameters parametersToTest) {
         CompletableFuture<Void> future = new CompletableFuture<>();
         futureExecutorService.schedule(
                 new Runnable() {
